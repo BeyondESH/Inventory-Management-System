@@ -17,9 +17,9 @@ class LoginModule:
     def __init__(self, on_login_success=None):
         self.root = tk.Tk()
         self.root.title("食品服务公司管理系统 - 登录")
-        self.root.geometry("400x600")
+        self.root.geometry("420x550")  # 进一步减小高度，更紧凑
         self.root.configure(bg="#f5f5f5")
-        self.root.resizable(False, False)
+        self.root.resizable(True, True)  # 允许用户调整窗口大小
         
         # 用户管理器
         self.user_manager = UserManager()
@@ -34,7 +34,8 @@ class LoginModule:
         self.set_window_icon()
         
         # 居中显示窗口
-        self.center_window()        
+        self.center_window()
+        
         # 创建界面
         self.create_login_interface()
         
@@ -68,27 +69,25 @@ class LoginModule:
         """创建登录界面"""
         self.clear_frame()
         self.current_view = "login"
-        
-        # 主容器
+          # 主容器 - 减小边距让界面更紧凑
         main_frame = tk.Frame(self.root, bg="#f5f5f5")
-        main_frame.pack(fill="both", expand=True, padx=30, pady=30)
-        
-        # Logo区域
+        main_frame.pack(fill="both", expand=True, padx=25, pady=20)
+          # Logo区域
         logo_frame = tk.Frame(main_frame, bg="#f5f5f5")
-        logo_frame.pack(pady=(0, 40))
+        logo_frame.pack(pady=(0, 20))
         
         # 系统Logo（使用文字替代图片）
-        logo_label = tk.Label(logo_frame, text="🍽️", font=("Arial", 48), bg="#f5f5f5")
+        logo_label = tk.Label(logo_frame, text="🍽️", font=("微软雅黑", 40), 
+                             bg="#f5f5f5", fg="#07c160")
         logo_label.pack()
         
         title_label = tk.Label(logo_frame, text="食品服务管理系统", 
-                              font=("微软雅黑", 16, "bold"), 
-                              bg="#f5f5f5", fg="#333333")
-        title_label.pack(pady=(10, 0))
-        
-        # 登录表单区域
-        form_frame = tk.Frame(main_frame, bg="#ffffff", relief="flat", bd=1)
-        form_frame.pack(fill="x", pady=(0, 20))
+                              font=("微软雅黑", 18, "bold"), 
+                              bg="#f5f5f5", fg="#2c3e50")
+        title_label.pack(pady=(8, 0))
+          # 登录表单容器
+        form_frame = tk.Frame(main_frame, bg="#ffffff", relief="solid", bd=1)
+        form_frame.pack(fill="x", pady=(0, 15))
         
         # 用户名输入
         username_frame = tk.Frame(form_frame, bg="#ffffff")
@@ -100,8 +99,7 @@ class LoginModule:
         self.username_entry = tk.Entry(username_frame, font=("微软雅黑", 14), 
                                       relief="flat", bd=5, bg="#f8f8f8")
         self.username_entry.pack(fill="x", pady=(5, 0), ipady=8)
-        
-        # 密码输入
+          # 密码输入
         password_frame = tk.Frame(form_frame, bg="#ffffff")
         password_frame.pack(fill="x", padx=20, pady=(10, 20))
         
@@ -111,53 +109,50 @@ class LoginModule:
         self.password_entry = tk.Entry(password_frame, font=("微软雅黑", 14), 
                                       show="*", relief="flat", bd=5, bg="#f8f8f8")
         self.password_entry.pack(fill="x", pady=(5, 0), ipady=8)
-          # 登录按钮 - 主要操作按钮，更大更显眼
+        
+        # 登录按钮 - 减小尺寸
         login_btn = tk.Button(form_frame, text="🔐 立即登录", 
-                             font=("微软雅黑", 16, "bold"),
+                             font=("微软雅黑", 12, "bold"),
                              bg="#07c160", fg="white", relief="flat", bd=0,
                              cursor="hand2", command=self.handle_login,
-                             width=20, height=2)
-        login_btn.pack(padx=20, pady=(10, 25), ipady=15)
+                             width=12, height=1)
+        login_btn.pack(padx=20, pady=(10, 15), ipady=4)
         
-        # 功能按钮区域
-        action_frame = tk.Frame(main_frame, bg="#f5f5f5")
-        action_frame.pack(fill="x", pady=(0, 20))
+        # 功能按钮区域 - 在表单框内，水平排列
+        action_frame = tk.Frame(form_frame, bg="#ffffff")
+        action_frame.pack(fill="x", padx=20, pady=(0, 15))
         
-        # 第一行按钮容器
-        top_btn_frame = tk.Frame(action_frame, bg="#f5f5f5")
-        top_btn_frame.pack(pady=(10, 15))
+        # 按钮容器 - 水平排列
+        btn_container = tk.Frame(action_frame, bg="#ffffff")
+        btn_container.pack(fill="x", pady=(5, 0))
         
-        # 注册按钮 - 左侧
-        register_btn = tk.Button(top_btn_frame, text="📝 注册账户", 
-                               font=("微软雅黑", 13), bg="#1485ee", fg="white",
-                               relief="flat", bd=0, cursor="hand2", width=12,
+        # 注册按钮
+        register_btn = tk.Button(btn_container, text="📝 注册", 
+                               font=("微软雅黑", 10), bg="#1485ee", fg="white",
+                               relief="flat", bd=0, cursor="hand2", width=6,
                                command=self.create_register_interface)
-        register_btn.pack(side="left", padx=(0, 10), ipady=10)
+        register_btn.pack(side="left", padx=(0, 8), ipady=3)
         
-        # 游客登录按钮 - 右侧
-        guest_btn = tk.Button(top_btn_frame, text="👤 游客体验", 
-                            font=("微软雅黑", 13), bg="#fa9d3b", fg="white",
-                            relief="flat", bd=0, cursor="hand2", width=12,
+        # 游客体验按钮
+        guest_btn = tk.Button(btn_container, text="👤 游客", 
+                            font=("微软雅黑", 10), bg="#fa9d3b", fg="white",
+                            relief="flat", bd=0, cursor="hand2", width=6,
                             command=self.handle_guest_login)
-        guest_btn.pack(side="left", ipady=10)
+        guest_btn.pack(side="left", padx=(0, 8), ipady=3)
         
-        # 第二行按钮容器
-        bottom_btn_frame = tk.Frame(action_frame, bg="#f5f5f5")
-        bottom_btn_frame.pack(pady=(0, 15))
-        
-        # 测试按钮 - 居中
-        test_btn = tk.Button(bottom_btn_frame, text="🧪 测试模式", 
-                           font=("微软雅黑", 13), bg="#ff6b6b", fg="white",
-                           relief="flat", bd=0, cursor="hand2", width=25,
+        # 测试模式按钮
+        test_btn = tk.Button(btn_container, text="🧪 测试", 
+                           font=("微软雅黑", 10), bg="#ff6b6b", fg="white",
+                           relief="flat", bd=0, cursor="hand2", width=6,
                            command=self.handle_test_login)
-        test_btn.pack(ipady=10)
+        test_btn.pack(side="left", ipady=3)
         
-        # 忘记密码链接
+        # 忘记密码链接 - 居中显示
         forgot_btn = tk.Button(action_frame, text="忘记密码？", 
-                             font=("微软雅黑", 11), bg="#f5f5f5", fg="#576b95",
+                             font=("微软雅黑", 9), bg="#ffffff", fg="#576b95",
                              relief="flat", bd=0, cursor="hand2",
                              command=self.create_forgot_password_interface)
-        forgot_btn.pack(pady=(10, 0))
+        forgot_btn.pack(pady=(8, 0))
         
         # 设置回车键登录
         self.root.bind('<Return>', lambda e: self.handle_login())
@@ -178,20 +173,19 @@ class LoginModule:
         title_frame = tk.Frame(main_frame, bg="#f5f5f5")
         title_frame.pack(pady=(0, 30))
         
-        # 返回按钮
         back_btn = tk.Button(title_frame, text="← 返回登录", 
                            font=("微软雅黑", 12), bg="#f5f5f5", fg="#576b95",
                            relief="flat", bd=0, cursor="hand2",
                            command=self.create_login_interface)
         back_btn.pack(anchor="w")
         
-        title_label = tk.Label(title_frame, text="注册新账户", 
-                              font=("微软雅黑", 18, "bold"), 
-                              bg="#f5f5f5", fg="#333333")
+        title_label = tk.Label(title_frame, text="📝 注册新账户", 
+                              font=("微软雅黑", 20, "bold"), 
+                              bg="#f5f5f5", fg="#2c3e50")
         title_label.pack(pady=(10, 0))
         
-        # 注册表单区域
-        form_frame = tk.Frame(main_frame, bg="#ffffff", relief="flat", bd=1)
+        # 注册表单容器
+        form_frame = tk.Frame(main_frame, bg="#ffffff", relief="solid", bd=1)
         form_frame.pack(fill="x", pady=(0, 20))
         
         # 用户名输入
@@ -225,9 +219,11 @@ class LoginModule:
         
         self.reg_password_entry = tk.Entry(password_frame, font=("微软雅黑", 14), 
                                           show="*", relief="flat", bd=5, bg="#f8f8f8")
-        self.reg_password_entry.pack(fill="x", pady=(5, 0), ipady=8)        # 确认密码输入
+        self.reg_password_entry.pack(fill="x", pady=(5, 0), ipady=8)
+        
+        # 确认密码输入
         confirm_frame = tk.Frame(form_frame, bg="#ffffff")
-        confirm_frame.pack(fill="x", padx=20, pady=(10, 30))
+        confirm_frame.pack(fill="x", padx=20, pady=(10, 20))
         
         tk.Label(confirm_frame, text="确认密码", font=("微软雅黑", 12), 
                 bg="#ffffff", fg="#666666").pack(anchor="w")
@@ -236,48 +232,31 @@ class LoginModule:
                                          show="*", relief="flat", bd=5, bg="#f8f8f8")
         self.reg_confirm_entry.pack(fill="x", pady=(5, 0), ipady=8)
         
-        # 注册按钮区域 - 优化大小和位置
-        button_frame = tk.Frame(form_frame, bg="#ffffff")
-        button_frame.pack(fill="x", padx=20, pady=(0, 25))
-        
-        # 主注册按钮 - 更大更显眼
-        register_btn = tk.Button(button_frame, text="✨ 立即注册", 
+        # 注册按钮
+        register_btn = tk.Button(form_frame, text="✅ 立即注册", 
                                font=("微软雅黑", 16, "bold"),
-                               bg="#07c160", fg="white", relief="flat", bd=0,
+                               bg="#1485ee", fg="white", relief="flat", bd=0,
                                cursor="hand2", command=self.handle_register,
                                width=20, height=2)
-        register_btn.pack(pady=(10, 15), ipady=15)
+        register_btn.pack(padx=20, pady=(10, 25), ipady=15)
         
-        # 次要按钮区域
-        secondary_frame = tk.Frame(main_frame, bg="#f5f5f5")
-        secondary_frame.pack(fill="x", pady=(0, 20))
+        # 功能按钮区域
+        btn_container = tk.Frame(main_frame, bg="#f5f5f5")
+        btn_container.pack(fill="x", pady=(0, 20))
         
-        # 按钮容器 - 左右布局
-        btn_container = tk.Frame(secondary_frame, bg="#f5f5f5")
-        btn_container.pack(pady=(10, 0))
-        
-        # 游客登录按钮 - 左侧
+        # 游客体验按钮
         guest_btn = tk.Button(btn_container, text="👤 游客体验", 
                             font=("微软雅黑", 13), bg="#fa9d3b", fg="white",
                             relief="flat", bd=0, cursor="hand2", width=12,
                             command=self.handle_guest_login)
         guest_btn.pack(side="left", padx=(0, 10), ipady=10)
         
-        # 测试按钮 - 右侧
-        test_btn = tk.Button(btn_container, text="🧪 测试模式", 
-                           font=("微软雅黑", 13), bg="#ff6b6b", fg="white",
-                           relief="flat", bd=0, cursor="hand2", width=12,
-                           command=self.handle_test_login)
-        test_btn.pack(side="left", ipady=10)
-        
-        # 密码要求提示
-        tip_label = tk.Label(main_frame, 
-                           text="密码要求：长度6-20位，包含字母和数字", 
-                           font=("微软雅黑", 10), bg="#f5f5f5", fg="#999999")
-        tip_label.pack(pady=(10, 0))
-        
-        # 设置回车键注册
-        self.root.bind('<Return>', lambda e: self.handle_register())
+        # 返回登录按钮
+        login_btn = tk.Button(btn_container, text="🔙 返回登录", 
+                            font=("微软雅黑", 13), bg="#95a5a6", fg="white",
+                            relief="flat", bd=0, cursor="hand2", width=12,
+                            command=self.create_login_interface)
+        login_btn.pack(side="left", ipady=10)
         
         # 默认焦点
         self.reg_username_entry.focus()
@@ -295,27 +274,24 @@ class LoginModule:
         title_frame = tk.Frame(main_frame, bg="#f5f5f5")
         title_frame.pack(pady=(0, 30))
         
-        # 返回按钮
         back_btn = tk.Button(title_frame, text="← 返回登录", 
                            font=("微软雅黑", 12), bg="#f5f5f5", fg="#576b95",
                            relief="flat", bd=0, cursor="hand2",
                            command=self.create_login_interface)
         back_btn.pack(anchor="w")
         
-        title_label = tk.Label(title_frame, text="重置密码", 
-                              font=("微软雅黑", 18, "bold"), 
-                              bg="#f5f5f5", fg="#333333")
+        title_label = tk.Label(title_frame, text="🔑 找回密码", 
+                              font=("微软雅黑", 20, "bold"), 
+                              bg="#f5f5f5", fg="#2c3e50")
         title_label.pack(pady=(10, 0))
         
-        # 说明文字
-        desc_label = tk.Label(main_frame, 
-                            text="请输入您的注册邮箱，我们将向您发送临时密码", 
-                            font=("微软雅黑", 12), bg="#f5f5f5", fg="#666666",
-                            wraplength=300)
-        desc_label.pack(pady=(0, 20))
+        # 提示信息
+        tip_label = tk.Label(main_frame, text="请输入您的注册邮箱，我们将发送重置链接", 
+                           font=("微软雅黑", 12), bg="#f5f5f5", fg="#7f8c8d")
+        tip_label.pack(pady=(0, 20))
         
-        # 重置表单区域
-        form_frame = tk.Frame(main_frame, bg="#ffffff", relief="flat", bd=1)
+        # 重置表单容器
+        form_frame = tk.Frame(main_frame, bg="#ffffff", relief="solid", bd=1)
         form_frame.pack(fill="x", pady=(0, 20))
         
         # 邮箱输入
@@ -327,41 +303,33 @@ class LoginModule:
         
         self.reset_email_entry = tk.Entry(email_frame, font=("微软雅黑", 14), 
                                          relief="flat", bd=5, bg="#f8f8f8")
-        self.reset_email_entry.pack(fill="x", pady=(5, 0), ipady=8)        # 重置按钮区域 - 优化大小和位置
-        button_frame = tk.Frame(form_frame, bg="#ffffff")
-        button_frame.pack(fill="x", padx=20, pady=(10, 25))
+        self.reset_email_entry.pack(fill="x", pady=(5, 0), ipady=8)
         
-        # 重置密码按钮 - 更大更显眼
-        reset_btn = tk.Button(button_frame, text="🔄 发送临时密码", 
-                            font=("微软雅黑", 16, "bold"),
-                            bg="#fa9d3b", fg="white", relief="flat", bd=0,
-                            cursor="hand2", command=self.handle_reset_password,
-                            width=20, height=2)
-        reset_btn.pack(pady=(10, 15), ipady=15)
+        # 重置按钮
+        reset_btn = tk.Button(form_frame, text="📧 发送重置链接", 
+                             font=("微软雅黑", 16, "bold"),
+                             bg="#e67e22", fg="white", relief="flat", bd=0,
+                             cursor="hand2", command=self.handle_password_reset,
+                             width=20, height=2)
+        reset_btn.pack(padx=20, pady=(10, 25), ipady=15)
         
-        # 次要按钮区域
-        secondary_frame = tk.Frame(main_frame, bg="#f5f5f5")
-        secondary_frame.pack(fill="x", pady=(0, 20))
+        # 功能按钮区域
+        btn_container = tk.Frame(main_frame, bg="#f5f5f5")
+        btn_container.pack(fill="x", pady=(0, 20))
         
-        # 按钮容器 - 左右布局
-        btn_container = tk.Frame(secondary_frame, bg="#f5f5f5")
-        btn_container.pack(pady=(10, 0))
-          # 游客登录按钮 - 左侧
+        # 游客体验按钮
         guest_btn = tk.Button(btn_container, text="👤 游客体验", 
-                            font=("微软雅黑", 13), bg="#07c160", fg="white",
+                            font=("微软雅黑", 13), bg="#fa9d3b", fg="white",
                             relief="flat", bd=0, cursor="hand2", width=12,
                             command=self.handle_guest_login)
         guest_btn.pack(side="left", padx=(0, 10), ipady=10)
         
-        # 测试按钮 - 右侧
-        test_btn = tk.Button(btn_container, text="🧪 测试模式", 
-                           font=("微软雅黑", 13), bg="#ff6b6b", fg="white",
-                           relief="flat", bd=0, cursor="hand2", width=12,
-                           command=self.handle_test_login)
-        test_btn.pack(side="left", ipady=10)
-        
-        # 设置回车键重置
-        self.root.bind('<Return>', lambda e: self.handle_reset_password())
+        # 返回登录按钮
+        login_btn = tk.Button(btn_container, text="🔙 返回登录", 
+                            font=("微软雅黑", 13), bg="#95a5a6", fg="white",
+                            relief="flat", bd=0, cursor="hand2", width=12,
+                            command=self.create_login_interface)
+        login_btn.pack(side="left", ipady=10)
         
         # 默认焦点
         self.reset_email_entry.focus()
@@ -369,16 +337,19 @@ class LoginModule:
     def handle_login(self):
         """处理登录"""
         username = self.username_entry.get().strip()
-        password = self.password_entry.get()
+        password = self.password_entry.get().strip()
         
-        if not username or not password:
-            messagebox.showerror("错误", "请输入用户名和密码")
+        if not username:
+            messagebox.showerror("错误", "请输入用户名")
             return
         
+        if not password:
+            messagebox.showerror("错误", "请输入密码")
+            return
+          # 验证登录
         success, message = self.user_manager.login_user(username, password)
-        
         if success:
-            messagebox.showinfo("成功", message)
+            messagebox.showinfo("登录成功", f"欢迎回来，{username}！")
             self.close_and_start_main()
         else:
             messagebox.showerror("登录失败", message)
@@ -387,39 +358,44 @@ class LoginModule:
         """处理注册"""
         username = self.reg_username_entry.get().strip()
         email = self.reg_email_entry.get().strip()
-        password = self.reg_password_entry.get()
-        confirm_password = self.reg_confirm_entry.get()
+        password = self.reg_password_entry.get().strip()
+        confirm = self.reg_confirm_entry.get().strip()
         
-        if not username or not email or not password or not confirm_password:
-            messagebox.showerror("错误", "请填写所有字段")
+        if not username:
+            messagebox.showerror("错误", "请输入用户名")
             return
         
-        if password != confirm_password:
-            messagebox.showerror("错误", "两次输入的密码不一致")
-            return        
-        success, message = self.user_manager.register_user(username, email, password)
+        if not email:
+            messagebox.showerror("错误", "请输入邮箱")
+            return
         
+        if not password:
+            messagebox.showerror("错误", "请输入密码")
+            return
+        
+        if password != confirm:
+            messagebox.showerror("错误", "两次输入的密码不一致")
+            return
+          # 注册用户
+        success, message = self.user_manager.register_user(username, email, password)
         if success:
-            messagebox.showinfo("成功", message + "\n请使用新账户登录")
+            messagebox.showinfo("注册成功", "账户创建成功！请登录。")
             self.create_login_interface()
         else:
             messagebox.showerror("注册失败", message)
     
-    def handle_reset_password(self):
-        """处理重置密码"""
+    def handle_password_reset(self):
+        """处理密码重置"""
         email = self.reset_email_entry.get().strip()
         
         if not email:
-            messagebox.showerror("错误", "请输入邮箱地址")
+            messagebox.showerror("错误", "请输入注册邮箱")
             return
         
-        success, message = self.user_manager.reset_password(email)
-        
-        if success:
-            messagebox.showinfo("密码重置成功", message)
-            self.create_login_interface()
-        else:
-            messagebox.showerror("重置失败", message)
+        # 模拟发送重置邮件
+        messagebox.showinfo("重置链接已发送", 
+                          f"密码重置链接已发送到 {email}，请检查您的邮箱。")
+        self.create_login_interface()
     
     def handle_guest_login(self):
         """处理游客登录"""

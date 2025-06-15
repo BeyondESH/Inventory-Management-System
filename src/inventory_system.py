@@ -33,6 +33,9 @@ class InventoryManagementSystem:
         self.root.configure(bg="#f7f7f7")
         self.root.resizable(True, True)
         
+        # 用户管理器（将从登录模块传入）
+        self.user_manager = None
+        
         # 设置窗口图标
         self.set_window_icon()
         
@@ -123,10 +126,20 @@ class InventoryManagementSystem:
             btn.pack(fill="x")
             
             self.nav_buttons[btn_info["module"]] = btn
-            
-        # 底部信息
+              # 底部信息
         info_frame = tk.Frame(self.nav_frame, bg="#2c3e50")
         info_frame.pack(side="bottom", fill="x", pady=20)
+        
+        # 用户信息显示
+        user_frame = tk.Frame(info_frame, bg="#34495e")
+        user_frame.pack(fill="x", pady=(0, 10))
+        
+        self.user_label = tk.Label(user_frame, text="未登录", font=("微软雅黑", 10, "bold"),
+                                  bg="#34495e", fg="#e74c3c", pady=5)
+        self.user_label.pack()
+        
+        # 更新用户信息显示
+        self.update_user_info()
         
         current_time = datetime.datetime.now().strftime("%Y-%m-%d")
         time_label = tk.Label(info_frame, text=f"今日：{current_time}", font=("微软雅黑", 9),
@@ -174,6 +187,23 @@ class InventoryManagementSystem:
             self.customer_module.show()
         elif self.current_module == "finance":
             self.finance_module.show()
+    
+    def set_user_manager(self, user_manager):
+        """设置用户管理器"""
+        self.user_manager = user_manager
+        self.update_user_info()
+    
+    def update_user_info(self):
+        """更新用户信息显示"""
+        if hasattr(self, 'user_label'):
+            if self.user_manager and self.user_manager.current_user:
+                user = self.user_manager.current_user
+                if user.username == "游客":
+                    self.user_label.configure(text="👤 游客模式", fg="#f39c12")
+                else:
+                    self.user_label.configure(text=f"👤 {user.username}", fg="#27ae60")
+            else:
+                self.user_label.configure(text="未登录", fg="#e74c3c")
     
     def run(self):
         """运行应用程序"""
