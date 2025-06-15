@@ -10,16 +10,16 @@ import os
 import hashlib
 import re
 from datetime import datetime
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple, Union
 
 class User:
     """用户类"""
-    def __init__(self, username: str, email: str, password_hash: str, created_at: str = None):
+    def __init__(self, username: str, email: str, password_hash: str, created_at: Optional[str] = None):
         self.username = username
         self.email = email
         self.password_hash = password_hash
         self.created_at = created_at or datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        self.last_login = None
+        self.last_login: Optional[str] = None
         self.is_active = True
     
     def to_dict(self):
@@ -43,7 +43,7 @@ class User:
 
 class UserManager:
     """用户管理器"""
-    def __init__(self, data_file: str = None):
+    def __init__(self, data_file: Optional[str] = None):
         if data_file is None:
             # 获取项目根目录的data文件夹路径
             current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -99,7 +99,7 @@ class UserManager:
         pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
         return re.match(pattern, email) is not None
     
-    def validate_password(self, password: str) -> tuple[bool, str]:
+    def validate_password(self, password: str) -> Tuple[bool, str]:
         """验证密码强度"""
         if len(password) < 6:
             return False, "密码长度至少6位"
@@ -111,7 +111,7 @@ class UserManager:
             return False, "密码必须包含数字"
         return True, "密码强度符合要求"
     
-    def register_user(self, username: str, email: str, password: str) -> tuple[bool, str]:
+    def register_user(self, username: str, email: str, password: str) -> Tuple[bool, str]:
         """注册用户"""
         # 验证用户名
         if not username or len(username.strip()) < 3:
@@ -143,7 +143,7 @@ class UserManager:
         
         return True, "注册成功"
     
-    def login_user(self, username: str, password: str) -> tuple[bool, str]:
+    def login_user(self, username: str, password: str) -> Tuple[bool, str]:
         """用户登录"""
         if username not in self.users:
             return False, "用户名不存在"
@@ -163,7 +163,7 @@ class UserManager:
         
         return True, "登录成功"
     
-    def guest_login(self) -> tuple[bool, str]:
+    def guest_login(self) -> Tuple[bool, str]:
         """游客登录"""
         guest_user = User("游客", "guest@temp.com", "")
         guest_user.username = f"游客_{datetime.now().strftime('%H%M%S')}"
@@ -174,7 +174,7 @@ class UserManager:
         """用户登出"""
         self.current_user = None
     
-    def reset_password(self, email: str) -> tuple[bool, str]:
+    def reset_password(self, email: str) -> Tuple[bool, str]:
         """重置密码（模拟发送邮件）"""
         for user in self.users.values():
             if user.email == email:
@@ -188,7 +188,7 @@ class UserManager:
         
         return False, "邮箱不存在"
     
-    def change_password(self, old_password: str, new_password: str) -> tuple[bool, str]:
+    def change_password(self, old_password: str, new_password: str) -> Tuple[bool, str]:
         """修改密码"""
         if not self.current_user:
             return False, "请先登录"

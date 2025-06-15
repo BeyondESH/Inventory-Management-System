@@ -16,10 +16,9 @@ setup(
     python_requires=">=3.7",
     install_requires=[
         # tkinter is usually included with Python
-    ],
-    entry_points={
+    ],    entry_points={
         "console_scripts": [
-            "inventory-system=src.system_launcher:main",
+            "inventory-system=main:main",
         ],
     },
     classifiers=[

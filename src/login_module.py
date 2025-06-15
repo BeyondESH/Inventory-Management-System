@@ -9,9 +9,9 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 import os
 try:
-    from .user_manager import UserManager
+    from .user_manager import UserManager, User
 except ImportError:
-    from user_manager import UserManager
+    from user_manager import UserManager, User
 
 class LoginModule:
     def __init__(self, on_login_success=None):
@@ -396,8 +396,7 @@ class LoginModule:
         
         if password != confirm_password:
             messagebox.showerror("错误", "两次输入的密码不一致")
-            return
-        
+            return        
         success, message = self.user_manager.register_user(username, email, password)
         
         if success:
@@ -433,7 +432,7 @@ class LoginModule:
         """处理测试登录"""
         # 创建测试用户
         test_user_name = "测试用户"
-        self.user_manager.current_user = self.user_manager.User(
+        self.user_manager.current_user = User(
             test_user_name, "test@test.com", ""
         )
         messagebox.showinfo("测试模式", "已进入测试模式，直接访问系统")
