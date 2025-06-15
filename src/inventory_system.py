@@ -12,11 +12,18 @@ import datetime
 from typing import Dict, List, Any
 
 # 导入各个模块
-from inventory_module import InventoryModule
-from meal_module import MealModule
-from order_module import OrderModule
-from customer_module import CustomerModule
-from finance_module import FinanceModule
+try:
+    from .inventory_module import InventoryModule
+    from .meal_module import MealModule
+    from .order_module import OrderModule
+    from .customer_module import CustomerModule
+    from .finance_module import FinanceModule
+except ImportError:
+    from inventory_module import InventoryModule
+    from meal_module import MealModule
+    from order_module import OrderModule
+    from customer_module import CustomerModule
+    from finance_module import FinanceModule
 
 class InventoryManagementSystem:
     def __init__(self):
@@ -36,8 +43,7 @@ class InventoryManagementSystem:
         self.create_main_layout()
         
         # 创建界面元素
-        self.create_widgets()
-        
+        self.create_widgets()        
         # 初始化各个模块
         self.init_modules()
         
@@ -47,7 +53,10 @@ class InventoryManagementSystem:
     def set_window_icon(self):
         """设置窗口图标"""
         try:
-            icon_path = "image/icon/main.ico"
+            # 获取项目根目录的image文件夹路径
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            project_root = os.path.dirname(current_dir)
+            icon_path = os.path.join(project_root, "image", "icon", "main.ico")
             if os.path.exists(icon_path):
                 self.root.iconbitmap(icon_path)
         except:

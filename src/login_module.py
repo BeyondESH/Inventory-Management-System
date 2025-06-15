@@ -8,7 +8,10 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import os
-from user_manager import UserManager
+try:
+    from .user_manager import UserManager
+except ImportError:
+    from user_manager import UserManager
 
 class LoginModule:
     def __init__(self, on_login_success=None):
@@ -31,15 +34,17 @@ class LoginModule:
         self.set_window_icon()
         
         # 居中显示窗口
-        self.center_window()
-        
+        self.center_window()        
         # 创建界面
         self.create_login_interface()
         
     def set_window_icon(self):
         """设置窗口图标"""
         try:
-            icon_path = "image/icon/main.ico"
+            # 获取项目根目录的image文件夹路径
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            project_root = os.path.dirname(current_dir)
+            icon_path = os.path.join(project_root, "image", "icon", "main.ico")
             if os.path.exists(icon_path):
                 self.root.iconbitmap(icon_path)
         except:

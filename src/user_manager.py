@@ -43,8 +43,14 @@ class User:
 
 class UserManager:
     """用户管理器"""
-    def __init__(self, data_file: str = "users.json"):
-        self.data_file = data_file
+    def __init__(self, data_file: str = None):
+        if data_file is None:
+            # 获取项目根目录的data文件夹路径
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            project_root = os.path.dirname(current_dir)
+            self.data_file = os.path.join(project_root, "data", "users.json")
+        else:
+            self.data_file = data_file
         self.users: Dict[str, User] = {}
         self.current_user: Optional[User] = None
         self.load_users()

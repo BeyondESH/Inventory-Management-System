@@ -1,0 +1,6 @@
+# 食品服务公司管理系统依赖包
+# Python标准库依赖
+tkinter  # GUI界面库 (通常随Python安装)
+
+# 项目运行要求
+# Python >= 3.6

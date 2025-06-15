@@ -5,8 +5,14 @@
 """
 
 import tkinter as tk
-from login_module import LoginModule
-from inventory_system import InventoryManagementSystem
+
+# 支持两种导入方式：作为包导入和直接运行
+try:
+    from .login_module import LoginModule
+    from .inventory_system import InventoryManagementSystem
+except ImportError:
+    from login_module import LoginModule
+    from inventory_system import InventoryManagementSystem
 
 class SystemLauncher:
     def __init__(self):
