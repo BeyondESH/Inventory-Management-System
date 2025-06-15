@@ -6,5 +6,13 @@
     "created_at": "2025-06-15 19:24:44",
     "last_login": null,
     "is_active": true
+  },
+  "123": {
+    "username": "123",
+    "email": "1989601704@qq.com",
+    "password_hash": "84c45e72ebff7042e000b2bfd67b22367b18ddcb723ce4c32f9f1b2064999e08",
+    "created_at": "2025-06-16 03:02:03",
+    "last_login": "2025-06-16 03:02:10",
+    "is_active": true
   }
 }

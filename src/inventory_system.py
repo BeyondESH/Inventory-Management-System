@@ -126,7 +126,8 @@ class InventoryManagementSystem:
             btn.pack(fill="x")
             
             self.nav_buttons[btn_info["module"]] = btn
-              # 底部信息
+
+        # 底部信息
         info_frame = tk.Frame(self.nav_frame, bg="#2c3e50")
         info_frame.pack(side="bottom", fill="x", pady=20)
         
