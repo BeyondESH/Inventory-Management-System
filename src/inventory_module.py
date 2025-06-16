@@ -50,11 +50,11 @@ class InventoryModule:
         toolbar_frame.pack(side="right", padx=20, pady=15)
         
         # 修改库存按钮（初始禁用）
-        self.edit_btn = tk.Button(toolbar_frame, text="✏️ 修改库存", font=("微软雅黑", 10),
+        self.edit_btn = tk.Button(toolbar_frame, text="🔧 修改库存", font=("微软雅黑", 10),
                                 bg="#f39c12", fg="white", bd=0, padx=15, pady=5,
                                 cursor="hand2", command=self.edit_selected_item,
                                 state="disabled")
-        self.edit_btn.pack(side="right", padx=5)
+        self.edit_btn.pack(side="right", padx=(5,20))
         
         add_btn = tk.Button(toolbar_frame, text="➕ 添加食材", font=("微软雅黑", 10),
                           bg="#27ae60", fg="white", bd=0, padx=15, pady=5,
@@ -101,10 +101,10 @@ class InventoryModule:
         
     def add_inventory_item(self):
         """添加库存项目"""
-        # 创建添加食材对话框
+        # 创建添加库存对话框
         dialog = tk.Toplevel()
-        dialog.title("添加食材")
-        dialog.geometry("400x500")
+        dialog.title("添加库存")
+        dialog.geometry("400x400")
         dialog.configure(bg="#f8f9fa")
         dialog.resizable(False, False)
         dialog.grab_set()  # 模态对话框
@@ -114,14 +114,14 @@ class InventoryModule:
         dialog.update_idletasks()
         x = (dialog.winfo_screenwidth() // 2) - (400 // 2)
         y = (dialog.winfo_screenheight() // 2) - (500 // 2)
-        dialog.geometry(f"400x500+{x}+{y}")
+        dialog.geometry(f"400x400+{x}+{y}")
         
         # 标题
         title_frame = tk.Frame(dialog, bg="#3498db", height=60)
         title_frame.pack(fill="x")
         title_frame.pack_propagate(False)
         
-        title_label = tk.Label(title_frame, text="📦 添加新食材", 
+        title_label = tk.Label(title_frame, text="📦 添加库存", 
                               font=("微软雅黑", 16, "bold"),
                               bg="#3498db", fg="white")
         title_label.pack(pady=15)
@@ -188,7 +188,7 @@ class InventoryModule:
                              bg="#95a5a6", fg="white", bd=0,
                              padx=20, pady=8, cursor="hand2",
                              command=dialog.destroy)
-        cancel_btn.pack(side="right", padx=(10, 0))
+        cancel_btn.pack(side="right", padx=(15, 40))
         
         # 确定按钮
         def save_item():
@@ -297,10 +297,10 @@ class InventoryModule:
             messagebox.showerror("错误", "未找到对应的食材数据")
             return
         
-        # 创建编辑食材对话框
+        # 创建修改库存对话框
         dialog = tk.Toplevel()
-        dialog.title("编辑食材")
-        dialog.geometry("400x500")
+        dialog.title("修改库存")
+        dialog.geometry("400x400")
         dialog.configure(bg="#f8f9fa")
         dialog.resizable(False, False)
         dialog.grab_set()  # 模态对话框
@@ -309,15 +309,15 @@ class InventoryModule:
         dialog.transient(self.parent_frame.winfo_toplevel())
         dialog.update_idletasks()
         x = (dialog.winfo_screenwidth() // 2) - (400 // 2)
-        y = (dialog.winfo_screenheight() // 2) - (500 // 2)
-        dialog.geometry(f"400x500+{x}+{y}")
+        y = (dialog.winfo_screenheight() // 2) - (400 // 2)
+        dialog.geometry(f"400x400+{x}+{y}")
         
         # 标题
         title_frame = tk.Frame(dialog, bg="#e67e22", height=60)
         title_frame.pack(fill="x")
         title_frame.pack_propagate(False)
         
-        title_label = tk.Label(title_frame, text="✏️ 编辑食材", 
+        title_label = tk.Label(title_frame, text="🔧修改库存", 
                               font=("微软雅黑", 16, "bold"),
                               bg="#e67e22", fg="white")
         title_label.pack(pady=15)
