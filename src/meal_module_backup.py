@@ -21,8 +21,7 @@ class MealModule:
             {"id": 3, "name": "蒸蛋羹", "price": 12.0, "active": True, "description": "嫩滑蒸蛋羹", "category": "汤品", "cook_time": 8},
             {"id": 4, "name": "牛肉汉堡", "price": 32.0, "active": True, "description": "美式牛肉汉堡", "category": "西式", "cook_time": 12},
             {"id": 5, "name": "素食沙拉", "price": 22.0, "active": False, "description": "健康素食沙拉", "category": "沙拉", "cook_time": 5},
-            {"id": 6, "name": "红烧肉", "price": 35.0, "active": True, "description": "传统红烧肉", "category": "中式", "cook_time": 25},
-        ]
+            {"id": 6, "name": "红烧肉", "price": 35.0, "active": True, "description": "传统红烧肉", "category": "中式", "cook_time": 25},        ]
         
         # 当前选中的项目
         self.selected_item = None
@@ -102,8 +101,7 @@ class MealModule:
         
         # 单击选择事件处理
         tree.bind("<<TreeviewSelect>>", self.on_item_select)
-        
-        # 双击编辑功能
+          # 双击编辑功能
         tree.bind("<Double-1>", lambda e: self.edit_selected_item())
         
     def on_item_select(self, event):
@@ -137,8 +135,7 @@ class MealModule:
         self.edit_btn.config(state="disabled", bg="#bdc3c7")
     
     def edit_selected_item(self):
-        """编辑选中的餐食"""
-        if not self.selected_item:
+        """编辑选中的餐食"""        if not self.selected_item:
             messagebox.showwarning("提示", "请先选择要编辑的餐食！")
             return
         
@@ -178,8 +175,7 @@ class MealModule:
         # 表单区域
         form_frame = tk.Frame(dialog, bg="#f8f9fa")
         form_frame.pack(fill="both", expand=True, padx=30, pady=20)
-        
-        # 餐食名称
+          # 餐食名称
         name_label = tk.Label(form_frame, text="餐食名称", 
                            font=("微软雅黑", 11, "bold"),
                            bg="#f8f9fa", fg="#2c3e50")
@@ -245,8 +241,7 @@ class MealModule:
         active_var = tk.BooleanVar(value=True)
         active_check = tk.Checkbutton(form_frame, text="启用此餐食", variable=active_var,
                                     font=("微软雅黑", 11), bg="#f8f9fa")
-        active_check.grid(row=5, column=1, sticky="w", pady=(0, 5))
-        
+        active_check.grid(row=5, column=1, sticky="w", pady=(0, 5))        
         # 如果是编辑模式，填充现有数据
         if meal:
             name_entry.insert(0, meal["name"])
@@ -270,7 +265,7 @@ class MealModule:
                              padx=20, pady=8, cursor="hand2",
                              command=dialog.destroy)
         cancel_btn.pack(side="right", padx=(15, 40))
-        
+          
         # 确定按钮
         def save_meal():
             """保存餐食"""
