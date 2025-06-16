@@ -66,13 +66,14 @@ class InventoryManagementSystem:
             pass
     
     def init_modules(self):
-        """初始化各个模块"""
-        # 初始化各个业务模块
+        """初始化各个模块"""        # 初始化各个业务模块
         self.inventory_module = InventoryModule(self.main_content_frame, self.title_frame)
         self.meal_module = MealModule(self.main_content_frame, self.title_frame)
         self.order_module = OrderModule(self.main_content_frame, self.title_frame)
         self.customer_module = CustomerModule(self.main_content_frame, self.title_frame)
-        self.finance_module = FinanceModule(self.main_content_frame, self.title_frame)
+        # 财务模块需要访问订单和餐食数据
+        self.finance_module = FinanceModule(self.main_content_frame, self.title_frame, 
+                                          self.order_module, self.meal_module)
         
     def create_main_layout(self):
         """创建主布局"""
