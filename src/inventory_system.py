@@ -113,14 +113,14 @@ class InventoryManagementSystem:
             {"text": "👥 客户管理", "module": "customer", "icon": "👥"},
             {"text": "💰 财务管理", "module": "finance", "icon": "💰"},
         ]
-        
+
         self.nav_buttons = {}
         for btn_info in nav_buttons:
             btn_frame = tk.Frame(self.nav_frame, bg="#2c3e50")
             btn_frame.pack(fill="x", pady=2)
             
             btn = tk.Button(btn_frame, text=btn_info["text"], font=("微软雅黑", 12),
-                          bg="#2c3e50", fg="#ecf0f1", bd=0, padx=20, pady=15,
+                          bg="#2c3e50", fg="#ecf0f1", bd=0, padx=40, pady=15,
                           activebackground="#3498db", cursor="hand2", anchor="w",
                           command=lambda m=btn_info["module"]: self.select_module(m))
             btn.pack(fill="x")
