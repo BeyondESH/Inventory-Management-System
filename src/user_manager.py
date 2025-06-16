@@ -51,7 +51,7 @@ class UserManager:
             self.data_file = os.path.join(project_root, "data", "users.json")
         else:
             self.data_file = data_file
-        self.users: Dict[str, User] = {}
+        self.users: Dict[str, User] = {} # 存储用户的字典，键为用户名，值为User对象
         self.current_user: Optional[User] = None
         self.load_users()
     
@@ -143,15 +143,22 @@ class UserManager:
         
         return True, "注册成功"
     
-    def login_user(self, username: str, password: str) -> Tuple[bool, str]:
+    def login_user(self, account: str, password: str) -> Tuple[bool, str]:
         """用户登录"""
-        if username not in self.users:
-            return False, "用户名不存在"
+        if account not in self.users:
+            for user in self.users.values():
+                if user.email == account:
+                    flag=1 #邮箱登录
+                    break
+            else:
+                return False, "用户不存在"
+        else:
+            flag=0 #用户名登录
+            user=self.users[account]
         
-        user = self.users[username]
         if not user.is_active:
-            return False, "账户已被禁用"
-        
+                return False, "账户已被禁用"
+
         password_hash = self.hash_password(password)
         if user.password_hash != password_hash:
             return False, "密码错误"
@@ -173,18 +180,19 @@ class UserManager:
     def logout(self):
         """用户登出"""
         self.current_user = None
-    
-    def reset_password(self, email: str) -> Tuple[bool, str]:
-        """重置密码（模拟发送邮件）"""
+
+    def reset_password(self, email: str, password: str) -> Tuple[bool, str]:
+        """重置密码"""
         for user in self.users.values():
             if user.email == email:
-                # 生成临时密码
-                import random
-                import string
-                temp_password = ''.join(random.choices(string.ascii_letters + string.digits, k=8))
-                user.password_hash = self.hash_password(temp_password)
+                if not self.validate_email(email):
+                    return False, "邮箱格式不正确"
+                elif not (result := self.validate_password(password)[1]):
+                    return False, result
+                # 更新密码
+                user.password_hash = self.hash_password(password)
                 self.save_users()
-                return True, f"密码重置成功！临时密码: {temp_password}\n请登录后及时修改密码"
+                return True, "密码重置成功！\n"
         
         return False, "邮箱不存在"
     
