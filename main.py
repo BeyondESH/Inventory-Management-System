@@ -10,8 +10,12 @@ import os
 
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-if current_dir not in sys.path:
-    sys.path.insert(0, current_dir)
+src_dir = os.path.join(current_dir, 'src')
+
+# 添加项目根目录和src目录到Python路径
+for path in [current_dir, src_dir]:
+    if path not in sys.path:
+        sys.path.insert(0, path)
 
 
 from src.system_launcher import SystemLauncher

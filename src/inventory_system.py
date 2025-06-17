@@ -18,12 +18,14 @@ try:
     from .order_module import OrderModule
     from .customer_module import CustomerModule
     from .finance_module import FinanceModule
+    from .employee_module import EmployeeModule
 except ImportError:
     from inventory_module import InventoryModule
     from meal_module import MealModule
     from order_module import OrderModule
     from customer_module import CustomerModule
     from finance_module import FinanceModule
+    from employee_module import EmployeeModule
 
 class InventoryManagementSystem:
     def __init__(self):
@@ -31,7 +33,7 @@ class InventoryManagementSystem:
         self.root.title("食品服务公司管理系统")
         self.root.geometry("1200x800")
         self.root.configure(bg="#f7f7f7")
-        self.root.resizable(True, True)
+        self.root.resizable(False, False)
         
         # 用户管理器（将从登录模块传入）
         self.user_manager = None
@@ -46,7 +48,8 @@ class InventoryManagementSystem:
         self.create_main_layout()
         
         # 创建界面元素
-        self.create_widgets()        
+        self.create_widgets()
+        
         # 初始化各个模块
         self.init_modules()
         
@@ -66,11 +69,13 @@ class InventoryManagementSystem:
             pass
     
     def init_modules(self):
-        """初始化各个模块"""        # 初始化各个业务模块
+        """初始化各个模块"""
+        # 初始化各个业务模块
         self.inventory_module = InventoryModule(self.main_content_frame, self.title_frame)
         self.meal_module = MealModule(self.main_content_frame, self.title_frame)
         self.order_module = OrderModule(self.main_content_frame, self.title_frame)
         self.customer_module = CustomerModule(self.main_content_frame, self.title_frame)
+        self.employee_module = EmployeeModule(self.main_content_frame, self.title_frame)
         # 财务模块需要访问订单和餐食数据
         self.finance_module = FinanceModule(self.main_content_frame, self.title_frame, 
                                           self.order_module, self.meal_module)
@@ -112,6 +117,7 @@ class InventoryManagementSystem:
             {"text": "🍜 餐食配置", "module": "meal", "icon": "🍜"},
             {"text": "📋 订单管理", "module": "order", "icon": "📋"},
             {"text": "👥 客户管理", "module": "customer", "icon": "👥"},
+            {"text": "👤 员工管理", "module": "employee", "icon": "👤"},
             {"text": "💰 财务管理", "module": "finance", "icon": "💰"},
         ]
 
@@ -187,6 +193,8 @@ class InventoryManagementSystem:
             self.order_module.show()
         elif self.current_module == "customer":
             self.customer_module.show()
+        elif self.current_module == "employee":
+            self.employee_module.show()
         elif self.current_module == "finance":
             self.finance_module.show()
     
