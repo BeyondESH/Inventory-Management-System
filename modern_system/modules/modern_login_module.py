@@ -365,7 +365,7 @@ class ModernLoginModule:
         entry.bind('<FocusOut>', on_focus_out)
         
         return entry
-
+    
     def create_modern_button(self, parent, text, command, style="primary", size="normal"):
         """创建现代化按钮"""
         if style == "primary":
@@ -384,7 +384,8 @@ class ModernLoginModule:
             bg_color = self.colors['input_bg']
             hover_color = self.colors['border']
             text_color = self.colors['text_primary']
-          # 根据按钮大小设置不同的样式
+        
+        # 根据按钮大小设置不同的样式
         if size == "large":
             # 大按钮 - 用于主要操作（登录按钮）
             button_frame = tk.Frame(parent, bg=bg_color, cursor="hand2", height=45)
@@ -456,8 +457,7 @@ class ModernLoginModule:
             }
             
             # 调用登录成功回调
-            if self.on_login_success:
-                self.on_login_success(user_info)
+            if self.on_login_success:                self.on_login_success(user_info)
             else:
                 # 如果没有回调，直接关闭登录窗口
                 self.root.destroy()
@@ -490,12 +490,14 @@ class ModernLoginModule:
         subtitle_label = tk.Label(self.login_container, text="请填写注册信息", font=self.fonts['body'], 
                                  bg=self.colors['surface'], fg=self.colors['text_secondary'])
         subtitle_label.pack(pady=(0, 20))
-          # 输入字段
+        
+        # 输入字段
         self.create_input_field(self.login_container, "用户名", self.username_var, "👤")
         self.create_input_field(self.login_container, "邮箱", self.email_var, "📧")
         self.create_password_field(self.login_container, "密码", self.password_var)
         self.create_password_field(self.login_container, "确认密码", self.confirm_password_var)
-          # 并列按钮容器
+        
+        # 并列按钮容器
         buttons_frame = tk.Frame(self.login_container, bg=self.colors['surface'])
         buttons_frame.pack(fill="x", pady=(20, 15))
         
@@ -509,7 +511,7 @@ class ModernLoginModule:
         register_btn_frame.pack(side="right", fill="x", expand=True, padx=(10, 0))
         self.create_modern_button(register_btn_frame, "创建账户", self.handle_register, "primary", "large")
           # 提示文字
-        tip_label = tk.Label(self.login_container, text="注册即表示您同意我们的服务条款", 
+        tip_label = tk.Label(self.login_container, text="注册即表示您同意我们的服务条款",
                            font=self.fonts['small'], bg=self.colors['surface'], 
                            fg=self.colors['text_secondary'])
         tip_label.pack(pady=(10, 0))
@@ -538,7 +540,8 @@ class ModernLoginModule:
         
         # 确认新密码输入
         self.create_password_field(self.login_container, "确认新密码", self.confirm_new_password_var)
-          # 并列按钮容器
+        
+        # 并列按钮容器
         buttons_frame = tk.Frame(self.login_container, bg=self.colors['surface'])
         buttons_frame.pack(fill="x", pady=(20, 15))
         
@@ -546,17 +549,15 @@ class ModernLoginModule:
         back_btn_frame = tk.Frame(buttons_frame, bg=self.colors['surface'])
         back_btn_frame.pack(side="left", fill="x", expand=True, padx=(0, 10))
         self.create_modern_button(back_btn_frame, "返回登录", self.show_login, "secondary", "large")
-        
-        # 重置按钮 - 右侧
+          # 重置按钮 - 右侧
         reset_btn_frame = tk.Frame(buttons_frame, bg=self.colors['surface'])
         reset_btn_frame.pack(side="right", fill="x", expand=True, padx=(10, 0))
         self.create_modern_button(reset_btn_frame, "重置密码", self.handle_forgot_password, "primary", "large")
         
         # 提示文字
-        tip_label = tk.Label(self.login_container, text="请确认邮箱地址正确，密码将直接重置", 
+        tip_label = tk.Label(self.login_container, text="请确认邮箱地址正确，密码将直接重置",
                            font=self.fonts['small'], bg=self.colors['surface'], 
                            fg=self.colors['text_secondary'])
-        tip_label.pack(pady=(10, 0))
         tip_label.pack(pady=(10, 0))
     
     def show_login(self):
@@ -582,7 +583,8 @@ class ModernLoginModule:
         if len(password) < 6:
             messagebox.showerror("错误", "密码至少需要6个字符")
             return
-          # 检查用户是否已存在
+        
+        # 检查用户是否已存在
         if self.user_manager.user_exists(username):
             messagebox.showerror("错误", "用户名已存在")
             return
@@ -671,14 +673,30 @@ class ModernLoginModule:
 # 主程序入口
 def main():
     def on_login_success(user):
-        print(f"登录成功: {user.name}")
-        # 这里可以启动主系统
+        print(f"登录成功: {user['name']}")
+        # 启动主系统
         try:
-            from ..core.modern_ui_system import ModernFoodServiceSystem
+            # 尝试相对导入
+            try:
+                from ..core.modern_ui_system import ModernFoodServiceSystem
+            except ImportError:
+                # 尝试绝对导入
+                import sys
+                import os
+                current_dir = os.path.dirname(os.path.abspath(__file__))
+                core_dir = os.path.join(os.path.dirname(current_dir), 'core')
+                sys.path.insert(0, core_dir)
+                from modern_ui_system import ModernFoodServiceSystem
+            
+            # 创建并运行主系统
             app = ModernFoodServiceSystem()
             app.run()
-        except ImportError:
-            print("主系统模块未找到")
+        except ImportError as e:
+            print(f"主系统模块导入失败: {e}")
+            messagebox.showerror("错误", f"无法启动主系统: {e}")
+        except Exception as e:
+            print(f"启动主系统失败: {e}")
+            messagebox.showerror("错误", f"启动主系统失败: {e}")
     
     login_app = ModernLoginModule(on_login_success)
     login_app.run()

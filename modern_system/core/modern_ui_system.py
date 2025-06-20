@@ -104,15 +104,13 @@ class ModernFoodServiceSystem:
             'heading': ('Microsoft YaHei UI', 14, 'bold'),
             'body': ('Microsoft YaHei UI', 12),
             'small': ('Microsoft YaHei UI', 10),
-            'nav': ('Microsoft YaHei UI', 13, 'bold')
-        }
+            'nav': ('Microsoft YaHei UI', 13, 'bold')        }
         
         # 当前模块
-        self.current_module = "dashboard"
+        self.current_module = "sales"
         
-        # 模块定义
+        # 模块定义（移除仪表盘）
         self.modules = {
-            "dashboard": {"text": "仪表盘", "icon": "📊"},
             "sales": {"text": "销售管理", "icon": "💰"},
             "inventory": {"text": "库存管理", "icon": "📦"},
             "meal": {"text": "菜品管理", "icon": "🍽️"},
@@ -268,8 +266,7 @@ class ModernFoodServiceSystem:
         # 更新当前模块
         old_module = self.current_module
         self.current_module = module_id
-        
-        # 更新导航按钮样式
+          # 更新导航按钮样式
         if old_module in self.nav_buttons:
             self.nav_buttons[old_module].configure(bg=self.colors['sidebar'])
         
@@ -287,7 +284,24 @@ class ModernFoodServiceSystem:
         if self.current_module in self.modules:
             module_info = self.modules[self.current_module]
             breadcrumb_text = f"首页 / {module_info['text']}"
-            self.breadcrumb_label.configure(text=breadcrumb_text)
+            
+            # 查找并更新面包屑标签
+            try:
+                for widget in self.content_header.winfo_children():
+                    if isinstance(widget, tk.Frame):
+                        for child in widget.winfo_children():
+                            if isinstance(child, tk.Label) and hasattr(child, 'cget'):
+                                try:
+                                    current_text = child.cget("text")
+                                    if "首页" in current_text:
+                                        child.configure(text=breadcrumb_text)
+                                        break
+                                except tk.TclError:
+                                    # Widget已被销毁，跳过
+                                    continue
+            except tk.TclError:
+                # 如果widget已被销毁，忽略错误
+                pass
         
     def init_modules(self):
         """初始化各个模块"""
@@ -345,11 +359,15 @@ class ModernFoodServiceSystem:
             elif self.current_module == "charts":
                 self.charts_module.show()
             else:
-                # 默认显示仪表盘
-                self.show_dashboard()
+                # 默认显示销售管理
+                self.sales_module.show()
         except Exception as e:
             print(f"显示模块失败: {e}")
-            self.show_dashboard()
+            # 出错时也显示销售管理
+            try:
+                self.sales_module.show()
+            except:
+                print("无法显示任何模块")
     
     def show_dashboard(self):
         """显示仪表盘"""
@@ -377,11 +395,11 @@ class ModernFoodServiceSystem:
         # 第一行卡片
         stats_row1 = tk.Frame(stats_container, bg=self.colors['background'])
         stats_row1.pack(fill="x", pady=(0, 10))
-        
-        # 第二行卡片
+          # 第二行卡片
         stats_row2 = tk.Frame(stats_container, bg=self.colors['background'])
         stats_row2.pack(fill="x")
-          # 从数据管理中心获取统计数据
+        
+        # 从数据管理中心获取统计数据
         try:
             stats_data = data_manager.get_dashboard_stats()
         except:

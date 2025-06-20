@@ -12,6 +12,23 @@ import datetime
 import json
 import os
 
+# 导入数据管理器
+try:
+    from ..utils.data_manager import data_manager
+except ImportError:
+    try:
+        from data_manager import data_manager
+    except ImportError:
+        # 创建模拟数据管理器
+        class MockDataManager:
+            def get_inventory(self):
+                return []
+            def save_data(self, data_type, data):
+                return True
+            def update_inventory(self, item_id, quantity):
+                return True
+        data_manager = MockDataManager()
+
 class ModernInventoryModule:
     def __init__(self, parent_frame, title_frame):
         self.parent_frame = parent_frame
@@ -44,33 +61,61 @@ class ModernInventoryModule:
         }
         
         # 库存数据
-        self.inventory_data = self.load_inventory_data()
-        
-        # 界面变量
-        self.search_var = tk.StringVar()
-        self.category_filter_var = tk.StringVar(value="全部")
-        self.stock_filter_var = tk.StringVar(value="全部")
-        
-        # UI组件引用
+        self.inventory_data = self.load_inventory_data()        # 界面变量 (延迟初始化)
+        self.search_var = None
+        self.category_filter_var = None
+        self.stock_filter_var = None
+          # UI组件引用
         self.inventory_tree = None
         self.stats_labels = {}
-        
+    
     def load_inventory_data(self):
-        """加载库存数据"""
-        # 示例库存数据
-        return [
-            {"id": 1, "name": "牛肉", "category": "肉类", "current_stock": 25, "min_stock": 10, "max_stock": 100, "unit": "公斤", "price": 45.0, "supplier": "优质肉类供应商", "last_updated": "2025-06-19"},
-            {"id": 2, "name": "大米", "category": "主食", "current_stock": 150, "min_stock": 50, "max_stock": 300, "unit": "公斤", "price": 6.5, "supplier": "优质粮食供应商", "last_updated": "2025-06-18"},
-            {"id": 3, "name": "土豆", "category": "蔬菜", "current_stock": 8, "min_stock": 20, "max_stock": 80, "unit": "公斤", "price": 3.2, "supplier": "新鲜蔬菜供应商", "last_updated": "2025-06-20"},
-            {"id": 4, "name": "鸡蛋", "category": "禽蛋", "current_stock": 200, "min_stock": 100, "max_stock": 500, "unit": "个", "price": 0.8, "supplier": "优质禽蛋供应商", "last_updated": "2025-06-19"},
-            {"id": 5, "name": "番茄", "category": "蔬菜", "current_stock": 30, "min_stock": 15, "max_stock": 60, "unit": "公斤", "price": 4.5, "supplier": "新鲜蔬菜供应商", "last_updated": "2025-06-20"},
-            {"id": 6, "name": "面粉", "category": "主食", "current_stock": 80, "min_stock": 40, "max_stock": 200, "unit": "公斤", "price": 4.8, "supplier": "优质粮食供应商", "last_updated": "2025-06-18"},
-            {"id": 7, "name": "食用油", "category": "调料", "current_stock": 12, "min_stock": 10, "max_stock": 50, "unit": "升", "price": 15.0, "supplier": "优质调料供应商", "last_updated": "2025-06-17"},
-            {"id": 8, "name": "盐", "category": "调料", "current_stock": 45, "min_stock": 20, "max_stock": 100, "unit": "包", "price": 2.5, "supplier": "优质调料供应商", "last_updated": "2025-06-15"},
-        ]
-        
+        """从数据管理中心加载库存数据"""
+        try:
+            # 从数据管理器获取库存数据
+            inventory_data = data_manager.get_inventory()
+            
+            # 转换数据格式以适配现有界面
+            formatted_data = []
+            for item in inventory_data:
+                formatted_item = {
+                    "id": item.get('id', ''),
+                    "name": item.get('name', ''),
+                    "category": item.get('category', ''),
+                    "current_stock": item.get('quantity', 0),
+                    "min_stock": item.get('min_stock', 0),
+                    "max_stock": item.get('max_stock', 100),
+                    "unit": item.get('unit', '个'),
+                    "price": item.get('price', 0.0),
+                    "supplier": item.get('supplier', '未知供应商'),
+                    "last_updated": item.get('update_time', datetime.datetime.now().strftime('%Y-%m-%d'))
+                }
+                formatted_data.append(formatted_item)
+            
+            return formatted_data
+        except Exception as e:
+            print(f"加载库存数据失败: {e}")
+            # 返回默认示例数据
+            return [
+                {"id": "INV001", "name": "番茄", "category": "蔬菜", "current_stock": 50, "min_stock": 10, "max_stock": 100, "unit": "kg", "price": 8.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
+                {"id": "INV002", "name": "牛肉", "category": "肉类", "current_stock": 20, "min_stock": 5, "max_stock": 50, "unit": "kg", "price": 68.0, "supplier": "优质肉类供应商", "last_updated": "2025-06-21"},
+                {"id": "INV003", "name": "面条", "category": "主食", "current_stock": 100, "min_stock": 20, "max_stock": 200, "unit": "包", "price": 3.5, "supplier": "优质粮食供应商", "last_updated": "2025-06-21"},
+                {"id": "INV004", "name": "可乐", "category": "饮料", "current_stock": 80, "min_stock": 30, "max_stock": 150, "unit": "瓶", "price": 5.0, "supplier": "饮料供应商", "last_updated": "2025-06-21"}            ]
+    
     def show(self):
         """显示库存管理模块"""
+        # 注册到数据管理器
+        data_manager.register_module('inventory', self)
+        
+        # 重新加载最新数据
+        self.inventory_data = self.load_inventory_data()
+        
+        # 初始化界面变量（如果还没有初始化）
+        if self.search_var is None:
+            self.search_var = tk.StringVar()
+            self.category_filter_var = tk.StringVar(value="全部")
+            self.stock_filter_var = tk.StringVar(value="全部")
+        
         self.clear_frames()
         self.update_title()
         self.create_inventory_interface()

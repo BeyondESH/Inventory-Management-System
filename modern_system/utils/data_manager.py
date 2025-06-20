@@ -32,6 +32,7 @@ class DataManager:
         self._initialized = True
         self.data_dir = self._get_data_dir()
         self.modules = {}
+        self.registered_modules = {}  # 存储注册的模块实例
         self.event_listeners = {}
         
         # 初始化数据文件
@@ -94,11 +95,25 @@ class DataManager:
             if not os.path.exists(file_path):
                 with open(file_path, 'w', encoding='utf-8') as f:
                     json.dump(default_data[data_type], f, ensure_ascii=False, indent=2)
-    
     def register_module(self, module_type: str, instance):
         """注册模块"""
         self.modules[module_type] = instance
+        # 同时保存到registered_modules
+        if not hasattr(self, 'registered_modules'):
+            self.registered_modules = {}
+        self.registered_modules[module_type] = instance
         print(f"注册模块: {module_type}")
+    
+    def notify_modules(self, event_type: str):
+        """通知已注册的模块"""
+        if hasattr(self, 'registered_modules'):
+            for module_type, module_instance in self.registered_modules.items():
+                if event_type == 'meals_updated' and hasattr(module_instance, 'refresh_meals_data'):
+                    try:
+                        module_instance.refresh_meals_data()
+                        print(f"已通知 {module_type} 模块刷新菜品数据")
+                    except Exception as e:
+                        print(f"通知 {module_type} 模块失败: {e}")
     
     def subscribe_event(self, event_type: str, callback):
         """订阅事件"""

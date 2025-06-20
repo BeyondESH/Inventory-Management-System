@@ -561,7 +561,7 @@ class ModernEmployeeModule:
             tk.Label(field_frame, text=f"{label}:", font=('Microsoft YaHei UI', 10),
                     bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
             
-            var = tk.StringVar(value=value)
+            var = tk.StringVar(edit_window, value=value)
             form_vars[field] = var
             
             entry = tk.Entry(field_frame, textvariable=var, font=('Microsoft YaHei UI', 10),
@@ -581,7 +581,7 @@ class ModernEmployeeModule:
         pos_frame.pack(fill='x', pady=5)
         tk.Label(pos_frame, text="职位:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
-        position_var = tk.StringVar(value=employee['position'])
+        position_var = tk.StringVar(edit_window, value=employee['position'])
         form_vars['position'] = position_var
         position_entry = tk.Entry(pos_frame, textvariable=position_var, font=('Microsoft YaHei UI', 10),
                                  relief='flat', bd=5, bg=self.colors['light'])
@@ -592,7 +592,7 @@ class ModernEmployeeModule:
         dept_frame.pack(fill='x', pady=5)
         tk.Label(dept_frame, text="部门:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
-        department_var = tk.StringVar(value=employee['department'])
+        department_var = tk.StringVar(edit_window, value=employee['department'])
         form_vars['department'] = department_var
         dept_combo = ttk.Combobox(dept_frame, textvariable=department_var, 
                                  values=self.departments, state="readonly", font=('Microsoft YaHei UI', 10))
@@ -603,7 +603,7 @@ class ModernEmployeeModule:
         hire_frame.pack(fill='x', pady=5)
         tk.Label(hire_frame, text="入职日期:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
-        hire_var = tk.StringVar(value=employee['hire_date'])
+        hire_var = tk.StringVar(edit_window, value=employee['hire_date'])
         form_vars['hire_date'] = hire_var
         hire_entry = tk.Entry(hire_frame, textvariable=hire_var, font=('Microsoft YaHei UI', 10),
                              relief='flat', bd=5, bg=self.colors['light'])
@@ -614,7 +614,7 @@ class ModernEmployeeModule:
         salary_frame.pack(fill='x', pady=5)
         tk.Label(salary_frame, text="薪资 (元):", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
-        salary_var = tk.StringVar(value=str(employee['salary']))
+        salary_var = tk.StringVar(edit_window, value=str(employee['salary']))
         form_vars['salary'] = salary_var
         salary_entry = tk.Entry(salary_frame, textvariable=salary_var, font=('Microsoft YaHei UI', 10),
                                relief='flat', bd=5, bg=self.colors['light'])
@@ -625,7 +625,7 @@ class ModernEmployeeModule:
         status_frame.pack(fill='x', pady=5)
         tk.Label(status_frame, text="状态:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
-        status_var = tk.StringVar(value=employee['status'])
+        status_var = tk.StringVar(edit_window, value=employee['status'])
         form_vars['status'] = status_var
         status_combo = ttk.Combobox(status_frame, textvariable=status_var, 
                                    values=["在职", "试用", "休假", "离职"], state="readonly", font=('Microsoft YaHei UI', 10))
@@ -636,7 +636,7 @@ class ModernEmployeeModule:
         perf_frame.pack(fill='x', pady=5)
         tk.Label(perf_frame, text="绩效评分 (0-100):", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
-        performance_var = tk.StringVar(value=str(employee['performance']))
+        performance_var = tk.StringVar(edit_window, value=str(employee['performance']))
         form_vars['performance'] = performance_var
         perf_entry = tk.Entry(perf_frame, textvariable=performance_var, font=('Microsoft YaHei UI', 10),
                              relief='flat', bd=5, bg=self.colors['light'])
@@ -799,7 +799,7 @@ class ModernEmployeeModule:
             tk.Label(field_frame, text=f"{label}:", font=('Microsoft YaHei UI', 10),
                     bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
             
-            var = tk.StringVar(value=default)
+            var = tk.StringVar(add_window, value=default)
             form_vars[field] = var
             
             entry = tk.Entry(field_frame, textvariable=var, font=('Microsoft YaHei UI', 10),
@@ -819,7 +819,7 @@ class ModernEmployeeModule:
         pos_frame.pack(fill='x', pady=5)
         tk.Label(pos_frame, text="职位:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
-        position_var = tk.StringVar()
+        position_var = tk.StringVar(add_window)
         form_vars['position'] = position_var
         position_entry = tk.Entry(pos_frame, textvariable=position_var, font=('Microsoft YaHei UI', 10),
                                  relief='flat', bd=5, bg=self.colors['light'])
@@ -830,7 +830,7 @@ class ModernEmployeeModule:
         dept_frame.pack(fill='x', pady=5)
         tk.Label(dept_frame, text="部门:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
-        department_var = tk.StringVar(value=self.departments[0])
+        department_var = tk.StringVar(add_window, value=self.departments[0])
         form_vars['department'] = department_var
         dept_combo = ttk.Combobox(dept_frame, textvariable=department_var, 
                                  values=self.departments, state="readonly", font=('Microsoft YaHei UI', 10))
@@ -841,7 +841,7 @@ class ModernEmployeeModule:
         hire_frame.pack(fill='x', pady=5)
         tk.Label(hire_frame, text="入职日期:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
-        hire_var = tk.StringVar(value=datetime.datetime.now().strftime("%Y-%m-%d"))
+        hire_var = tk.StringVar(add_window, value=datetime.datetime.now().strftime("%Y-%m-%d"))
         form_vars['hire_date'] = hire_var
         hire_entry = tk.Entry(hire_frame, textvariable=hire_var, font=('Microsoft YaHei UI', 10),
                              relief='flat', bd=5, bg=self.colors['light'])
@@ -852,7 +852,7 @@ class ModernEmployeeModule:
         salary_frame.pack(fill='x', pady=5)
         tk.Label(salary_frame, text="薪资 (元):", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
-        salary_var = tk.StringVar(value="5000")
+        salary_var = tk.StringVar(add_window, value="5000")
         form_vars['salary'] = salary_var
         salary_entry = tk.Entry(salary_frame, textvariable=salary_var, font=('Microsoft YaHei UI', 10),
                                relief='flat', bd=5, bg=self.colors['light'])
@@ -1022,7 +1022,7 @@ class ModernEmployeeModule:
         search_frame = tk.Frame(title_container, bg=self.colors['white'])
         search_frame.pack(side='left', padx=20, pady=15)
         
-        search_var = tk.StringVar()
+        search_var = tk.StringVar(self.parent_frame)
         search_entry = tk.Entry(search_frame, textvariable=search_var, 
                                font=('Microsoft YaHei UI', 10),
                                width=20, relief='flat', bd=5, bg=self.colors['light'])

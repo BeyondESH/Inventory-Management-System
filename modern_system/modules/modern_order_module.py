@@ -68,14 +68,17 @@ class ModernOrderModule:
             '制作中': '#9B59B6',
             '配送中': '#E67E22',
             '已完成': '#2ECC71',
-            '已取消': '#E74C3C'
-        }
-          # 订单数据 - 从数据管理中心获取
+            '已取消': '#E74C3C'        }
+        
+        # 订单数据 - 从数据管理中心获取
         self.order_data = self.load_order_data()
         
+        # 界面状态变量
         self.selected_order = None
         self.current_filter = "全部"
         self.search_keyword = ""
+        self.stats_frame = None
+        self.orders_container = None
     
     def load_order_data(self):
         """从数据管理中心加载订单数据"""
@@ -454,14 +457,12 @@ class ModernOrderModule:
         
         # 应用状态筛选
         if self.current_filter != "全部":
-            filtered_orders = [order for order in self.order_data if order['status'] == self.current_filter]
-        
-        # 应用搜索
-        if self.search_keyword:
+            filtered_orders = [order for order in self.order_data if order['status'] == self.current_filter]        # 应用搜索
+        if hasattr(self, 'search_keyword') and self.search_keyword:
             filtered_orders = [order for order in filtered_orders 
-                              if self.search_keyword in order['customer_name'].lower() 
+                              if self.search_keyword.lower() in order.get('customer', '').lower() 
                               or self.search_keyword in str(order['id'])
-                              or self.search_keyword in order['table_number'].lower()]
+                              or self.search_keyword.lower() in order.get('phone', '').lower()]
         
         # 创建订单卡片
         for order in filtered_orders:
@@ -553,7 +554,7 @@ class ModernOrderModule:
         type_frame.pack(fill='x', pady=5)
         tk.Label(type_frame, text="订单类型:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(side='left')
-        order_type_var = tk.StringVar(value="外卖")
+        order_type_var = tk.StringVar(order_window, value="外卖")
         type_combo = ttk.Combobox(type_frame, textvariable=order_type_var, 
                                  values=["外卖", "堂食"], state="readonly")
         type_combo.pack(side='right', padx=(10, 0))
@@ -563,7 +564,7 @@ class ModernOrderModule:
         payment_frame.pack(fill='x', pady=5)
         tk.Label(payment_frame, text="支付方式:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(side='left')
-        payment_var = tk.StringVar(value="微信支付")
+        payment_var = tk.StringVar(order_window, value="微信支付")
         payment_combo = ttk.Combobox(payment_frame, textvariable=payment_var, 
                                     values=["微信支付", "支付宝", "现金", "银行卡"], state="readonly")
         payment_combo.pack(side='right', padx=(10, 0))
@@ -699,13 +700,69 @@ class ModernOrderModule:
             self.update_order_list()
             self.update_status_cards()
     
+    def update_title_frame(self):
+        """更新标题框架，但保留面包屑导航"""
+        # 不清空整个title_frame，而是查找并更新特定元素
+        # 如果title_frame为空或没有找到合适的元素，创建新的标题
+        found_title = False
+        
+        try:
+            for widget in self.title_frame.winfo_children():
+                if isinstance(widget, tk.Frame):
+                    for child in widget.winfo_children():
+                        if isinstance(child, tk.Label):
+                            text = child.cget("text")
+                            # 如果是模块标题（不是面包屑），则更新
+                            if "订单管理" in text or ("管理" in text and "首页" not in text):
+                                child.configure(text="📋 订单管理")
+                                found_title = True
+                                break
+                    if found_title:
+                        break
+        except tk.TclError:
+            # Widget可能已被销毁
+            pass
+        
+        # 如果没有找到现有标题，创建新的标题区域
+        if not found_title:
+            # 标题栏
+            title_container = tk.Frame(self.title_frame, bg=self.colors['white'])
+            title_container.pack(fill='x', side='bottom')  # 放在底部，不影响面包屑
+            
+            # 标题
+            title_label = tk.Label(title_container, text="📋 订单管理", 
+                                  font=('Microsoft YaHei UI', 18, 'bold'),
+                                  bg=self.colors['white'], fg=self.colors['text'])
+            title_label.pack(side='left', padx=20, pady=15)
+            
+            # 操作按钮
+            actions_frame = tk.Frame(title_container, bg=self.colors['white'])
+            actions_frame.pack(side='right', padx=20, pady=15)
+            
+            # 新建订单按钮
+            add_btn = tk.Button(actions_frame, text="➕ 新建订单", 
+                               font=('Microsoft YaHei UI', 10, 'bold'),
+                               bg=self.colors['primary'], fg=self.colors['white'],
+                               bd=0, padx=20, pady=8, cursor='hand2',
+                               command=self.add_new_order)
+            add_btn.pack(side='right', padx=5)
+            
+            # 刷新按钮
+            refresh_btn = tk.Button(actions_frame, text="🔄 刷新", 
+                                   font=('Microsoft YaHei UI', 10),
+                                   bg=self.colors['info'], fg=self.colors['white'],
+                                   bd=0, padx=20, pady=8, cursor='hand2',
+                                   command=self.refresh_order_list)
+            refresh_btn.pack(side='right', padx=5)
+    
     def show(self):
         """显示订单管理界面"""
         # 清空父框架
         for widget in self.parent_frame.winfo_children():
             widget.destroy()
-        for widget in self.title_frame.winfo_children():
-            widget.destroy()
+        
+        # 更新标题框架，但保留面包屑导航
+        self.update_title_frame()
         
         # 设置父框架背景
         self.parent_frame.configure(bg=self.colors['background'])
@@ -786,10 +843,10 @@ class ModernOrderModule:
         
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
-        
-        # 初始化显示
+          # 初始化显示
         self.refresh_order_list()
-          # 绑定鼠标滚轮事件
+        
+        # 绑定鼠标滚轮事件
         def on_mousewheel(event):
             try:
                 if canvas.winfo_exists():

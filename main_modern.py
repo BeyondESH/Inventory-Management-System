@@ -77,8 +77,8 @@ def main():
         print("智慧餐饮管理系统启动中...")
         print("=" * 50)
         
-        # 显示启动画面
-        show_startup_splash()
+        # 直接启动，不显示启动画面
+        print("正在加载登录模块...")
         
         # 导入登录模块
         try:
@@ -96,7 +96,26 @@ def main():
         
         # 创建并启动登录应用
         print("正在启动登录界面...")
-        app = ModernLoginModule()
+        
+        # 定义登录成功回调
+        def on_login_success(user_info):
+            print(f"用户登录成功: {user_info['name']}")
+            try:
+                # 导入主界面系统
+                from modern_system.core.modern_ui_system import ModernFoodServiceSystem
+                
+                # 创建并启动主系统
+                main_app = ModernFoodServiceSystem()
+                print("✓ 主系统创建成功，正在启动...")
+                main_app.run()
+            except ImportError as e:
+                print(f"✗ 主系统导入失败: {e}")
+                messagebox.showerror("导入错误", f"无法导入主系统: {e}")
+            except Exception as e:
+                print(f"✗ 主系统启动失败: {e}")
+                messagebox.showerror("启动错误", f"主系统启动失败: {e}")
+        
+        app = ModernLoginModule(on_login_success)
         app.run()
         
     except Exception as e:

@@ -12,6 +12,21 @@ import datetime
 import json
 import os
 
+# 导入数据管理器
+try:
+    from ..utils.data_manager import data_manager
+except ImportError:
+    try:
+        from data_manager import data_manager
+    except ImportError:
+        # 创建模拟数据管理器
+        class MockDataManager:
+            def load_data(self, data_type):
+                return []
+            def save_data(self, data_type, data):
+                return True
+        data_manager = MockDataManager()
+
 class ModernMealModule:
     def __init__(self, parent_frame, title_frame):
         self.parent_frame = parent_frame
@@ -45,80 +60,134 @@ class ModernMealModule:
         }
         
         # 菜品数据
-        self.meal_data = self.load_meal_data()
-        
-        # 界面变量
-        self.search_var = tk.StringVar()
-        self.category_filter_var = tk.StringVar(value="全部")
-        self.status_filter_var = tk.StringVar(value="全部")
-        
-        # UI组件引用
+        self.meal_data = self.load_meal_data()        # 界面变量 (延迟初始化)
+        self.search_var = None
+        self.category_filter_var = None
+        self.status_filter_var = None
+          # UI组件引用
         self.meals_container = None
         self.stats_labels = {}
-        
+    
     def load_meal_data(self):
-        """加载菜品数据"""
-        return [
-            {
-                "id": 1, "name": "招牌牛肉面", "category": "主食", "price": 28.0, 
-                "cost": 15.0, "description": "精选牛肉，劲道面条，秘制汤底",
-                "ingredients": ["牛肉", "面条", "青菜", "香菜"], "cooking_time": 15,
-                "calories": 450, "is_spicy": False, "is_vegetarian": False,
-                "is_available": True, "image": "🍜", "created_date": "2025-06-01"
-            },
-            {
-                "id": 2, "name": "宫保鸡丁", "category": "热菜", "price": 32.0,
-                "cost": 18.0, "description": "经典川菜，香辣可口，下饭必备",
-                "ingredients": ["鸡肉", "花生米", "青椒", "干辣椒"], "cooking_time": 20,
-                "calories": 380, "is_spicy": True, "is_vegetarian": False,
-                "is_available": True, "image": "🍗", "created_date": "2025-06-01"
-            },
-            {
-                "id": 3, "name": "糖醋里脊", "category": "热菜", "price": 35.0,
-                "cost": 20.0, "description": "酸甜可口，老少皆宜的经典菜品",
-                "ingredients": ["猪里脊", "青椒", "胡萝卜", "菠萝"], "cooking_time": 25,
-                "calories": 420, "is_spicy": False, "is_vegetarian": False,
-                "is_available": True, "image": "🥩", "created_date": "2025-06-02"
-            },
-            {
-                "id": 4, "name": "青椒土豆丝", "category": "素菜", "price": 15.0,
-                "cost": 8.0, "description": "清爽下饭，营养健康的素食选择",
-                "ingredients": ["土豆", "青椒", "蒜", "醋"], "cooking_time": 10,
-                "calories": 180, "is_spicy": False, "is_vegetarian": True,
-                "is_available": True, "image": "🥬", "created_date": "2025-06-01"
-            },
-            {
-                "id": 5, "name": "麻婆豆腐", "category": "热菜", "price": 22.0,
-                "cost": 12.0, "description": "川菜经典，麻辣鲜香，嫩滑豆腐",
-                "ingredients": ["豆腐", "肉末", "豆瓣酱", "花椒"], "cooking_time": 15,
-                "calories": 280, "is_spicy": True, "is_vegetarian": False,
-                "is_available": False, "image": "🌶️", "created_date": "2025-06-03"
-            },
-            {
-                "id": 6, "name": "番茄鸡蛋汤", "category": "汤品", "price": 16.0,
-                "cost": 9.0, "description": "营养丰富，口感清香的经典汤品",
-                "ingredients": ["番茄", "鸡蛋", "香菜", "胡椒粉"], "cooking_time": 12,
-                "calories": 120, "is_spicy": False, "is_vegetarian": False,
-                "is_available": True, "image": "🍲", "created_date": "2025-06-01"
-            },
-            {
-                "id": 7, "name": "鲜榨橙汁", "category": "饮品", "price": 15.0,
-                "cost": 8.0, "description": "新鲜橙子现榨，维C丰富",
-                "ingredients": ["新鲜橙子"], "cooking_time": 5,
-                "calories": 80, "is_spicy": False, "is_vegetarian": True,
-                "is_available": True, "image": "🧃", "created_date": "2025-06-01"
-            },
-            {
-                "id": 8, "name": "红烧肉", "category": "热菜", "price": 38.0,
-                "cost": 22.0, "description": "肥瘦相间，入口即化的传统名菜",
-                "ingredients": ["五花肉", "生抽", "老抽", "冰糖"], "cooking_time": 45,
-                "calories": 520, "is_spicy": False, "is_vegetarian": False,
-                "is_available": True, "image": "🥓", "created_date": "2025-06-02"
-            }
-        ]
-        
+        """从数据管理中心加载菜品数据"""
+        try:
+            # 从数据管理器获取菜品数据
+            meals_data = data_manager.load_data('meals')
+            
+            # 转换数据格式以适配现有界面
+            formatted_data = []
+            for meal in meals_data:
+                formatted_meal = {
+                    "id": meal.get('id', ''),
+                    "name": meal.get('name', ''),
+                    "category": meal.get('category', '其他'),
+                    "price": meal.get('price', 0.0),
+                    "cost": meal.get('cost', 0.0),
+                    "description": meal.get('description', '暂无描述'),
+                    "ingredients": meal.get('ingredients', []),
+                    "cooking_time": meal.get('cooking_time', 15),
+                    "calories": meal.get('calories', 200),
+                    "is_spicy": meal.get('is_spicy', False),
+                    "is_vegetarian": meal.get('is_vegetarian', False),
+                    "is_available": meal.get('is_available', True),
+                    "image": meal.get('image', '�️'),
+                    "created_date": meal.get('created_date', datetime.datetime.now().strftime('%Y-%m-%d'))
+                }
+                formatted_data.append(formatted_meal)
+            
+            return formatted_data
+        except Exception as e:
+            print(f"加载菜品数据失败: {e}")
+            # 返回默认菜品数据
+            return [
+                {
+                    "id": "MEAL001", "name": "番茄牛肉面", "category": "面食", "price": 25.0,
+                    "cost": 15.0, "description": "经典番茄牛肉面，汤鲜味美",
+                    "ingredients": ["番茄", "牛肉", "面条"], "cooking_time": 15,
+                    "calories": 450, "is_spicy": False, "is_vegetarian": False,
+                    "is_available": True, "image": "�", "created_date": "2025-06-21"
+                },
+                {
+                    "id": "MEAL002", "name": "鸡蛋炒饭", "category": "炒饭", "price": 18.0,
+                    "cost": 10.0, "description": "香喷喷的鸡蛋炒饭",
+                    "ingredients": ["鸡蛋", "米饭"], "cooking_time": 10,
+                    "calories": 350, "is_spicy": False, "is_vegetarian": False,
+                    "is_available": True, "image": "🍚", "created_date": "2025-06-21"
+                },
+                {
+                    "id": "MEAL003", "name": "牛肉汉堡", "category": "西餐", "price": 32.0,
+                    "cost": 20.0, "description": "美味牛肉汉堡套餐",
+                    "ingredients": ["牛肉", "面包", "生菜"], "cooking_time": 12,
+                    "calories": 520, "is_spicy": False, "is_vegetarian": False,
+                    "is_available": True, "image": "🍔", "created_date": "2025-06-21"
+                },
+                {
+                    "id": "MEAL004", "name": "薯条", "category": "小食", "price": 12.0,
+                    "cost": 6.0, "description": "酥脆金黄薯条",
+                    "ingredients": ["土豆"], "cooking_time": 8,
+                    "calories": 280, "is_spicy": False, "is_vegetarian": True,
+                    "is_available": True, "image": "�", "created_date": "2025-06-21"                }            ]
+    
+    def save_meal_data(self):
+        """保存菜品数据到数据管理中心"""
+        try:
+            # 将内部格式的数据转换为标准格式
+            standard_data = []
+            for meal in self.meal_data:
+                standard_meal = {
+                    'id': meal.get('id', ''),
+                    'name': meal.get('name', ''),
+                    'category': meal.get('category', '其他'),
+                    'price': meal.get('price', 0.0),
+                    'cost': meal.get('cost', 0.0),
+                    'description': meal.get('description', ''),
+                    'ingredients': meal.get('ingredients', []),
+                    'cooking_time': meal.get('cooking_time', 15),
+                    'calories': meal.get('calories', 200),
+                    'is_spicy': meal.get('is_spicy', False),
+                    'is_vegetarian': meal.get('is_vegetarian', False),
+                    'is_available': meal.get('is_available', True),
+                    'image': meal.get('image', '🍽️'),
+                    'created_date': meal.get('created_date', datetime.datetime.now().strftime('%Y-%m-%d'))
+                }
+                standard_data.append(standard_meal)
+            
+            # 保存到数据管理器
+            data_manager.save_data('meals', standard_data)
+            return True
+        except Exception as e:
+            print(f"保存菜品数据失败: {e}")
+            return False
+    
+    def notify_data_update(self):
+        """通知其他模块数据已更新"""
+        try:
+            # 通知销售管理模块刷新菜品数据
+            if hasattr(data_manager, 'notify_modules'):
+                data_manager.notify_modules('meals_updated')
+            else:
+                # 直接通知已注册的模块
+                if hasattr(data_manager, 'registered_modules'):
+                    for module_type, module_instance in data_manager.registered_modules.items():
+                        if module_type == 'sales' and hasattr(module_instance, 'refresh_meals_data'):
+                            module_instance.refresh_meals_data()
+        except Exception as e:
+            print(f"通知其他模块失败: {e}")
+    
     def show(self):
         """显示菜品配置模块"""
+        # 注册到数据管理器
+        data_manager.register_module('meal', self)
+        
+        # 重新加载最新数据
+        self.meal_data = self.load_meal_data()
+        
+        # 初始化界面变量（如果还没有初始化）
+        if self.search_var is None:
+            self.search_var = tk.StringVar()
+            self.category_filter_var = tk.StringVar(value="全部")
+            self.status_filter_var = tk.StringVar(value="全部")
+        
         self.clear_frames()
         self.update_title()
         self.create_meal_interface()
@@ -515,12 +584,11 @@ class ModernMealModule:
             
         def on_card_leave(event):
             card_frame.configure(relief="flat", bd=1)
-            
-        # 绑定悬停事件
+              # 绑定悬停事件
         for widget in [card_frame, content_frame, header_frame, icon_label]:
             widget.bind("<Enter>", on_card_enter)
             widget.bind("<Leave>", on_card_leave)
-            
+    
     def update_stats_cards(self):
         """更新统计卡片"""
         filtered_meals = self.get_filtered_meals()
@@ -553,14 +621,21 @@ class ModernMealModule:
         dialog = MealDialog(self.parent_frame, "添加菜品")
         if dialog.result:
             # 生成新ID
-            new_id = max([meal['id'] for meal in self.meal_data], default=0) + 1
+            new_id = f"MEAL{len(self.meal_data) + 1:03d}"
             dialog.result['id'] = new_id
             dialog.result['created_date'] = datetime.datetime.now().strftime("%Y-%m-%d")
             
             # 添加到数据
             self.meal_data.append(dialog.result)
+            
+            # 保存到数据管理器
+            self.save_meal_data()
+            
             self.refresh_meals_display()
             messagebox.showinfo("成功", "菜品添加成功！")
+            
+            # 通知其他模块数据更新
+            self.notify_data_update()
             
     def edit_meal(self, meal):
         """编辑菜品"""
@@ -568,16 +643,30 @@ class ModernMealModule:
         if dialog.result:
             # 更新数据
             meal.update(dialog.result)
+            
+            # 保存到数据管理器
+            self.save_meal_data()
+            
             self.refresh_meals_display()
             messagebox.showinfo("成功", "菜品信息更新成功！")
+            
+            # 通知其他模块数据更新
+            self.notify_data_update()
             
     def toggle_meal_status(self, meal):
         """切换菜品状态"""
         action = "上架" if not meal["is_available"] else "下架"
         if messagebox.askyesno("确认操作", f"确定要{action}菜品 '{meal['name']}' 吗？"):
             meal["is_available"] = not meal["is_available"]
+            
+            # 保存到数据管理器
+            self.save_meal_data()
+            
             self.refresh_meals_display()
             messagebox.showinfo("成功", f"菜品已{action}！")
+            
+            # 通知其他模块数据更新
+            self.notify_data_update()
             
     def export_menu(self):
         """导出菜单"""
