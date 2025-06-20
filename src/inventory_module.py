@@ -22,6 +22,39 @@ class InventoryModule:
             {"id": 5, "name": "一次性餐盒", "current_stock": 500, "unit": "个", "threshold": 100, "unit_cost": 0.5, "expiry": "2025-06-01"},
         ]
         
+        # 菜品配方数据 - 定义每个菜品需要的原材料及其用量
+        self.recipe_data = {
+            "番茄牛肉面": {
+                "面粉": 0.2,     # kg
+                "牛肉": 0.15,    # kg  
+                "番茄": 0.1,     # kg
+                "鸡蛋": 1,       # 个
+                "一次性餐盒": 1   # 个
+            },
+            "鸡蛋炒饭": {
+                "鸡蛋": 2,       # 个
+                "一次性餐盒": 1   # 个
+            },
+            "蒸蛋羹": {
+                "鸡蛋": 3,       # 个
+                "一次性餐盒": 1   # 个
+            },
+            "牛肉汉堡": {
+                "面粉": 0.1,     # kg
+                "牛肉": 0.2,     # kg
+                "番茄": 0.05,    # kg
+                "一次性餐盒": 1   # 个
+            },
+            "素食沙拉": {
+                "番茄": 0.15,    # kg
+                "一次性餐盒": 1   # 个
+            },
+            "红烧肉": {
+                "牛肉": 0.25,    # kg
+                "一次性餐盒": 1   # 个
+            }
+        }
+        
     def show(self):
         """显示库存管理模块"""
         # 清空标题栏
@@ -55,6 +88,12 @@ class InventoryModule:
                                 cursor="hand2", command=self.edit_selected_item,
                                 state="disabled")
         self.edit_btn.pack(side="right", padx=(5,20))
+        
+        # 库存预警按钮
+        warning_btn = tk.Button(toolbar_frame, text="⚠️ 库存预警", font=("微软雅黑", 10),
+                              bg="#e74c3c", fg="white", bd=0, padx=15, pady=5,
+                              cursor="hand2", command=self.show_stock_warnings)
+        warning_btn.pack(side="right", padx=5)
         
         add_btn = tk.Button(toolbar_frame, text="➕ 添加食材", font=("微软雅黑", 10),
                           bg="#27ae60", fg="white", bd=0, padx=15, pady=5,
@@ -518,3 +557,193 @@ class InventoryModule:
         
         # 调用编辑功能
         self.edit_inventory_item(self.tree)
+
+    def check_ingredients_availability(self, meal_name, quantity):
+        """检查制作指定数量菜品的原材料是否充足"""
+        if meal_name not in self.recipe_data:
+            return True, "该菜品未配置配方"
+        
+        recipe = self.recipe_data[meal_name]
+        insufficient_ingredients = []
+        
+        for ingredient_name, required_amount in recipe.items():
+            # 查找对应的库存项目
+            ingredient_item = None
+            for item in self.inventory_data:
+                if item["name"] == ingredient_name:
+                    ingredient_item = item
+                    break
+            
+            if ingredient_item is None:
+                insufficient_ingredients.append(f"{ingredient_name}: 库存中未找到")
+                continue
+            
+            total_required = required_amount * quantity
+            if ingredient_item["current_stock"] < total_required:
+                insufficient_ingredients.append(
+                    f"{ingredient_name}: 需要 {total_required} {ingredient_item['unit']}, "
+                    f"但只有 {ingredient_item['current_stock']} {ingredient_item['unit']}"
+                )
+        
+        if insufficient_ingredients:
+            return False, "原材料不足:\n" + "\n".join(insufficient_ingredients)
+        
+        return True, "原材料充足"
+    
+    def consume_ingredients(self, meal_name, quantity):
+        """消耗制作指定数量菜品的原材料"""
+        if meal_name not in self.recipe_data:
+            return False, "该菜品未配置配方"
+        
+        # 先检查原材料是否充足
+        is_sufficient, message = self.check_ingredients_availability(meal_name, quantity)
+        if not is_sufficient:
+            return False, message
+        
+        recipe = self.recipe_data[meal_name]
+        consumed_items = []
+        
+        # 扣减库存
+        for ingredient_name, required_amount in recipe.items():
+            for item in self.inventory_data:
+                if item["name"] == ingredient_name:
+                    total_required = required_amount * quantity
+                    item["current_stock"] -= total_required
+                    consumed_items.append(f"{ingredient_name}: -{total_required} {item['unit']}")
+                    break
+        
+        return True, f"成功消耗原材料:\n" + "\n".join(consumed_items)
+    
+    def get_recipe_info(self, meal_name):
+        """获取菜品配方信息"""
+        if meal_name not in self.recipe_data:
+            return None
+        
+        recipe = self.recipe_data[meal_name]
+        recipe_info = []
+        
+        for ingredient_name, required_amount in recipe.items():
+            # 查找对应的库存项目获取单位
+            for item in self.inventory_data:
+                if item["name"] == ingredient_name:
+                    recipe_info.append(f"{ingredient_name}: {required_amount} {item['unit']}")
+                    break
+        
+        return recipe_info
+
+    def show_stock_warnings(self):
+        """显示库存预警信息"""
+        # 创建预警信息对话框
+        dialog = tk.Toplevel()
+        dialog.title("库存预警")
+        dialog.geometry("700x600")
+        dialog.configure(bg="#f8f9fa")
+        dialog.resizable(False, False)
+        dialog.grab_set()
+        
+        # 居中显示对话框
+        dialog.transient(self.parent_frame.winfo_toplevel())
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (700 // 2)
+        y = (dialog.winfo_screenheight() // 2) - (600 // 2)
+        dialog.geometry(f"700x600+{x}+{y}")
+        
+        # 标题
+        title_frame = tk.Frame(dialog, bg="#e74c3c", height=60)
+        title_frame.pack(fill="x")
+        title_frame.pack_propagate(False)
+        
+        title_label = tk.Label(title_frame, text="⚠️ 库存预警", 
+                              font=("微软雅黑", 16, "bold"),
+                              bg="#e74c3c", fg="white")
+        title_label.pack(pady=15)
+        
+        # 内容区域
+        content_frame = tk.Frame(dialog, bg="#f9f9fa")
+        content_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # 创建文本显示区域
+        text_frame = tk.Frame(content_frame)
+        text_frame.pack(fill="both", expand=True)
+        
+        text_widget = tk.Text(text_frame, font=("微软雅黑", 11),
+                            wrap=tk.WORD, bg="#ffffff", fg="#2c3e50")
+        scrollbar = ttk.Scrollbar(text_frame, orient="vertical", command=text_widget.yview)
+        text_widget.configure(yscrollcommand=scrollbar.set)
+        
+        # 生成预警信息
+        warning_content = "📊 库存预警报告\n\n"
+        
+        # 1. 库存不足预警
+        low_stock_items = []
+        for item in self.inventory_data:
+            if item["current_stock"] <= item["threshold"]:
+                low_stock_items.append(item)
+        
+        if low_stock_items:
+            warning_content += "🔴 库存不足预警:\n"
+            for item in low_stock_items:
+                warning_content += f"   • {item['name']}: 当前 {item['current_stock']} {item['unit']}, "
+                warning_content += f"安全库存 {item['threshold']} {item['unit']}\n"
+        else:
+            warning_content += "✅ 所有物品库存充足\n"
+        
+        warning_content += "\n"
+        
+        # 2. 可制作菜品分析
+        warning_content += "🍽️ 可制作菜品分析:\n"
+        for meal_name, recipe in self.recipe_data.items():
+            can_make = True
+            max_quantity = float('inf')
+            limiting_ingredient = ""
+            
+            for ingredient_name, required_amount in recipe.items():
+                ingredient_item = None
+                for item in self.inventory_data:
+                    if item["name"] == ingredient_name:
+                        ingredient_item = item
+                        break
+                
+                if ingredient_item is None:
+                    can_make = False
+                    limiting_ingredient = f"{ingredient_name}(库存中未找到)"
+                    max_quantity = 0
+                    break
+                
+                possible_quantity = int(ingredient_item["current_stock"] / required_amount)
+                if possible_quantity < max_quantity:
+                    max_quantity = possible_quantity
+                    limiting_ingredient = ingredient_name
+            
+            if can_make and max_quantity > 0:
+                warning_content += f"   ✅ {meal_name}: 最多可制作 {max_quantity} 份"
+                if max_quantity < 10:
+                    warning_content += f" (受限于 {limiting_ingredient})"
+                warning_content += "\n"
+            else:
+                warning_content += f"   ❌ {meal_name}: 无法制作 (缺少 {limiting_ingredient})\n"
+        
+        warning_content += "\n"
+        
+        # 3. 补货建议
+        warning_content += "📋 补货建议:\n"
+        for item in low_stock_items:
+            suggested_order = item["threshold"] * 3  # 建议补货到安全库存的3倍
+            needed_quantity = suggested_order - item["current_stock"]
+            estimated_cost = needed_quantity * item["unit_cost"]
+            warning_content += f"   • {item['name']}: 建议补货 {needed_quantity} {item['unit']}, "
+            warning_content += f"预计成本 ¥{estimated_cost:.2f}\n"
+        
+        text_widget.insert(tk.END, warning_content)
+        text_widget.config(state=tk.DISABLED)  # 设为只读
+        
+        text_widget.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # 关闭按钮
+        close_btn = tk.Button(content_frame, text="关闭", 
+                            font=("微软雅黑", 11),
+                            bg="#95a5a6", fg="white", bd=0,
+                            padx=20, pady=8, cursor="hand2",
+                            command=dialog.destroy)
+        close_btn.pack(pady=(10, 0))

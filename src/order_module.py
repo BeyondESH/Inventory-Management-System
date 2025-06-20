@@ -9,16 +9,18 @@ from tkinter import ttk, messagebox, simpledialog
 from typing import Dict, List, Any
 
 class OrderModule:
-    def __init__(self, parent_frame, title_frame):
+    def __init__(self, parent_frame, title_frame, inventory_module=None, customer_module=None):
         self.parent_frame = parent_frame
         self.title_frame = title_frame
+        self.inventory_module = inventory_module
+        self.customer_module = customer_module  # 添加客户模块引用
         
         # 订单数据
         self.order_data = [
-            {"id": 1001, "customer": "张三", "meal": "番茄牛肉面", "quantity": 2, "total": 50.0, "date": "2024-06-15", "status": "已完成"},
-            {"id": 1002, "customer": "李四", "meal": "鸡蛋炒饭", "quantity": 1, "total": 18.0, "date": "2024-06-15", "status": "进行中"},
-            {"id": 1003, "customer": "王五", "meal": "牛肉汉堡", "quantity": 3, "total": 96.0, "date": "2024-06-14", "status": "已接收"},
-            {"id": 1004, "customer": "赵六", "meal": "蒸蛋羹", "quantity": 4, "total": 48.0, "date": "2024-06-14", "status": "已完成"},
+            {"id": 1001, "customer": "张三", "meal": "番茄牛肉面", "quantity": 2, "total": 50.0, "date": "2024-06-15", "status": "已完成", "type": "外卖"},
+            {"id": 1002, "customer": "李四", "meal": "鸡蛋炒饭", "quantity": 1, "total": 18.0, "date": "2024-06-15", "status": "进行中", "type": "外卖"},
+            {"id": 1003, "customer": "王五", "meal": "牛肉汉堡", "quantity": 3, "total": 96.0, "date": "2024-06-14", "status": "已接收", "type": "外卖"},
+            {"id": 1004, "customer": "赵六", "meal": "蒸蛋羹", "quantity": 4, "total": 48.0, "date": "2024-06-14", "status": "已完成", "type": "外卖"},
         ]
         
     def show(self):
@@ -55,6 +57,12 @@ class OrderModule:
                                 state="disabled")
         self.edit_btn.pack(side="right", padx=(5,20))
         
+        # 配方信息按钮
+        recipe_btn = tk.Button(toolbar_frame, text="📋 配方信息", font=("微软雅黑", 10),
+                             bg="#9b59b6", fg="white", bd=0, padx=15, pady=5,
+                             cursor="hand2", command=self.show_recipe_info)
+        recipe_btn.pack(side="right", padx=5)
+        
         add_btn = tk.Button(toolbar_frame, text="➕ 新建订单", font=("微软雅黑", 10),
                           bg="#3498db", fg="white", bd=0, padx=15, pady=5,
                           cursor="hand2", command=self.add_order_item)
@@ -80,9 +88,16 @@ class OrderModule:
         
         # 填充数据
         for order in self.order_data:
+            # 使用统一的订单信息处理
+            unified_info = self.get_unified_order_info(order)
             tree.insert("", "end", values=(
-                order["id"], order["customer"], order["meal"], order["quantity"],
-                f"¥{order['total']}", order["date"], order["status"]
+                unified_info["id"], 
+                unified_info["customer_display"], 
+                unified_info["meal_info"], 
+                unified_info["quantity"],
+                f"¥{unified_info['total']}", 
+                unified_info["date"], 
+                unified_info["status"]
             ))
           # 布局
         tree.pack(side="left", fill="both", expand=True)
@@ -273,6 +288,20 @@ class OrderModule:
                 # 计算总金额
                 total = quantity * unit_price
                 
+                # 如果订单状态直接设置为"已完成"，需要检查并扣减库存
+                if status == "已完成" and self.inventory_module:
+                    # 检查库存是否充足
+                    is_sufficient, message = self.inventory_module.check_ingredients_availability(meal, int(quantity))
+                    if not is_sufficient:
+                        messagebox.showerror("库存不足", f"无法创建已完成订单，{message}")
+                        return
+                    
+                    # 扣减库存
+                    success, consume_message = self.inventory_module.consume_ingredients(meal, int(quantity))
+                    if not success:
+                        messagebox.showerror("扣减失败", f"库存扣减失败: {consume_message}")
+                        return
+                
                 # 生成新订单号
                 new_id = max([order["id"] for order in self.order_data]) + 1 if self.order_data else 1001
                 
@@ -290,7 +319,11 @@ class OrderModule:
                 # 添加到数据中
                 self.order_data.append(new_order)
                 
-                messagebox.showinfo("成功", f"成功创建订单：#{new_id}")
+                success_message = f"成功创建订单：#{new_id}"
+                if status == "已完成" and self.inventory_module:
+                    success_message += f"\n已自动扣减库存"
+                    
+                messagebox.showinfo("成功", success_message)
                 dialog.destroy()
                 
                 # 刷新显示
@@ -391,7 +424,7 @@ class OrderModule:
             # 标签
             label = tk.Label(form_frame, text=label_text, 
                            font=("微软雅黑", 11, "bold"),
-                           bg="#f8f9fa", fg="#2c3e50")
+                           bg="#f9f9fa", fg="#2c3e50")
             label.grid(row=i, column=0, sticky="w", pady=(10, 5))
             
             # 输入框
@@ -428,7 +461,7 @@ class OrderModule:
                 # 添加日期格式提示
                 hint_label = tk.Label(form_frame, text="格式: YYYY-MM-DD", 
                                     font=("微软雅黑", 9),
-                                    bg="#f8f9fa", fg="#7f8c8d")
+                                    bg="#f9f9fa", fg="#7f8c8d")
                 hint_label.grid(row=i, column=2, sticky="w", padx=(10, 0))
                 
             if entry:
@@ -538,6 +571,27 @@ class OrderModule:
                     messagebox.showerror("错误", "日期格式不正确，请使用 YYYY-MM-DD 格式")
                     return
                 
+                # 检查状态是否从非"已完成"变为"已完成"
+                old_status = current_order["status"]
+                new_status = status
+                
+                # 如果状态改为"已完成"且之前不是"已完成"，则需要扣减库存
+                if new_status == "已完成" and old_status != "已完成":
+                    if self.inventory_module:
+                        # 检查库存是否充足
+                        is_sufficient, message = self.inventory_module.check_ingredients_availability(meal, int(quantity))
+                        if not is_sufficient:
+                            messagebox.showerror("库存不足", f"无法完成订单，{message}")
+                            return
+                        
+                        # 扣减库存
+                        success, consume_message = self.inventory_module.consume_ingredients(meal, int(quantity))
+                        if success:
+                            messagebox.showinfo("库存扣减", f"订单完成，已自动扣减库存:\n{consume_message}")
+                        else:
+                            messagebox.showerror("扣减失败", f"库存扣减失败: {consume_message}")
+                            return
+                
                 # 计算总金额
                 total = quantity * unit_price
                 
@@ -611,3 +665,136 @@ class OrderModule:
         
         # 调用编辑功能
         self.edit_order_item(self.tree)
+
+    def show_recipe_info(self):
+        """显示菜品配方信息"""
+        if not self.inventory_module:
+            messagebox.showwarning("提示", "库存模块未初始化")
+            return
+            
+        # 创建配方信息对话框
+        dialog = tk.Toplevel()
+        dialog.title("菜品配方信息")
+        dialog.geometry("600x500")
+        dialog.configure(bg="#f8f9fa")
+        dialog.resizable(False, False)
+        dialog.grab_set()
+        
+        # 居中显示对话框
+        dialog.transient(self.parent_frame.winfo_toplevel())
+        dialog.update_idletasks()
+        x = (dialog.winfo_screenwidth() // 2) - (600 // 2)
+        y = (dialog.winfo_screenheight() // 2) - (500 // 2)
+        dialog.geometry(f"600x500+{x}+{y}")
+        
+        # 标题
+        title_frame = tk.Frame(dialog, bg="#3498db", height=60)
+        title_frame.pack(fill="x")
+        title_frame.pack_propagate(False)
+        
+        title_label = tk.Label(title_frame, text="🍽️ 菜品配方信息", 
+                              font=("微软雅黑", 16, "bold"),
+                              bg="#3498db", fg="white")
+        title_label.pack(pady=15)
+        
+        # 内容区域
+        content_frame = tk.Frame(dialog, bg="#f8f9fa")
+        content_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # 创建文本显示区域
+        text_frame = tk.Frame(content_frame)
+        text_frame.pack(fill="both", expand=True)
+        
+        text_widget = tk.Text(text_frame, font=("微软雅黑", 11),
+                            wrap=tk.WORD, bg="#ffffff", fg="#2c3e50")
+        scrollbar = ttk.Scrollbar(text_frame, orient="vertical", command=text_widget.yview)
+        text_widget.configure(yscrollcommand=scrollbar.set)
+        
+        # 显示配方信息
+        recipe_content = "📋 菜品配方信息\n\n"
+        for meal_name in self.inventory_module.recipe_data:
+            recipe_content += f"🍽️ {meal_name}:\n"
+            recipe_info = self.inventory_module.get_recipe_info(meal_name)
+            if recipe_info:
+                for ingredient in recipe_info:
+                    recipe_content += f"   • {ingredient}\n"
+            else:
+                recipe_content += "   • 暂无配方信息\n"
+            recipe_content += "\n"
+        
+        text_widget.insert(tk.END, recipe_content)
+        text_widget.config(state=tk.DISABLED)  # 设为只读
+        
+        text_widget.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # 关闭按钮
+        close_btn = tk.Button(content_frame, text="关闭", 
+                            font=("微软雅黑", 11),
+                            bg="#95a5a6", fg="white", bd=0,
+                            padx=20, pady=8, cursor="hand2",
+                            command=dialog.destroy)
+        close_btn.pack(pady=(10, 0))
+    
+    def get_unified_order_info(self, order):
+        """获取统一的订单信息格式"""
+        # 处理堂食订单和普通订单的数据差异
+        if "items" in order:
+            # 堂食订单格式
+            meal_info = order["items"]
+            order_type = "堂食"
+            # 提取纯客户名（去掉桌号信息）
+            customer_name = order["customer"]
+            if " (桌号:" in customer_name:
+                pure_customer_name = customer_name.split(" (桌号:")[0]
+                table_info = customer_name.split(" (桌号:")[1].rstrip(")")
+            else:
+                pure_customer_name = customer_name
+                table_info = "未知"
+        else:
+            # 普通订单格式
+            meal_info = order["meal"]
+            order_type = order.get("type", "外卖")
+            pure_customer_name = order["customer"]
+            table_info = "无"
+        
+        return {
+            "id": order["id"],
+            "customer": pure_customer_name,
+            "customer_display": order["customer"],
+            "meal_info": meal_info,
+            "quantity": order["quantity"],
+            "total": order["total"],
+            "date": order["date"],
+            "status": order["status"],
+            "type": order_type,
+            "table": table_info
+        }
+    
+    def auto_create_dine_in_customer(self, customer_name, table_number):
+        """为堂食订单自动创建或获取客户信息"""
+        if not self.customer_module:
+            return None
+            
+        # 为堂食客户使用固定的命名规则：堂食-桌号
+        standard_customer_name = f"堂食-{table_number}桌"
+        
+        # 检查是否已存在该桌的堂食客户
+        for customer in self.customer_module.customer_data:
+            if customer["name"] == standard_customer_name and customer["type"] == "堂食客户":
+                return customer["id"]
+        
+        # 创建新的堂食客户
+        new_customer_id = max([c["id"] for c in self.customer_module.customer_data]) + 1 if self.customer_module.customer_data else 1
+        
+        new_customer = {
+            "id": new_customer_id,
+            "name": standard_customer_name,
+            "phone": f"桌号-{table_number}",
+            "email": f"table-{table_number}@restaurant.internal",
+            "address": f"店内-{table_number}桌",
+            "type": "堂食客户"
+        }
+        
+        self.customer_module.customer_data.append(new_customer)
+        return new_customer_id

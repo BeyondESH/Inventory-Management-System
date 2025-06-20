@@ -13,6 +13,7 @@ from typing import Dict, List, Any
 
 # 导入各个模块
 try:
+    from .sales_module import SalesModule
     from .inventory_module import InventoryModule
     from .meal_module import MealModule
     from .order_module import OrderModule
@@ -20,6 +21,7 @@ try:
     from .finance_module import FinanceModule
     from .employee_module import EmployeeModule
 except ImportError:
+    from sales_module import SalesModule
     from inventory_module import InventoryModule
     from meal_module import MealModule
     from order_module import OrderModule
@@ -53,8 +55,8 @@ class InventoryManagementSystem:
         # 初始化各个模块
         self.init_modules()
         
-        # 默认选择库存管理模块
-        self.select_module("inventory")
+        # 默认选择销售模块
+        self.select_module("sales")
         
     def set_window_icon(self):
         """设置窗口图标"""
@@ -73,8 +75,12 @@ class InventoryManagementSystem:
         # 初始化各个业务模块
         self.inventory_module = InventoryModule(self.main_content_frame, self.title_frame)
         self.meal_module = MealModule(self.main_content_frame, self.title_frame)
-        self.order_module = OrderModule(self.main_content_frame, self.title_frame)
         self.customer_module = CustomerModule(self.main_content_frame, self.title_frame)
+        # 订单模块需要访问库存模块和客户模块
+        self.order_module = OrderModule(self.main_content_frame, self.title_frame, self.inventory_module, self.customer_module)
+        # 销售模块需要访问餐食、库存和订单模块
+        self.sales_module = SalesModule(self.main_content_frame, self.title_frame, 
+                                       self.meal_module, self.inventory_module, self.order_module)
         self.employee_module = EmployeeModule(self.main_content_frame, self.title_frame)
         # 财务模块需要访问订单和餐食数据
         self.finance_module = FinanceModule(self.main_content_frame, self.title_frame, 
@@ -113,7 +119,8 @@ class InventoryManagementSystem:
         
         # 导航按钮
         nav_buttons = [
-            {"text": "📦 库存管理", "module": "inventory", "icon": "📦"},
+            {"text": "� 堂食点单", "module": "sales", "icon": "🛒"},
+            {"text": "�📦 库存管理", "module": "inventory", "icon": "📦"},
             {"text": "🍜 餐食配置", "module": "meal", "icon": "🍜"},
             {"text": "📋 订单管理", "module": "order", "icon": "📋"},
             {"text": "👥 客户管理", "module": "customer", "icon": "👥"},
@@ -185,7 +192,9 @@ class InventoryManagementSystem:
     def update_content_area(self):
         """更新内容区域"""
         # 根据选中模块显示相应内容
-        if self.current_module == "inventory":
+        if self.current_module == "sales":
+            self.sales_module.show()
+        elif self.current_module == "inventory":
             self.inventory_module.show()
         elif self.current_module == "meal":
             self.meal_module.show()
