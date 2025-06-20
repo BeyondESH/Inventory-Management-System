@@ -1,0 +1,18 @@
+[
+  {
+    "customer_name": "测试客户",
+    "phone": "138****0000",
+    "address": "测试地址",
+    "items": [
+      {
+        "name": "番茄牛肉面",
+        "quantity": 1,
+        "price": 25.0
+      }
+    ],
+    "total_amount": 25.0,
+    "payment_method": "微信支付",
+    "id": "ORD202506210001",
+    "create_time": "2025-06-21 03:56:57"
+  }
+]

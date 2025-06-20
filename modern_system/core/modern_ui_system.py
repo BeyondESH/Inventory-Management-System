@@ -381,25 +381,24 @@ class ModernFoodServiceSystem:
         # 第二行卡片
         stats_row2 = tk.Frame(stats_container, bg=self.colors['background'])
         stats_row2.pack(fill="x")
-        
-        # 从数据管理中心获取统计数据
+          # 从数据管理中心获取统计数据
         try:
             stats_data = data_manager.get_dashboard_stats()
         except:
             # 默认统计数据
             stats_data = {
-                'today_sales': 12580,
-                'order_count': 156,
-                'inventory_alerts': 8,
-                'customer_count': 2340
+                'today_revenue': 12580,
+                'today_orders': 156,
+                'low_stock_count': 8,
+                'total_customers': 2340
             }
         
         # 统计卡片配置
         stats = [
-            {"title": "今日销售", "value": f"￥{stats_data['today_sales']:,}", "icon": "💰", "color": self.colors['success']},
-            {"title": "订单数量", "value": str(stats_data['order_count']), "icon": "📋", "color": self.colors['primary']},
-            {"title": "库存预警", "value": str(stats_data['inventory_alerts']), "icon": "⚠️", "color": self.colors['warning']},
-            {"title": "客户总数", "value": f"{stats_data['customer_count']:,}", "icon": "👥", "color": self.colors['secondary']}
+            {"title": "今日销售", "value": f"￥{stats_data['today_revenue']:,.2f}", "icon": "💰", "color": self.colors['success']},
+            {"title": "订单数量", "value": str(stats_data['today_orders']), "icon": "📋", "color": self.colors['primary']},
+            {"title": "库存预警", "value": str(stats_data['low_stock_count']), "icon": "⚠️", "color": self.colors['warning']},
+            {"title": "客户总数", "value": f"{stats_data['total_customers']:,}", "icon": "👥", "color": self.colors['secondary']}
         ]
         
         # 创建统计卡片 - 2行2列

@@ -1,0 +1,12 @@
+[
+  {
+    "id": "FIN20250621035657",
+    "type": "income",
+    "order_id": "ORD202506210001",
+    "amount": 25.0,
+    "description": "订单收入 - 测试客户",
+    "date": "2025-06-21",
+    "time": "03:56:57",
+    "payment_method": "微信支付"
+  }
+]

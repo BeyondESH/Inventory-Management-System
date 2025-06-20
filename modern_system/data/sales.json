@@ -1,0 +1,17 @@
+[
+  {
+    "id": "SALE20250621035657",
+    "order_id": "ORD202506210001",
+    "customer_name": "测试客户",
+    "total_amount": 25.0,
+    "items": [
+      {
+        "name": "番茄牛肉面",
+        "quantity": 1,
+        "price": 25.0
+      }
+    ],
+    "sale_time": "2025-06-21 03:56:57",
+    "payment_method": "微信支付"
+  }
+]
