@@ -87,39 +87,34 @@ class ModernFinanceModule:
         self.date_filter_var = tk.StringVar(self.main_frame, value="全部")
         self.type_filter_var = tk.StringVar(self.main_frame, value="全部")
         
-        self.update_title()
+        # 标题
+        title_label = tk.Label(self.main_frame, text="💼 财务管理", 
+                              font=self.fonts['title'],
+                              bg=self.colors['background'], 
+                              fg=self.colors['text_primary'])
+        title_label.pack(pady=(0, 20))
+          # 财务概览
         self.create_finance_overview()
+        
+        # 创建选项卡
         self.create_finance_tabs()
         
-    def update_title(self):
-        # ... (This can be a new method to keep the title logic separate) ...
-        pass
-
     def create_finance_overview(self):
-        """创建动态的财务概览"""
-        if hasattr(self, 'overview_frame') and self.overview_frame.winfo_exists():
-            self.overview_frame.destroy()
-            
-        self.overview_frame = tk.Frame(self.main_frame, bg=self.colors['background'])
-        self.overview_frame.pack(fill="x", pady=(10, 20), padx=10)
+        """创建财务概览"""
+        overview_frame = tk.Frame(self.main_frame, bg=self.colors['background'])
+        overview_frame.pack(fill="x", pady=(0, 20))
         
-        try:
-            summary = data_manager.get_finance_summary()
-        except Exception as e:
-            print(f"❌ 获取财务概览失败: {e}")
-            summary = {}
-
+        # 财务统计
         stats = [
-            {"title": "今日收入", "value": f"￥{summary.get('today_income', 0):.2f}", "icon": "💰", "color": self.colors['success']},
-            {"title": "今日支出", "value": f"￥{summary.get('today_expense', 0):.2f}", "icon": "💸", "color": self.colors['danger']},
-            {"title": "今日利润", "value": f"￥{summary.get('today_profit', 0):.2f}", "icon": "📈", "color": self.colors['primary']},
-            {"title": "本月收入", "value": f"￥{summary.get('month_income', 0):.2f}", "icon": "💳", "color": self.colors['info']}
+            {"title": "今日收入", "value": "￥2,580", "icon": "💰", "color": self.colors['success']},
+            {"title": "今日支出", "value": "￥680", "icon": "💸", "color": self.colors['danger']},
+            {"title": "净利润", "value": "￥1,900", "icon": "📈", "color": self.colors['primary']},
+            {"title": "本月收入", "value": "￥58,960", "icon": "💳", "color": self.colors['info']}
         ]
         
-        for i, stat in enumerate(stats):
-            card = tk.Frame(self.overview_frame, bg=self.colors['surface'], relief="flat", bd=1, highlightbackground=self.colors['border'], highlightthickness=1)
-            card.grid(row=0, column=i, sticky="nsew", padx=5)
-            self.overview_frame.grid_columnconfigure(i, weight=1)
+        for stat in stats:
+            card = tk.Frame(overview_frame, bg=self.colors['surface'], relief="flat", bd=1)
+            card.pack(side="left", fill="both", expand=True, padx=(0, 10))
             
             # 图标
             icon_label = tk.Label(card, text=stat['icon'], font=('Segoe UI Emoji', 24),
@@ -243,71 +238,348 @@ class ModernFinanceModule:
         costs_scrollbar.pack(side="right", fill="y")
     
     def load_and_display_fixed_costs(self):
-        """从数据库加载并显示固定成本数据"""
+        """加载并显示固定成本数据"""
         try:
+            # 清空现有数据
             for item in self.costs_tree.get_children():
                 self.costs_tree.delete(item)
             
-            costs_data = data_manager.get_fixed_costs()
+            # 加载数据
+            costs_data = self.load_fixed_costs()
             
             for cost in costs_data:
-                values = (
-                    cost.get('cost_id'),
-                    cost.get('cost_category', 'N/A'),
-                    cost.get('cost_name', 'N/A'),
-                    f"￥{cost.get('amount', 0):.2f}",
-                    cost.get('payment_cycle', 'N/A'),
-                    cost.get('next_payment_date', 'N/A'),
-                    cost.get('status', 'N/A'),
-                    cost.get('notes', '')
-                )
-                tag = "paid" if cost.get('status') == '已支付' else "unpaid"
-                self.costs_tree.insert("", "end", values=values, tags=(tag,))
+                # 根据状态设置不同颜色
+                if cost.get('status') == "未付":
+                    tags = ("unpaid",)
+                else:
+                    tags = ("paid",)
+                
+                # 插入数据到表格
+                self.costs_tree.insert("", "end", values=(
+                    cost.get('cost_type', ''),
+                    cost.get('item', ''),
+                    f"￥{cost.get('amount', 0):,.0f}",
+                    cost.get('period', ''),
+                    cost.get('next_date', ''),
+                    cost.get('status', ''),
+                    cost.get('note', '')
+                ), tags=tags)
+                
         except Exception as e:
-            messagebox.showerror("错误", f"加载固定成本失败: {e}")
+            print(f"加载固定成本数据失败: {e}")            # 如果加载失败，显示默认数据
+            self.display_default_costs()
+    
+    def display_default_costs(self):
+        """显示默认的固定成本数据"""
+        sample_costs = [
+            ("租金", "店铺租金", "￥8,000", "月付", "2024-07-01", "已付", "主店面租金"),
+            ("人力", "厨师工资", "￥5,000", "月付", "2024-07-01", "已付", "主厨月薪"),
+            ("水电", "电费", "￥800", "月付", "2024-07-05", "未付", "店铺用电"),
+        ]
+        
+        for cost in sample_costs:
+            if cost[5] == "未付":
+                tags = ("unpaid",)
+            else:
+                tags = ("paid",)
+            
+            self.costs_tree.insert("", "end", values=cost, tags=tags)
     
     def add_fixed_cost(self):
-        # (This will be a new dialog, for now, a simplified version)
-        # ...
-        pass
-
-    def save_costs_to_file(self):
-        """此方法已废弃"""
-        messagebox.showinfo("提示", "此功能已停用，数据现在实时保存在数据库中。")
-
-    def load_finance_records(self):
-        """从数据库加载财务记录"""
+        """添加固定成本"""
         try:
-            for item in self.records_tree.get_children():
-                self.records_tree.delete(item)
-
-            records = data_manager.get_financial_records(
-                self.date_filter_var.get(), self.type_filter_var.get()
-            )
-
-            for record in records:
-                amount_str = f"+ ￥{record['amount']:.2f}" if record['record_type'] == '收入' else f"- ￥{record['amount']:.2f}"
-                tag = "income" if record['record_type'] == '收入' else "expense"
-                self.records_tree.insert("", "end", values=(
-                    record['record_id'],
-                    record['record_date'],
-                    record['record_type'],
-                    record['description'],
-                    amount_str
-                ), tags=(tag,))
+            root = self.main_frame.winfo_toplevel()
+            
+            # 创建添加对话框
+            dialog = tk.Toplevel(root)
+            dialog.title("添加固定成本")
+            dialog.geometry("450x600")  # 增加高度从500到600
+            dialog.configure(bg=self.colors['background'])
+            dialog.transient(root)
+            dialog.grab_set()
+            
+            # 居中显示
+            dialog.update_idletasks()
+            x = (dialog.winfo_screenwidth() // 2) - (225)
+            y = (dialog.winfo_screenheight() // 2) - (250)
+            dialog.geometry(f"450x500+{x}+{y}")
+            
+            # 标题
+            tk.Label(dialog, text="添加固定成本", font=self.fonts['heading'],
+                    bg=self.colors['background'], fg=self.colors['text_primary']).pack(pady=15)
+            
+            # 输入框架
+            form_frame = tk.Frame(dialog, bg=self.colors['background'])
+            form_frame.pack(fill="both", expand=True, padx=20, pady=10)
+            
+            # 成本类型
+            tk.Label(form_frame, text="成本类型:", bg=self.colors['background']).pack(anchor="w")
+            type_var = tk.StringVar(dialog, value="租金")
+            type_combo = ttk.Combobox(form_frame, textvariable=type_var,
+                                    values=["租金", "人力", "水电", "通讯", "保险", "许可", "设备", "其他"])
+            type_combo.pack(fill="x", pady=(5, 15))
+            
+            # 成本项目
+            tk.Label(form_frame, text="成本项目:", bg=self.colors['background']).pack(anchor="w")
+            item_var = tk.StringVar(dialog)
+            item_entry = tk.Entry(form_frame, textvariable=item_var, font=self.fonts['body'])
+            item_entry.pack(fill="x", pady=(5, 15))
+            
+            # 金额
+            tk.Label(form_frame, text="金额:", bg=self.colors['background']).pack(anchor="w")
+            amount_var = tk.StringVar(dialog)
+            amount_entry = tk.Entry(form_frame, textvariable=amount_var, font=self.fonts['body'])
+            amount_entry.pack(fill="x", pady=(5, 15))
+            
+            # 缴费周期
+            tk.Label(form_frame, text="缴费周期:", bg=self.colors['background']).pack(anchor="w")
+            period_var = tk.StringVar(dialog, value="月付")
+            period_combo = ttk.Combobox(form_frame, textvariable=period_var,
+                                      values=["日付", "周付", "月付", "季付", "年付", "一次性"])
+            period_combo.pack(fill="x", pady=(5, 15))
+            
+            # 下次缴费日期
+            tk.Label(form_frame, text="下次缴费日期:", bg=self.colors['background']).pack(anchor="w")
+            next_date_var = tk.StringVar(dialog)
+            next_date_entry = tk.Entry(form_frame, textvariable=next_date_var, font=self.fonts['body'])
+            next_date_entry.pack(fill="x", pady=(5, 5))
+            tk.Label(form_frame, text="格式: YYYY-MM-DD", font=self.fonts['small'],
+                    bg=self.colors['background'], fg=self.colors['text_secondary']).pack(anchor="w", pady=(0, 15))
+            
+            # 状态
+            tk.Label(form_frame, text="状态:", bg=self.colors['background']).pack(anchor="w")
+            status_var = tk.StringVar(dialog, value="未付")
+            status_combo = ttk.Combobox(form_frame, textvariable=status_var,
+                                      values=["已付", "未付", "逾期"])
+            status_combo.pack(fill="x", pady=(5, 15))
+            
+            # 备注
+            tk.Label(form_frame, text="备注:", bg=self.colors['background']).pack(anchor="w")
+            note_var = tk.StringVar(dialog)
+            note_entry = tk.Entry(form_frame, textvariable=note_var, font=self.fonts['body'])
+            note_entry.pack(fill="x", pady=(5, 15))
+            
+            # 按钮
+            btn_frame = tk.Frame(dialog, bg=self.colors['background'])
+            btn_frame.pack(fill="x", padx=20, pady=20)
+            
+            def save_cost():
+                try:
+                    cost_type = type_var.get().strip()
+                    item = item_var.get().strip()
+                    amount_str = amount_var.get().strip()
+                    period = period_var.get().strip()
+                    next_date = next_date_var.get().strip()
+                    status = status_var.get().strip()
+                    note = note_var.get().strip()
+                    
+                    if not all([cost_type, item, amount_str, period]):
+                        messagebox.showerror("错误", "请填写所有必填字段", parent=dialog)
+                        return
+                    
+                    try:
+                        amount = float(amount_str)
+                        if amount <= 0:
+                            raise ValueError
+                    except ValueError:
+                        messagebox.showerror("错误", "请输入有效的金额", parent=dialog)
+                        return
+                    
+                    # 验证日期格式
+                    if next_date:
+                        try:
+                            datetime.datetime.strptime(next_date, "%Y-%m-%d")
+                        except ValueError:
+                            messagebox.showerror("错误", "日期格式不正确，请使用 YYYY-MM-DD", parent=dialog)
+                            return
+                    
+                    # 添加到表格
+                    tags = ("unpaid",) if status == "未付" else ("paid",)
+                    self.costs_tree.insert("", "end", values=(
+                        cost_type, item, f"￥{amount:,.0f}", period, next_date, status, note
+                    ), tags=tags)
+                    
+                    # 保存固定成本数据
+                    self.save_fixed_costs(self.get_costs_from_tree())
+                    
+                    messagebox.showinfo("成功", "固定成本添加成功", parent=dialog)
+                    dialog.destroy()
+                    
+                except Exception as e:
+                    messagebox.showerror("错误", f"添加失败：{e}", parent=dialog)
+            
+            tk.Button(btn_frame, text="保存", command=save_cost,
+                     bg=self.colors['primary'], fg='white', bd=0, pady=8, padx=20).pack(side="left")
+            tk.Button(btn_frame, text="取消", command=dialog.destroy,
+                     bg=self.colors['text_secondary'], fg='white', bd=0, pady=8, padx=20).pack(side="right")                     
         except Exception as e:
-            messagebox.showerror("错误", f"加载财务记录失败: {e}")
-
-    # ... (add_income_record and add_expense_record need to call data_manager) ...
+            root = self.main_frame.winfo_toplevel()
+            messagebox.showerror("错误", f"打开添加对话框失败：{e}", parent=root)
     
-    def load_fixed_costs(self):
-        """此方法已废弃，请使用 data_manager.get_fixed_costs"""
-        return []
-
-    def save_fixed_costs(self, costs_data):
-        """此方法已废弃，请使用 data_manager 的相应方法"""
-        return False
-
+    def edit_fixed_cost(self):
+        """编辑固定成本"""
+        try:
+            selected = self.costs_tree.selection()
+            if not selected:
+                messagebox.showwarning("提示", "请先选择要编辑的成本项目")
+                return
+            
+            item = self.costs_tree.item(selected[0])
+            values = item['values']
+            
+            root = self.main_frame.winfo_toplevel()
+            
+            # 创建编辑对话框
+            dialog = tk.Toplevel(root)
+            dialog.title("编辑固定成本")
+            dialog.geometry("450x600")
+            dialog.configure(bg=self.colors['background'])
+            dialog.transient(root)
+            dialog.grab_set()
+            
+            # 居中显示
+            dialog.update_idletasks()
+            x = (dialog.winfo_screenwidth() // 2) - (225)
+            y = (dialog.winfo_screenheight() // 2) - (300)
+            dialog.geometry(f"450x600+{x}+{y}")
+            
+            # 标题
+            tk.Label(dialog, text="编辑固定成本", font=self.fonts['heading'],
+                    bg=self.colors['background'], fg=self.colors['text_primary']).pack(pady=15)
+            
+            # 输入框架
+            form_frame = tk.Frame(dialog, bg=self.colors['background'])
+            form_frame.pack(fill="both", expand=True, padx=20, pady=10)
+            
+            # 成本类型
+            tk.Label(form_frame, text="成本类型:", bg=self.colors['background']).pack(anchor="w")
+            type_var = tk.StringVar(dialog, value=values[0])
+            type_combo = ttk.Combobox(form_frame, textvariable=type_var,
+                                    values=["租金", "人力", "水电", "通讯", "保险", "许可", "设备", "其他"])
+            type_combo.pack(fill="x", pady=(5, 15))
+            
+            # 成本项目
+            tk.Label(form_frame, text="成本项目:", bg=self.colors['background']).pack(anchor="w")
+            item_var = tk.StringVar(dialog, value=values[1])
+            item_entry = tk.Entry(form_frame, textvariable=item_var, font=self.fonts['body'])
+            item_entry.pack(fill="x", pady=(5, 15))
+            
+            # 金额 - 去掉￥符号和逗号
+            amount_value = str(values[2]).replace("￥", "").replace(",", "")
+            tk.Label(form_frame, text="金额:", bg=self.colors['background']).pack(anchor="w")
+            amount_var = tk.StringVar(dialog, value=amount_value)
+            amount_entry = tk.Entry(form_frame, textvariable=amount_var, font=self.fonts['body'])
+            amount_entry.pack(fill="x", pady=(5, 15))
+            
+            # 缴费周期
+            tk.Label(form_frame, text="缴费周期:", bg=self.colors['background']).pack(anchor="w")
+            period_var = tk.StringVar(dialog, value=values[3])
+            period_combo = ttk.Combobox(form_frame, textvariable=period_var,
+                                      values=["日付", "周付", "月付", "季付", "年付", "一次性"])
+            period_combo.pack(fill="x", pady=(5, 15))
+            
+            # 下次缴费日期
+            tk.Label(form_frame, text="下次缴费日期:", bg=self.colors['background']).pack(anchor="w")
+            next_date_var = tk.StringVar(dialog, value=values[4])
+            next_date_entry = tk.Entry(form_frame, textvariable=next_date_var, font=self.fonts['body'])
+            next_date_entry.pack(fill="x", pady=(5, 5))
+            tk.Label(form_frame, text="格式: YYYY-MM-DD", font=self.fonts['small'],
+                    bg=self.colors['background'], fg=self.colors['text_secondary']).pack(anchor="w", pady=(0, 15))
+            
+            # 状态
+            tk.Label(form_frame, text="状态:", bg=self.colors['background']).pack(anchor="w")
+            status_var = tk.StringVar(dialog, value=values[5])
+            status_combo = ttk.Combobox(form_frame, textvariable=status_var,
+                                      values=["已付", "未付", "逾期"])
+            status_combo.pack(fill="x", pady=(5, 15))
+            
+            # 备注
+            tk.Label(form_frame, text="备注:", bg=self.colors['background']).pack(anchor="w")
+            note_var = tk.StringVar(dialog, value=values[6] if len(values) > 6 else "")
+            note_entry = tk.Entry(form_frame, textvariable=note_var, font=self.fonts['body'])
+            note_entry.pack(fill="x", pady=(5, 15))
+            
+            # 按钮
+            btn_frame = tk.Frame(dialog, bg=self.colors['background'])
+            btn_frame.pack(fill="x", padx=20, pady=20)
+            
+            def update_cost():
+                try:
+                    cost_type = type_var.get().strip()
+                    item_name = item_var.get().strip()
+                    amount_str = amount_var.get().strip()
+                    period = period_var.get().strip()
+                    next_date = next_date_var.get().strip()
+                    status = status_var.get().strip()
+                    note = note_var.get().strip()
+                    
+                    if not all([cost_type, item_name, amount_str, period]):
+                        messagebox.showerror("错误", "请填写所有必填字段", parent=dialog)
+                        return
+                    
+                    try:
+                        amount = float(amount_str)
+                        if amount <= 0:
+                            raise ValueError
+                    except ValueError:
+                        messagebox.showerror("错误", "请输入有效的金额", parent=dialog)
+                        return
+                    
+                    # 验证日期格式
+                    if next_date:
+                        try:
+                            datetime.datetime.strptime(next_date, "%Y-%m-%d")
+                        except ValueError:
+                            messagebox.showerror("错误", "日期格式不正确，请使用 YYYY-MM-DD", parent=dialog)
+                            return
+                    
+                    # 更新表格中的选中项
+                    tags = ("unpaid",) if status == "未付" else ("paid",)
+                    self.costs_tree.item(selected[0], values=(
+                        cost_type, item_name, f"￥{amount:,.0f}", period, next_date, status, note
+                    ), tags=tags)
+                    
+                    # 保存固定成本数据
+                    self.save_fixed_costs(self.get_costs_from_tree())
+                    
+                    messagebox.showinfo("成功", "固定成本更新成功", parent=dialog)
+                    dialog.destroy()
+                    
+                except Exception as e:
+                    messagebox.showerror("错误", f"更新失败：{e}", parent=dialog)
+            
+            tk.Button(btn_frame, text="更新", command=update_cost,
+                     bg=self.colors['primary'], fg='white', bd=0, pady=8, padx=20).pack(side="left")
+            tk.Button(btn_frame, text="取消", command=dialog.destroy,
+                     bg=self.colors['text_secondary'], fg='white', bd=0, pady=8, padx=20).pack(side="right")
+                     
+        except Exception as e:
+            root = self.main_frame.winfo_toplevel()
+            messagebox.showerror("错误", f"编辑失败：{e}", parent=root)
+    
+    def delete_fixed_cost(self):
+        """删除固定成本"""
+        try:
+            selected = self.costs_tree.selection()
+            if not selected:
+                messagebox.showwarning("提示", "请先选择要删除的成本项目")
+                return
+            
+            item = self.costs_tree.item(selected[0])
+            values = item['values']
+            
+            result = messagebox.askyesno("确认删除", f"确定要删除成本项目 '{values[1]}' 吗？")
+            if result:
+                self.costs_tree.delete(selected[0])
+                
+                # 保存固定成本数据
+                self.save_fixed_costs(self.get_costs_from_tree())
+                
+                messagebox.showinfo("成功", "成本项目删除成功")
+        except Exception as e:
+            root = self.main_frame.winfo_toplevel()
+            messagebox.showerror("错误", f"删除失败：{e}", parent=root)
+            
     def create_finance_records(self):
         """创建收支记录表格"""
         # 表格标题
@@ -339,6 +611,63 @@ class ModernFinanceModule:
         
         # 添加操作按钮
         self.create_finance_buttons(self.records_frame)
+    
+    def load_finance_records(self):
+        """从数据库加载财务记录"""
+        try:
+            # 清空现有数据
+            for item in self.finance_tree.get_children():
+                self.finance_tree.delete(item)
+            
+            # 从数据管理器获取财务记录
+            finance_records = data_manager.get_financial_records()
+            
+            if not finance_records:
+                # 如果没有数据，显示提示
+                self.finance_tree.insert("", "end", values=("暂无数据", "", "", "", "", ""))
+                return
+            
+            # 插入真实数据
+            for record in finance_records:
+                # 处理时间格式
+                time_str = ""
+                if record.get('income_date'):
+                    time_str = str(record['income_date'])
+                elif record.get('created_at'):
+                    time_str = str(record['created_at'])[:10]  # 取日期部分
+                
+                # 处理金额
+                amount = record.get('amount', 0)
+                amount_str = f"￥{amount:.2f}" if amount else "￥0.00"
+                
+                # 处理类型
+                record_type = "收入" if record.get('income_type') == 'revenue' else "支出"
+                
+                # 处理描述
+                description = record.get('description', '')
+                
+                # 处理支付方式（从订单关联获取）
+                payment_method = "现金"  # 默认值
+                if record.get('order_price_id'):
+                    # 可以进一步查询订单表获取支付方式
+                    payment_method = "订单收入"
+                
+                # 处理备注
+                note = record.get('description', '')[:20] + "..." if len(record.get('description', '')) > 20 else record.get('description', '')
+                
+                self.finance_tree.insert("", "end", values=(
+                    time_str, record_type, description, amount_str, payment_method, note
+                ))
+                
+        except Exception as e:
+            print(f"加载财务记录失败: {e}")
+            # 如果加载失败，显示默认数据
+            self.finance_tree.insert("", "end", values=("加载失败", "", "", "", "", ""))
+    
+    def refresh_finance_records(self):
+        """刷新财务记录"""
+        if hasattr(self, 'finance_tree'):
+            self.load_finance_records()
     
     def create_finance_buttons(self, parent):
         """创建财务操作按钮"""
@@ -671,6 +1000,59 @@ class ModernFinanceModule:
             root = self.main_frame.winfo_toplevel()
             messagebox.showerror("错误", f"打开导出对话框失败：{e}", parent=root)
             
+    def load_fixed_costs(self):
+        """加载固定成本数据"""
+        try:
+            if os.path.exists(self.fixed_costs_file):
+                with open(self.fixed_costs_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            else:
+                return []
+        except Exception as e:
+            print(f"加载固定成本数据失败: {e}")
+            return []
+    
+    def save_fixed_costs(self, costs_data):
+        """保存固定成本数据"""
+        try:
+            # 确保目录存在
+            os.makedirs(os.path.dirname(self.fixed_costs_file), exist_ok=True)
+            
+            with open(self.fixed_costs_file, 'w', encoding='utf-8') as f:
+                json.dump(costs_data, f, ensure_ascii=False, indent=4)
+            return True
+        except Exception as e:
+            print(f"保存固定成本数据失败: {e}")
+            return False
+    
+    def get_costs_from_tree(self):
+        """从表格中获取所有成本数据"""
+        costs = []
+        for item in self.costs_tree.get_children():
+            values = self.costs_tree.item(item)['values']
+            cost = {
+                "id": f"cost_{len(costs) + 1:03d}",
+                "cost_type": values[0],
+                "item": values[1],
+                "amount": float(str(values[2]).replace("￥", "").replace(",", "")),
+                "period": values[3],
+                "next_date": values[4],
+                "status": values[5],
+                "note": values[6] if len(values) > 6 else "",
+                "created_at": datetime.datetime.now().strftime("%Y-%m-%d"),
+                "updated_at": datetime.datetime.now().strftime("%Y-%m-%d")
+            }
+            costs.append(cost)
+        return costs
+    
+    def save_costs_to_file(self):
+        """保存当前表格中的成本数据到文件"""
+        try:
+            costs_data = self.get_costs_from_tree()
+            self.save_fixed_costs(costs_data)
+        except Exception as e:
+            print(f"保存固定成本数据失败: {e}")
+    
     def calculate_fixed_cost_stats(self):
         """计算固定成本统计"""
         try:
@@ -719,6 +1101,11 @@ class ModernFinanceModule:
     def convert_to_monthly(self, amount, period):
         """将不同周期的成本转换为月成本"""
         try:
+            # 确保 amount 不为 None 且是数值
+            if amount is None:
+                amount = 0
+            amount = float(amount)
+            
             if period == "日付":
                 return amount * 30
             elif period == "周付":
@@ -726,14 +1113,14 @@ class ModernFinanceModule:
             elif period == "月付":
                 return amount
             elif period == "季付":
-                return amount / 3
+                return amount / 3 if amount != 0 else 0
             elif period == "年付":
-                return amount / 12
+                return amount / 12 if amount != 0 else 0
             elif period == "一次性":
                 return 0  # 一次性成本不计入月成本
             else:
                 return amount  # 默认按月计算
-        except:
+        except (ValueError, TypeError, ZeroDivisionError):
             return 0
     
     def perform_export(self, export_type: str, file_format: str, time_range: str) -> bool:

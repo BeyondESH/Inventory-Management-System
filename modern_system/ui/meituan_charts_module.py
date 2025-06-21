@@ -198,13 +198,13 @@ class ModernChartsModule:
             month_frame.pack(side="left", fill="both", expand=True, padx=5)
             
             # 收入金额
-            amount_label = tk.Label(month_frame, text=f"￥{revenue/1000:.0f}K",
+            amount_label = tk.Label(month_frame, text=f"￥{revenue/1000:.0f}K" if revenue > 0 else "￥0K",
                                   font=self.fonts['small'], bg=self.colors['surface'],
                                   fg=self.colors['text_secondary'])
             amount_label.pack(side="top", pady=2)
             
             # 条形图
-            bar_height = int((revenue / max_revenue) * 80)  # 最大高度80px
+            bar_height = int((revenue / max_revenue) * 80) if max_revenue > 0 else 0  # 最大高度80px
             bar = tk.Frame(month_frame, bg=self.colors['primary'], 
                          width=40, height=bar_height)
             bar.pack(side="top", pady=2)
@@ -219,24 +219,20 @@ class ModernChartsModule:
     def get_real_sales_data(self):
         """从数据管理器获取真实销售数据"""
         try:
-            # 获取销售记录
-            sales_records = data_manager.load_data('sales')
-            orders = data_manager.get_orders()
-            
-            # 按日期统计销售额
-            daily_sales = {}
-            for record in sales_records:
-                sale_date = record.get('sale_time', '')[:10]  # 获取日期部分
-                if sale_date:
-                    if sale_date not in daily_sales:
-                        daily_sales[sale_date] = 0
-                    daily_sales[sale_date] += record.get('total_amount', 0)
-            
-            # 获取最近7天的数据
+            # 获取最近7天的销售数据
             from datetime import datetime, timedelta
             today = datetime.now()
-            chart_data = []
             
+            # 从数据管理器获取销售数据
+            daily_sales = {}
+            for i in range(7):
+                date = today - timedelta(days=i)
+                date_str = date.strftime('%Y-%m-%d')
+                revenue = data_manager.get_daily_revenue(date_str)
+                daily_sales[date_str] = revenue
+            
+            # 构建图表数据
+            chart_data = []
             for i in range(6, -1, -1):  # 从6天前到今天
                 date = today - timedelta(days=i)
                 date_str = date.strftime('%Y-%m-%d')
@@ -309,53 +305,11 @@ class ModernChartsModule:
     
     def refresh_charts(self):
         """刷新图表数据"""
-        self.show()  # 重新显示以刷新数据
-        
-    def get_real_revenue_data(self):
-        """从数据管理器获取真实收入数据"""
-        try:
-            # 获取财务记录
-            finance_records = data_manager.get_finance_records()
+        if self.main_frame:
+            # 重新创建图表
+            for widget in self.main_frame.winfo_children():
+                if widget != self.main_frame.winfo_children()[0]:  # 保留标题
+                    widget.destroy()
             
-            # 按月份统计收入
-            from datetime import datetime
-            current_year = datetime.now().year
-            monthly_revenue = {}
-            
-            for record in finance_records:
-                if record.get('type') == 'income':
-                    date_str = record.get('date', '')
-                    if date_str and date_str.startswith(str(current_year)):
-                        try:
-                            month = int(date_str.split('-')[1])
-                            if month not in monthly_revenue:
-                                monthly_revenue[month] = 0
-                            monthly_revenue[month] += record.get('amount', 0)
-                        except (ValueError, IndexError):
-                            continue
-            
-            # 构建最近6个月的数据
-            months_names = ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"]
-            current_month = datetime.now().month
-            
-            revenue_data = []
-            for i in range(6):
-                month_num = current_month - 5 + i
-                if month_num <= 0:
-                    month_num += 12
-                if month_num > 12:
-                    month_num -= 12
-                
-                month_name = months_names[month_num - 1]
-                revenue = monthly_revenue.get(month_num, 0)
-                revenue_data.append((month_name, revenue))
-            
-            return revenue_data
-            
-        except Exception as e:
-            print(f"获取收入数据失败: {e}")
-            # 返回默认数据
-            return [
-                ("1月", 0), ("2月", 0), ("3月", 0), 
-                ("4月", 0), ("5月", 0), ("6月", 100)  # 当月有数据
-            ]
+            # 重新创建图表区域
+            self.create_charts_area()

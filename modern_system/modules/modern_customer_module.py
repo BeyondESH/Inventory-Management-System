@@ -66,17 +66,58 @@ class ModernCustomerModule:
     def load_customer_data(self):
         """从数据库加载客户数据"""
         try:
-            # 数据已在data_manager中处理好字段名和聚合信息
+            # 从数据管理器获取客户数据
             customers = data_manager.get_customers()
             if not customers:
-                print("⚠️ 未找到客户数据，将使用默认示例。")
+                # 如果没有数据，返回默认示例数据
                 return [
-                    {"id": "CUST001", "name": "张三 (示例)", "phone": "13800000000", "address": "示例地址1", "total_orders": 0, "total_amount": 0.0},
-                    {"id": "CUST002", "name": "李四 (示例)", "phone": "13900000000", "address": "示例地址2", "total_orders": 0, "total_amount": 0.0},
+                    {"id": "CUST001", "name": "张三", "phone": "138****1234", "address": "北京市朝阳区xxx街道1号", "total_orders": 15, "total_amount": 1580.0},
+                    {"id": "CUST002", "name": "李四", "phone": "139****5678", "address": "北京市海淀区xxx路88号", "total_orders": 8, "total_amount": 890.0},
+                    {"id": "CUST003", "name": "王五", "phone": "136****9012", "address": "北京市西城区xxx胡同66号", "total_orders": 12, "total_amount": 1250.0}
                 ]
-            return customers
+            
+            # 处理数据库字段映射
+            formatted_customers = []
+            for customer in customers:
+                # 处理姓名字段
+                first_name = customer.get('first_name', '')
+                last_name = customer.get('last_name', '')
+                name = f"{first_name} {last_name}".strip()
+                
+                # 处理电话字段
+                phone = customer.get('customer_phone', customer.get('phone', ''))
+                
+                # 处理地址字段
+                address = customer.get('customer_address', customer.get('address', ''))
+                
+                # 处理ID字段
+                customer_id = customer.get('customer_id', customer.get('id', ''))
+                
+                # 计算订单数和消费金额（从订单表统计）
+                total_orders = customer.get('total_orders', 0)
+                total_amount = customer.get('total_amount', 0)
+                
+                formatted_customer = {
+                    'id': customer_id,
+                    'name': name,
+                    'phone': phone,
+                    'address': address,
+                    'total_orders': total_orders,
+                    'total_amount': total_amount,
+                    # 保留原始数据用于编辑
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'customer_phone': phone,
+                    'customer_address': address,
+                    'customer_email': customer.get('customer_email', ''),
+                    'payment_method_id': customer.get('payment_method_id')
+                }
+                formatted_customers.append(formatted_customer)
+            
+            return formatted_customers
+            
         except Exception as e:
-            messagebox.showerror("错误", f"加载客户数据失败: {e}")
+            print(f"加载客户数据失败: {e}")
             return []
     
     def refresh_customer_data(self):
@@ -204,24 +245,25 @@ class ModernCustomerModule:
                         messagebox.showerror("错误", "请填写姓名和电话", parent=dialog)
                         return
                     
-                    # 准备数据
-                    first_name = name.split(' ')[0] if ' ' in name else name
-                    last_name = name.split(' ')[1] if ' ' in name else ''
-                    
+                    # 创建客户数据
                     customer_data = {
-                        'first_name': first_name,
-                        'last_name': last_name,
+                        'first_name': name.split()[0] if ' ' in name else name,
+                        'last_name': name.split()[1] if ' ' in name else '',
                         'phone': phone,
                         'address': address,
+                        'email': '',
+                        'registration_date': datetime.datetime.now().strftime('%Y-%m-%d')
                     }
                     
-                    data_manager.add_customer(customer_data)
-                    messagebox.showinfo("成功", "客户添加成功！", parent=dialog)
+                    # 使用数据管理器添加客户
+                    customer_id = data_manager.add_customer(customer_data)
+                    
+                    messagebox.showinfo("成功", f"客户添加成功，ID: {customer_id}", parent=dialog)
                     dialog.destroy()
                     self.refresh_customer_data()
-
+                    
                 except Exception as e:
-                    messagebox.showerror("错误", f"添加客户失败: {e}", parent=dialog)
+                    messagebox.showerror("错误", f"添加客户失败：{e}", parent=dialog)
             
             tk.Button(btn_frame, text="保存", command=save_customer,
                      bg=self.colors['success'], fg='white', bd=0, pady=8, padx=20).pack(side="left")
@@ -303,28 +345,32 @@ class ModernCustomerModule:
                     name = name_var.get().strip()
                     phone = phone_var.get().strip()
                     address = address_var.get().strip()
-
+                    
                     if not name or not phone:
-                        messagebox.showerror("错误", "姓名和电话不能为空", parent=dialog)
+                        messagebox.showerror("错误", "请填写姓名和电话", parent=dialog)
                         return
                     
-                    first_name = name.split(' ')[0] if ' ' in name else name
-                    last_name = name.split(' ')[1] if ' ' in name else ''
-
-                    update_data = {
-                        'first_name': first_name,
-                        'last_name': last_name,
+                    # 更新客户数据
+                    customer_data = {
+                        'id': customer_id,
+                        'first_name': name.split()[0] if ' ' in name else name,
+                        'last_name': name.split()[1] if ' ' in name else '',
                         'phone': phone,
-                        'address': address,
+                        'address': address
                     }
                     
-                    data_manager.update_customer(customer_id, update_data)
-                    messagebox.showinfo("成功", "客户信息更新成功！", parent=dialog)
-                    dialog.destroy()
-                    self.refresh_customer_data()
-
+                    # 使用数据管理器更新客户
+                    success = data_manager.update_customer(customer_id, customer_data)
+                    
+                    if success:
+                        messagebox.showinfo("成功", "客户信息更新成功", parent=dialog)
+                        dialog.destroy()
+                        self.refresh_customer_data()
+                    else:
+                        messagebox.showerror("错误", "更新客户信息失败", parent=dialog)
+                    
                 except Exception as e:
-                    messagebox.showerror("错误", f"更新客户失败: {e}", parent=dialog)
+                    messagebox.showerror("错误", f"更新客户失败：{e}", parent=dialog)
             
             tk.Button(btn_frame, text="更新", command=update_customer,
                      bg=self.colors['success'], fg='white', bd=0, pady=8, padx=20).pack(side="left")
@@ -336,24 +382,34 @@ class ModernCustomerModule:
     
     def delete_customer(self):
         """删除客户"""
-        selected_item = self.customer_tree.selection()
-        if not selected_item:
-            messagebox.showwarning("提示", "请选择要删除的客户")
-            return
-        
-        customer_id_str = self.customer_tree.item(selected_item[0])['values'][0]
-        customer_name = self.customer_tree.item(selected_item[0])['values'][1]
-        
-        if messagebox.askyesno("确认删除", f"确定要删除客户 '{customer_name}' 吗？此操作不可逆！"):
-            try:
-                customer_id = int(customer_id_str)
-                data_manager.delete_customer(customer_id)
-                messagebox.showinfo("成功", "客户已删除。")
+        try:
+            # 获取选中的客户
+            selected_item = self.customer_tree.selection()
+            if not selected_item:
+                messagebox.showwarning("提示", "请先选择一个客户")
+                return
+            
+            # 获取客户数据
+            item_values = self.customer_tree.item(selected_item[0])['values']
+            customer_id = item_values[0]
+            customer_name = item_values[1]
+            
+            # 确认删除
+            result = messagebox.askyesno("确认删除", f"确定要删除客户 {customer_name} 吗？\n此操作不可恢复！")
+            if not result:
+                return
+            
+            # 使用数据管理器删除客户
+            success = data_manager.delete_customer(customer_id)
+            
+            if success:
+                messagebox.showinfo("成功", f"客户 {customer_name} 已删除")
                 self.refresh_customer_data()
-            except ValueError as ve:
-                 messagebox.showerror("删除失败", str(ve))
-            except Exception as e:
-                messagebox.showerror("删除失败", f"删除客户时发生错误: {e}")
+            else:
+                messagebox.showerror("错误", "删除客户失败")
+                
+        except Exception as e:
+            messagebox.showerror("错误", f"删除客户失败：{e}")
     
     def show(self):
         """显示客户管理界面"""

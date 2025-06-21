@@ -1,0 +1,57 @@
+[
+    {
+        "meal_id": "MEAL001",
+        "meal_name": "番茄牛肉面",
+        "description": "经典家常面食，营养丰富",
+        "ingredients": [
+            {"ingredient_name": "番茄", "quantity_per_serving": 0.2, "unit": "kg"},
+            {"ingredient_name": "牛肉", "quantity_per_serving": 0.15, "unit": "kg"},
+            {"ingredient_name": "面条", "quantity_per_serving": 0.25, "unit": "包"},
+            {"ingredient_name": "洋葱", "quantity_per_serving": 0.1, "unit": "kg"},
+            {"ingredient_name": "生抽", "quantity_per_serving": 0.02, "unit": "瓶"}
+        ]
+    },
+    {
+        "meal_id": "MEAL002",
+        "meal_name": "鸡蛋炒饭",
+        "description": "简单快手的炒饭，香味浓郁",
+        "ingredients": [
+            {"ingredient_name": "鸡蛋", "quantity_per_serving": 2, "unit": "个"},
+            {"ingredient_name": "大米", "quantity_per_serving": 0.3, "unit": "kg"},
+            {"ingredient_name": "食用油", "quantity_per_serving": 0.02, "unit": "瓶"},
+            {"ingredient_name": "盐", "quantity_per_serving": 0.005, "unit": "包"}
+        ]
+    },
+    {
+        "meal_id": "MEAL003",
+        "meal_name": "青椒炒肉丝",
+        "description": "经典下饭菜，清香爽口",
+        "ingredients": [
+            {"ingredient_name": "青椒", "quantity_per_serving": 0.2, "unit": "kg"},
+            {"ingredient_name": "猪肉", "quantity_per_serving": 0.15, "unit": "kg"},
+            {"ingredient_name": "食用油", "quantity_per_serving": 0.02, "unit": "瓶"},
+            {"ingredient_name": "生抽", "quantity_per_serving": 0.015, "unit": "瓶"},
+            {"ingredient_name": "盐", "quantity_per_serving": 0.003, "unit": "包"}
+        ]
+    },
+    {
+        "meal_id": "MEAL004",
+        "meal_name": "土豆丝",
+        "description": "家常菜，清爽开胃",
+        "ingredients": [
+            {"ingredient_name": "土豆", "quantity_per_serving": 0.3, "unit": "kg"},
+            {"ingredient_name": "食用油", "quantity_per_serving": 0.02, "unit": "瓶"},
+            {"ingredient_name": "盐", "quantity_per_serving": 0.003, "unit": "包"}
+        ]
+    },
+    {
+        "meal_id": "MEAL005",
+        "meal_name": "生菜沙拉",
+        "description": "清爽健康的沙拉",
+        "ingredients": [
+            {"ingredient_name": "生菜", "quantity_per_serving": 0.2, "unit": "kg"},
+            {"ingredient_name": "番茄", "quantity_per_serving": 0.1, "unit": "kg"},
+            {"ingredient_name": "胡萝卜", "quantity_per_serving": 0.05, "unit": "kg"}
+        ]
+    }
+]

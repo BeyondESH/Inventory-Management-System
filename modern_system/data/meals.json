@@ -1,0 +1,47 @@
+[
+  {
+    "id": "MEAL001",
+    "name": "番茄牛肉面",
+    "category": "面食",
+    "price": 25.0,
+    "cost": 15.0,
+    "ingredients": [
+      "番茄",
+      "牛肉",
+      "面条"
+    ]
+  },
+  {
+    "id": "MEAL002",
+    "name": "鸡蛋炒饭",
+    "category": "炒饭",
+    "price": 18.0,
+    "cost": 10.0,
+    "ingredients": [
+      "鸡蛋",
+      "米饭"
+    ]
+  },
+  {
+    "id": "MEAL003",
+    "name": "牛肉汉堡",
+    "category": "西餐",
+    "price": 32.0,
+    "cost": 20.0,
+    "ingredients": [
+      "牛肉",
+      "面包",
+      "生菜"
+    ]
+  },
+  {
+    "id": "MEAL004",
+    "name": "薯条",
+    "category": "小食",
+    "price": 12.0,
+    "cost": 6.0,
+    "ingredients": [
+      "土豆"
+    ]
+  }
+]

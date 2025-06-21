@@ -56,8 +56,98 @@ class ModernEmployeeModule:
         }
         
         # 员工数据
-        self.employee_data = []
-        # 部门列表
+        self.employee_data = [
+            {
+                "id": 1001,
+                "name": "张三",
+                "position": "前厅经理",
+                "department": "前厅部",
+                "phone": "138****1234",
+                "email": "zhangsan@company.com",
+                "hire_date": "2023-01-15",
+                "salary": 8000.0,
+                "status": "在职",
+                "birthday": "1990-05-20",
+                "address": "北京市朝阳区xxx街道",
+                "emergency_contact": "李女士 139****5678",
+                "performance": 85
+            },
+            {
+                "id": 1002,
+                "name": "李四",
+                "position": "厨师长",
+                "department": "厨房部",
+                "phone": "139****5678",
+                "email": "lisi@company.com",
+                "hire_date": "2022-08-20",
+                "salary": 9500.0,
+                "status": "在职",
+                "birthday": "1988-12-10",
+                "address": "北京市海淀区xxx路",
+                "emergency_contact": "王先生 137****9012",
+                "performance": 92
+            },
+            {
+                "id": 1003,
+                "name": "王五",
+                "position": "服务员",
+                "department": "前厅部",
+                "phone": "136****9012",
+                "email": "wangwu@company.com",
+                "hire_date": "2023-03-10",
+                "salary": 4500.0,
+                "status": "在职",
+                "birthday": "1995-08-15",
+                "address": "北京市西城区xxx胡同",
+                "emergency_contact": "张女士 135****1234",
+                "performance": 78
+            },
+            {
+                "id": 1004,
+                "name": "赵六",
+                "position": "采购员",
+                "department": "采购部",
+                "phone": "137****3456",
+                "email": "zhaoliu@company.com",
+                "hire_date": "2023-05-22",
+                "salary": 5500.0,
+                "status": "试用",
+                "birthday": "1992-03-25",
+                "address": "北京市东城区xxx大街",
+                "emergency_contact": "钱先生 138****7890",
+                "performance": 72
+            },
+            {
+                "id": 1005,
+                "name": "钱七",
+                "position": "财务专员",
+                "department": "财务部",
+                "phone": "135****7890",
+                "email": "qianqi@company.com",
+                "hire_date": "2022-12-01",
+                "salary": 6000.0,
+                "status": "离职",
+                "birthday": "1989-11-08",
+                "address": "北京市丰台区xxx路",
+                "emergency_contact": "孙女士 132****4567",
+                "performance": 65
+            },
+            {
+                "id": 1006,
+                "name": "孙八",
+                "position": "配送员",
+                "department": "配送部",
+                "phone": "132****4567",
+                "email": "sunba@company.com",
+                "hire_date": "2023-06-01",
+                "salary": 4000.0,
+                "status": "在职",
+                "birthday": "1996-01-30",
+                "address": "北京市大兴区xxx社区",
+                "emergency_contact": "周先生 186****1234",
+                "performance": 88
+            }
+        ]        # 部门列表
         self.departments = ["前厅部", "厨房部", "采购部", "财务部", "管理部", "配送部"]
         
         self.selected_employee = None
@@ -411,43 +501,438 @@ class ModernEmployeeModule:
     
     def edit_employee(self, employee):
         """编辑员工信息"""
-        # Note: We are assuming an EmployeeDialog class exists, similar to MealDialog
-        # This part will need a proper dialog implementation for a full solution
-        dialog = EmployeeDialog(self.parent_frame, f"编辑员工 - {employee['name']}", employee_data=employee, departments=self.departments)
-        if dialog.result:
+        edit_window = tk.Toplevel()
+        edit_window.title(f"编辑员工 - {employee['name']}")
+        edit_window.geometry("550x800")  # 增加高度从700到800
+        edit_window.configure(bg=self.colors['background'])
+        edit_window.resizable(False, False)
+        
+        # 标题
+        title_frame = tk.Frame(edit_window, bg=self.colors['primary'], height=60)
+        title_frame.pack(fill='x')
+        title_frame.pack_propagate(False)
+        
+        title_label = tk.Label(title_frame, text="编辑员工信息", 
+                              font=('Microsoft YaHei UI', 16, 'bold'),
+                              bg=self.colors['primary'], fg=self.colors['white'])
+        title_label.pack(expand=True)
+        
+        # 表单内容
+        form_frame = tk.Frame(edit_window, bg=self.colors['background'])
+        form_frame.pack(fill='both', expand=True, padx=20, pady=20)
+        
+        # 创建滚动区域
+        canvas = tk.Canvas(form_frame, bg=self.colors['background'], highlightthickness=0)
+        scrollbar = ttk.Scrollbar(form_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg=self.colors['background'])
+        
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # 表单卡片
+        card_frame = tk.Frame(scrollable_frame, bg=self.colors['card'], padx=20, pady=20)
+        card_frame.pack(fill='both', expand=True)
+        
+        # 表单字段
+        form_vars = {}
+        
+        # 基本信息
+        tk.Label(card_frame, text="基本信息", font=('Microsoft YaHei UI', 12, 'bold'),
+                bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 10))
+        
+        basic_fields = [
+            ("姓名", "name", employee['name']),
+            ("联系电话", "phone", employee['phone']),
+            ("电子邮箱", "email", employee['email']),
+            ("生日", "birthday", employee['birthday']),
+            ("家庭住址", "address", employee['address']),
+            ("紧急联系人", "emergency_contact", employee['emergency_contact'])
+        ]
+        
+        for label, field, value in basic_fields:
+            field_frame = tk.Frame(card_frame, bg=self.colors['card'])
+            field_frame.pack(fill='x', pady=5)
+            
+            tk.Label(field_frame, text=f"{label}:", font=('Microsoft YaHei UI', 10),
+                    bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
+            
+            var = tk.StringVar(edit_window, value=value)
+            form_vars[field] = var
+            
+            entry = tk.Entry(field_frame, textvariable=var, font=('Microsoft YaHei UI', 10),
+                           relief='flat', bd=5, bg=self.colors['light'])
+            entry.pack(fill='x')
+        
+        # 分隔线
+        separator = tk.Frame(card_frame, bg=self.colors['border'], height=1)
+        separator.pack(fill='x', pady=20)
+        
+        # 工作信息
+        tk.Label(card_frame, text="工作信息", font=('Microsoft YaHei UI', 12, 'bold'),
+                bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 10))
+        
+        # 职位
+        pos_frame = tk.Frame(card_frame, bg=self.colors['card'])
+        pos_frame.pack(fill='x', pady=5)
+        tk.Label(pos_frame, text="职位:", font=('Microsoft YaHei UI', 10),
+                bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
+        position_var = tk.StringVar(edit_window, value=employee['position'])
+        form_vars['position'] = position_var
+        position_entry = tk.Entry(pos_frame, textvariable=position_var, font=('Microsoft YaHei UI', 10),
+                                 relief='flat', bd=5, bg=self.colors['light'])
+        position_entry.pack(fill='x')
+        
+        # 部门
+        dept_frame = tk.Frame(card_frame, bg=self.colors['card'])
+        dept_frame.pack(fill='x', pady=5)
+        tk.Label(dept_frame, text="部门:", font=('Microsoft YaHei UI', 10),
+                bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
+        department_var = tk.StringVar(edit_window, value=employee['department'])
+        form_vars['department'] = department_var
+        dept_combo = ttk.Combobox(dept_frame, textvariable=department_var, 
+                                 values=self.departments, state="readonly", font=('Microsoft YaHei UI', 10))
+        dept_combo.pack(fill='x')
+        
+        # 入职日期
+        hire_frame = tk.Frame(card_frame, bg=self.colors['card'])
+        hire_frame.pack(fill='x', pady=5)
+        tk.Label(hire_frame, text="入职日期:", font=('Microsoft YaHei UI', 10),
+                bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
+        hire_var = tk.StringVar(edit_window, value=employee['hire_date'])
+        form_vars['hire_date'] = hire_var
+        hire_entry = tk.Entry(hire_frame, textvariable=hire_var, font=('Microsoft YaHei UI', 10),
+                             relief='flat', bd=5, bg=self.colors['light'])
+        hire_entry.pack(fill='x')
+        
+        # 薪资
+        salary_frame = tk.Frame(card_frame, bg=self.colors['card'])
+        salary_frame.pack(fill='x', pady=5)
+        tk.Label(salary_frame, text="薪资 (元):", font=('Microsoft YaHei UI', 10),
+                bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
+        salary_var = tk.StringVar(edit_window, value=str(employee['salary']))
+        form_vars['salary'] = salary_var
+        salary_entry = tk.Entry(salary_frame, textvariable=salary_var, font=('Microsoft YaHei UI', 10),
+                               relief='flat', bd=5, bg=self.colors['light'])
+        salary_entry.pack(fill='x')
+        
+        # 状态
+        status_frame = tk.Frame(card_frame, bg=self.colors['card'])
+        status_frame.pack(fill='x', pady=5)
+        tk.Label(status_frame, text="状态:", font=('Microsoft YaHei UI', 10),
+                bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
+        status_var = tk.StringVar(edit_window, value=employee['status'])
+        form_vars['status'] = status_var
+        status_combo = ttk.Combobox(status_frame, textvariable=status_var, 
+                                   values=["在职", "试用", "休假", "离职"], state="readonly", font=('Microsoft YaHei UI', 10))
+        status_combo.pack(fill='x')
+        
+        # 绩效评分
+        perf_frame = tk.Frame(card_frame, bg=self.colors['card'])
+        perf_frame.pack(fill='x', pady=5)
+        tk.Label(perf_frame, text="绩效评分 (0-100):", font=('Microsoft YaHei UI', 10),
+                bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
+        performance_var = tk.StringVar(edit_window, value=str(employee['performance']))
+        form_vars['performance'] = performance_var
+        perf_entry = tk.Entry(perf_frame, textvariable=performance_var, font=('Microsoft YaHei UI', 10),
+                             relief='flat', bd=5, bg=self.colors['light'])
+        perf_entry.pack(fill='x')
+        
+        # 按钮区域
+        button_frame = tk.Frame(card_frame, bg=self.colors['card'])
+        button_frame.pack(fill='x', pady=20)
+        
+        def save_changes():
             try:
-                data_manager.update_employee(employee['id'], dialog.result)
-                messagebox.showinfo("成功", "员工信息更新成功！")
+                # 验证输入
+                if not form_vars['name'].get() or not form_vars['phone'].get():
+                    messagebox.showerror("错误", "请填写员工姓名和联系电话")
+                    return
+                
+                # 验证薪资
+                try:
+                    salary = float(form_vars['salary'].get())
+                    if salary < 0:
+                        raise ValueError()
+                except ValueError:
+                    messagebox.showerror("错误", "请输入有效的薪资数额")
+                    return
+                
+                # 验证绩效评分
+                try:
+                    performance = int(form_vars['performance'].get())
+                    if not 0 <= performance <= 100:
+                        raise ValueError()
+                except ValueError:
+                    messagebox.showerror("错误", "绩效评分必须是0-100之间的整数")
+                    return
+                
+                # 更新员工信息
+                for i, emp in enumerate(self.employee_data):
+                    if emp['id'] == employee['id']:
+                        self.employee_data[i].update({
+                            'name': form_vars['name'].get(),
+                            'phone': form_vars['phone'].get(),
+                            'email': form_vars['email'].get(),
+                            'birthday': form_vars['birthday'].get(),
+                            'address': form_vars['address'].get(),
+                            'emergency_contact': form_vars['emergency_contact'].get(),
+                            'position': form_vars['position'].get(),
+                            'department': form_vars['department'].get(),
+                            'hire_date': form_vars['hire_date'].get(),
+                            'salary': salary,
+                            'status': form_vars['status'].get(),
+                            'performance': performance
+                        })
+                        break
+                
+                messagebox.showinfo("成功", "员工信息已更新")
+                edit_window.destroy()
                 self.refresh_employee_list()
+                
             except Exception as e:
-                messagebox.showerror("更新失败", f"更新员工信息时出错: {e}")
+                messagebox.showerror("错误", f"保存失败：{str(e)}")
+        
+        save_btn = tk.Button(button_frame, text="保存修改", 
+                           font=('Microsoft YaHei UI', 10, 'bold'),
+                           bg=self.colors['primary'], fg=self.colors['white'],
+                           bd=0, padx=30, pady=8, cursor='hand2',
+                           command=save_changes)
+        save_btn.pack(side='right', padx=5)
+        
+        cancel_btn = tk.Button(button_frame, text="取消", 
+                             font=('Microsoft YaHei UI', 10),
+                             bg=self.colors['text_light'], fg=self.colors['white'],
+                             bd=0, padx=30, pady=8, cursor='hand2',
+                             command=edit_window.destroy)
+        cancel_btn.pack(side='right', padx=5)
+        
+        # 布局滚动区域
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # 绑定鼠标滚轮
+        def on_mousewheel(event):
+            try:
+                if canvas.winfo_exists():
+                    canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            except tk.TclError:
+                pass  # Widget已被销毁，忽略错误
+        
+        canvas.bind("<MouseWheel>", on_mousewheel)
+        scrollable_frame.bind("<MouseWheel>", on_mousewheel)
     
     def resign_employee(self, employee_id):
         """员工离职"""
-        try:
-            employee = next((e for e in self.employee_data if e['id'] == employee_id), None)
-            if not employee:
-                messagebox.showerror("错误", "未找到该员工。")
-                return
-            
-            if messagebox.askyesno("确认离职", f"确定要将员工 {employee['name']} 的状态设置为离职吗？"):
-                data_manager.delete_employee(employee_id) # delete_employee handles the logic
-                messagebox.showinfo("成功", f"员工 {employee['name']} 已设置为离职状态")
-                self.refresh_employee_list()
-        except Exception as e:
-            messagebox.showerror("操作失败", f"操作失败: {e}")
-            
+        result = messagebox.askyesno("确认离职", "确定要将该员工状态设置为离职吗？")
+        if result:
+            for employee in self.employee_data:
+                if employee['id'] == employee_id:
+                    employee['status'] = '离职'
+                    messagebox.showinfo("成功", f"员工 {employee['name']} 已设置为离职状态")
+                    self.refresh_employee_list()
+                    break
+    
     def add_new_employee(self):
         """添加新员工"""
-        # Note: We are assuming an EmployeeDialog class exists
-        dialog = EmployeeDialog(self.parent_frame, "添加新员工", departments=self.departments)
-        if dialog.result:
+        add_window = tk.Toplevel()
+        add_window.title("添加新员工")
+        add_window.geometry("550x800")  # 增加高度从700到800
+        add_window.configure(bg=self.colors['background'])
+        add_window.resizable(False, False)
+        
+        # 标题
+        title_frame = tk.Frame(add_window, bg=self.colors['primary'], height=60)
+        title_frame.pack(fill='x')
+        title_frame.pack_propagate(False)
+        
+        title_label = tk.Label(title_frame, text="添加新员工", 
+                              font=('Microsoft YaHei UI', 16, 'bold'),
+                              bg=self.colors['primary'], fg=self.colors['white'])
+        title_label.pack(expand=True)
+        
+        # 表单内容
+        form_frame = tk.Frame(add_window, bg=self.colors['background'])
+        form_frame.pack(fill='both', expand=True, padx=20, pady=20)
+        
+        # 创建滚动区域
+        canvas = tk.Canvas(form_frame, bg=self.colors['background'], highlightthickness=0)
+        scrollbar = ttk.Scrollbar(form_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg=self.colors['background'])
+        
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # 表单卡片
+        card_frame = tk.Frame(scrollable_frame, bg=self.colors['card'], padx=20, pady=20)
+        card_frame.pack(fill='both', expand=True)
+        
+        # 表单字段
+        form_vars = {}
+        
+        # 基本信息
+        tk.Label(card_frame, text="基本信息", font=('Microsoft YaHei UI', 12, 'bold'),
+                bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 10))
+        
+        basic_fields = [
+            ("姓名", "name", ""),
+            ("联系电话", "phone", ""),
+            ("电子邮箱", "email", ""),
+            ("生日", "birthday", ""),
+            ("家庭住址", "address", ""),
+            ("紧急联系人", "emergency_contact", "")
+        ]
+        
+        for label, field, default in basic_fields:
+            field_frame = tk.Frame(card_frame, bg=self.colors['card'])
+            field_frame.pack(fill='x', pady=5)
+            
+            tk.Label(field_frame, text=f"{label}:", font=('Microsoft YaHei UI', 10),
+                    bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
+            
+            var = tk.StringVar(add_window, value=default)
+            form_vars[field] = var
+            
+            entry = tk.Entry(field_frame, textvariable=var, font=('Microsoft YaHei UI', 10),
+                           relief='flat', bd=5, bg=self.colors['light'])
+            entry.pack(fill='x')
+        
+        # 分隔线
+        separator = tk.Frame(card_frame, bg=self.colors['border'], height=1)
+        separator.pack(fill='x', pady=20)
+        
+        # 工作信息
+        tk.Label(card_frame, text="工作信息", font=('Microsoft YaHei UI', 12, 'bold'),
+                bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 10))
+        
+        # 职位
+        pos_frame = tk.Frame(card_frame, bg=self.colors['card'])
+        pos_frame.pack(fill='x', pady=5)
+        tk.Label(pos_frame, text="职位:", font=('Microsoft YaHei UI', 10),
+                bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
+        position_var = tk.StringVar(add_window)
+        form_vars['position'] = position_var
+        position_entry = tk.Entry(pos_frame, textvariable=position_var, font=('Microsoft YaHei UI', 10),
+                                 relief='flat', bd=5, bg=self.colors['light'])
+        position_entry.pack(fill='x')
+        
+        # 部门
+        dept_frame = tk.Frame(card_frame, bg=self.colors['card'])
+        dept_frame.pack(fill='x', pady=5)
+        tk.Label(dept_frame, text="部门:", font=('Microsoft YaHei UI', 10),
+                bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
+        department_var = tk.StringVar(add_window, value=self.departments[0])
+        form_vars['department'] = department_var
+        dept_combo = ttk.Combobox(dept_frame, textvariable=department_var, 
+                                 values=self.departments, state="readonly", font=('Microsoft YaHei UI', 10))
+        dept_combo.pack(fill='x')
+        
+        # 入职日期
+        hire_frame = tk.Frame(card_frame, bg=self.colors['card'])
+        hire_frame.pack(fill='x', pady=5)
+        tk.Label(hire_frame, text="入职日期:", font=('Microsoft YaHei UI', 10),
+                bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
+        hire_var = tk.StringVar(add_window, value=datetime.datetime.now().strftime("%Y-%m-%d"))
+        form_vars['hire_date'] = hire_var
+        hire_entry = tk.Entry(hire_frame, textvariable=hire_var, font=('Microsoft YaHei UI', 10),
+                             relief='flat', bd=5, bg=self.colors['light'])
+        hire_entry.pack(fill='x')
+        
+        # 薪资
+        salary_frame = tk.Frame(card_frame, bg=self.colors['card'])
+        salary_frame.pack(fill='x', pady=5)
+        tk.Label(salary_frame, text="薪资 (元):", font=('Microsoft YaHei UI', 10),
+                bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w', pady=(0, 2))
+        salary_var = tk.StringVar(add_window, value="5000")
+        form_vars['salary'] = salary_var
+        salary_entry = tk.Entry(salary_frame, textvariable=salary_var, font=('Microsoft YaHei UI', 10),
+                               relief='flat', bd=5, bg=self.colors['light'])
+        salary_entry.pack(fill='x')
+        
+        # 按钮区域
+        button_frame = tk.Frame(card_frame, bg=self.colors['card'])
+        button_frame.pack(fill='x', pady=20)
+        
+        def save_employee():
             try:
-                data_manager.add_employee(dialog.result)
-                messagebox.showinfo("成功", "新员工添加成功！")
+                # 验证输入
+                if not form_vars['name'].get() or not form_vars['phone'].get():
+                    messagebox.showerror("错误", "请填写员工姓名和联系电话")
+                    return
+                
+                # 验证薪资
+                try:
+                    salary = float(form_vars['salary'].get())
+                    if salary < 0:
+                        raise ValueError()
+                except ValueError:
+                    messagebox.showerror("错误", "请输入有效的薪资数额")
+                    return
+                
+                # 生成新员工ID
+                new_id = max([emp['id'] for emp in self.employee_data]) + 1
+                
+                # 创建新员工
+                new_employee = {
+                    "id": new_id,
+                    "name": form_vars['name'].get(),
+                    "phone": form_vars['phone'].get(),
+                    "email": form_vars['email'].get(),
+                    "birthday": form_vars['birthday'].get(),
+                    "address": form_vars['address'].get(),
+                    "emergency_contact": form_vars['emergency_contact'].get(),
+                    "position": form_vars['position'].get(),
+                    "department": form_vars['department'].get(),
+                    "hire_date": form_vars['hire_date'].get(),
+                    "salary": salary,
+                    "status": "试用",
+                    "performance": 75
+                }
+                
+                self.employee_data.append(new_employee)
+                messagebox.showinfo("成功", f"员工 {new_employee['name']} 添加成功")
+                add_window.destroy()
                 self.refresh_employee_list()
+                
             except Exception as e:
-                messagebox.showerror("添加失败", f"添加新员工失败: {e}")
+                messagebox.showerror("错误", f"添加失败：{str(e)}")
+        
+        save_btn = tk.Button(button_frame, text="添加员工", 
+                           font=('Microsoft YaHei UI', 10, 'bold'),
+                           bg=self.colors['primary'], fg=self.colors['white'],
+                           bd=0, padx=30, pady=8, cursor='hand2',
+                           command=save_employee)
+        save_btn.pack(side='right', padx=5)
+        
+        cancel_btn = tk.Button(button_frame, text="取消", 
+                             font=('Microsoft YaHei UI', 10),
+                             bg=self.colors['text_light'], fg=self.colors['white'],
+                             bd=0, padx=30, pady=8, cursor='hand2',                             command=add_window.destroy)
+        cancel_btn.pack(side='right', padx=5)
+        
+        # 布局滚动区域
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # 绑定鼠标滚轮
+        def on_mousewheel(event):
+            try:
+                if canvas.winfo_exists():
+                    canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            except tk.TclError:
+                pass  # Widget已被销毁，忽略错误
+        
+        canvas.bind("<MouseWheel>", on_mousewheel)
+        scrollable_frame.bind("<MouseWheel>", on_mousewheel)
     
     def search_employees(self, keyword):
         """搜索员工"""
@@ -460,40 +945,34 @@ class ModernEmployeeModule:
         self.refresh_employee_list()
     
     def refresh_employee_list(self):
-        """从数据库重新加载并刷新员工列表和统计数据"""
-        try:
-            keyword = self.search_keyword if self.search_keyword else None
-            # 注意: 搜索和筛选的逻辑需要后端支持，暂时简化处理
-            self.employee_data = data_manager.get_employees()
-            
-            # 本地进行简单筛选
-            if self.current_filter != "全部":
-                filtered_data = [e for e in self.employee_data if e.get('department') == self.current_filter]
+        """刷新员工列表"""
+        # 清空列表
+        for widget in self.employees_container.winfo_children():
+            widget.destroy()
+        
+        # 筛选和搜索员工
+        filtered_employees = self.employee_data
+        
+        # 应用部门筛选
+        if self.current_filter != "全部":
+            if self.current_filter in self.departments:
+                filtered_employees = [e for e in filtered_employees if e['department'] == self.current_filter]
             else:
-                filtered_data = self.employee_data
-
-            if self.search_keyword:
-                kw = self.search_keyword.lower()
-                filtered_data = [
-                    e for e in filtered_data 
-                    if kw in e.get('name', '').lower() or 
-                       kw in e.get('position', '').lower() or
-                       str(e.get('id', '')) == kw
-                ]
-
-            # 清空并重新填充UI
-            for widget in self.employees_container.winfo_children():
-                widget.destroy()
-            
-            if not filtered_data:
-                tk.Label(self.employees_container, text="未找到符合条件的员工。", bg=self.colors['background']).pack(pady=50)
-            else:
-                for emp in filtered_data:
-                    self.create_employee_card(self.employees_container, emp)
-
-            self.update_statistics()
-        except Exception as e:
-            messagebox.showerror("刷新失败", f"刷新员工列表时出错: {e}")
+                filtered_employees = [e for e in filtered_employees if e['status'] == self.current_filter]
+        
+        # 应用搜索
+        if self.search_keyword:
+            filtered_employees = [e for e in filtered_employees 
+                                if self.search_keyword in e['name'].lower() 
+                                or self.search_keyword in e['phone'].lower()
+                                or self.search_keyword in e['position'].lower()]
+        
+        # 创建员工卡片
+        for employee in filtered_employees:
+            self.create_employee_card(self.employees_container, employee)
+        
+        # 更新统计信息
+        self.update_statistics()
     
     def update_statistics(self):
         """更新统计信息"""
@@ -525,25 +1004,105 @@ class ModernEmployeeModule:
             widget.destroy()
         for widget in self.title_frame.winfo_children():
             widget.destroy()
-
-        # 从数据库加载数据
-        try:
-            self.employee_data = data_manager.get_employees()
-        except Exception as e:
-            messagebox.showerror("数据加载失败", f"无法从数据库加载员工信息: {e}")
-            self.employee_data = []
-
+        
         # 设置父框架背景
         self.parent_frame.configure(bg=self.colors['background'])
         
-        # 创建主框架
-        main_frame = tk.Frame(self.parent_frame, bg=self.colors['background'])
-        main_frame.pack(fill='both', expand=True, padx=20, pady=10)
+        # 标题栏
+        title_container = tk.Frame(self.title_frame, bg=self.colors['white'])
+        title_container.pack(fill='x')
         
-        # 创建标题和操作按钮
-        # ... (UI creation code) ...
-
-        # 最后刷新列表
+        # 标题
+        title_label = tk.Label(title_container, text="👨‍💼 员工管理", 
+                              font=('Microsoft YaHei UI', 18, 'bold'),
+                              bg=self.colors['white'], fg=self.colors['text'])
+        title_label.pack(side='left', padx=20, pady=15)
+        
+        # 搜索框
+        search_frame = tk.Frame(title_container, bg=self.colors['white'])
+        search_frame.pack(side='left', padx=20, pady=15)
+        
+        search_var = tk.StringVar(self.parent_frame)
+        search_entry = tk.Entry(search_frame, textvariable=search_var, 
+                               font=('Microsoft YaHei UI', 10),
+                               width=20, relief='flat', bd=5, bg=self.colors['light'])
+        search_entry.pack(side='left', padx=(0, 10))
+        
+        search_btn = tk.Button(search_frame, text="🔍 搜索", 
+                              font=('Microsoft YaHei UI', 9),
+                              bg=self.colors['info'], fg=self.colors['white'],
+                              bd=0, padx=15, pady=5, cursor='hand2',
+                              command=lambda: self.search_employees(search_var.get()))
+        search_btn.pack(side='left')
+        
+        # 操作按钮
+        actions_frame = tk.Frame(title_container, bg=self.colors['white'])
+        actions_frame.pack(side='right', padx=20, pady=15)
+        
+        # 添加员工按钮
+        add_btn = tk.Button(actions_frame, text="➕ 添加员工", 
+                           font=('Microsoft YaHei UI', 10, 'bold'),
+                           bg=self.colors['primary'], fg=self.colors['white'],
+                           bd=0, padx=20, pady=8, cursor='hand2',
+                           command=self.add_new_employee)
+        add_btn.pack(side='right', padx=5)
+        
+        # 刷新按钮
+        refresh_btn = tk.Button(actions_frame, text="🔄 刷新", 
+                               font=('Microsoft YaHei UI', 10),
+                               bg=self.colors['info'], fg=self.colors['white'],
+                               bd=0, padx=20, pady=8, cursor='hand2',
+                               command=self.refresh_employee_list)
+        refresh_btn.pack(side='right', padx=5)
+        
+        # 主内容区域
+        main_frame = tk.Frame(self.parent_frame, bg=self.colors['background'])
+        main_frame.pack(fill='both', expand=True, padx=20, pady=20)
+        
+        # 统计卡片区域
+        self.stats_frame = tk.Frame(main_frame, bg=self.colors['background'])
+        self.stats_frame.pack(fill='x', pady=(0, 20))
+        
+        # 筛选按钮区域
+        filter_frame = tk.Frame(main_frame, bg=self.colors['background'])
+        filter_frame.pack(fill='x', pady=(0, 20))
+        
+        tk.Label(filter_frame, text="筛选员工：", font=('Microsoft YaHei UI', 12, 'bold'),
+                bg=self.colors['background'], fg=self.colors['text']).pack(side='left')
+        
+        filter_buttons = ["全部"] + self.departments + ["在职", "试用", "离职"]
+        for filter_name in filter_buttons:
+            btn_color = self.colors['primary'] if filter_name == self.current_filter else self.colors['light']
+            text_color = self.colors['white'] if filter_name == self.current_filter else self.colors['text']
+            
+            filter_btn = tk.Button(filter_frame, text=filter_name, 
+                                  font=('Microsoft YaHei UI', 9),
+                                  bg=btn_color, fg=text_color,
+                                  bd=0, padx=12, pady=5, cursor='hand2',
+                                  command=lambda f=filter_name: self.filter_employees(f))
+            filter_btn.pack(side='left', padx=3)
+        
+        # 员工列表容器
+        list_frame = tk.Frame(main_frame, bg=self.colors['background'])
+        list_frame.pack(fill='both', expand=True)
+        
+        # 滚动区域
+        canvas = tk.Canvas(list_frame, bg=self.colors['background'], highlightthickness=0)
+        scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=canvas.yview)
+        self.employees_container = tk.Frame(canvas, bg=self.colors['background'])
+        
+        self.employees_container.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas.create_window((0, 0), window=self.employees_container, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # 初始化显示
         self.refresh_employee_list()
           # 绑定鼠标滚轮事件
         def on_mousewheel(event):

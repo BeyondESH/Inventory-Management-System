@@ -71,36 +71,108 @@ class ModernMealModule:
     def load_meal_data(self):
         """从数据管理中心加载菜品数据"""
         try:
-            # get_meals 已经做了UI字段兼容
-            return data_manager.get_meals()
+            # 从数据管理器获取菜品数据
+            meals_data = data_manager.load_data('meals')
+            
+            # 转换数据格式以适配现有界面
+            formatted_data = []
+            for meal in meals_data:
+                formatted_meal = {
+                    "id": meal.get('id', ''),
+                    "name": meal.get('name', ''),
+                    "category": meal.get('category', '其他'),
+                    "price": meal.get('price', 0.0),
+                    "cost": meal.get('cost', 0.0),
+                    "description": meal.get('description', '暂无描述'),
+                    "ingredients": meal.get('ingredients', []),
+                    "cooking_time": meal.get('cooking_time', 15),
+                    "calories": meal.get('calories', 200),
+                    "is_spicy": meal.get('is_spicy', False),
+                    "is_vegetarian": meal.get('is_vegetarian', False),
+                    "is_available": meal.get('is_available', True),
+                    "image": meal.get('image', '🍽️'),
+                    "created_date": meal.get('created_date', datetime.datetime.now().strftime('%Y-%m-%d'))
+                }
+                formatted_data.append(formatted_meal)
+            
+            return formatted_data
         except Exception as e:
-            print(f"❌ 加载菜品数据失败: {e}")
-            return []
+            print(f"加载菜品数据失败: {e}")
+            # 返回默认菜品数据
+            return [
+                {
+                    "id": "MEAL001", "name": "番茄牛肉面", "category": "面食", "price": 25.0,
+                    "cost": 15.0, "description": "经典番茄牛肉面，汤鲜味美",
+                    "ingredients": ["番茄", "牛肉", "面条"], "cooking_time": 15,
+                    "calories": 450, "is_spicy": False, "is_vegetarian": False,
+                    "is_available": True, "image": "🍽️", "created_date": "2025-06-21"
+                },
+                {
+                    "id": "MEAL002", "name": "鸡蛋炒饭", "category": "炒饭", "price": 18.0,
+                    "cost": 10.0, "description": "香喷喷的鸡蛋炒饭",
+                    "ingredients": ["鸡蛋", "米饭"], "cooking_time": 10,
+                    "calories": 350, "is_spicy": False, "is_vegetarian": False,
+                    "is_available": True, "image": "🍚", "created_date": "2025-06-21"
+                },
+                {
+                    "id": "MEAL003", "name": "牛肉汉堡", "category": "西餐", "price": 32.0,
+                    "cost": 20.0, "description": "美味牛肉汉堡套餐",
+                    "ingredients": ["牛肉", "面包", "生菜"], "cooking_time": 12,
+                    "calories": 520, "is_spicy": False, "is_vegetarian": False,
+                    "is_available": True, "image": "🍔", "created_date": "2025-06-21"
+                },
+                {
+                    "id": "MEAL004", "name": "薯条", "category": "小食", "price": 12.0,
+                    "cost": 6.0, "description": "酥脆金黄薯条",
+                    "ingredients": ["土豆"], "cooking_time": 8,
+                    "calories": 280, "is_spicy": False, "is_vegetarian": True,
+                    "is_available": True, "image": "🍽️", "created_date": "2025-06-21"                }            ]
     
     def save_meal_data(self):
-        """保存菜品数据到数据管理中心 - 此方法已废弃，操作应实时保存"""
-        print("⚠️ save_meal_data 方法已废弃，所有操作应实时调用data_manager。")
-        return False
+        """保存菜品数据到数据管理中心"""
+        try:
+            # 将内部格式的数据转换为标准格式
+            standard_data = []
+            for meal in self.meal_data:
+                standard_meal = {
+                    'id': meal.get('id', ''),
+                    'name': meal.get('name', ''),
+                    'category': meal.get('category', '其他'),
+                    'price': meal.get('price', 0.0),
+                    'cost': meal.get('cost', 0.0),
+                    'description': meal.get('description', ''),
+                    'ingredients': meal.get('ingredients', []),
+                    'cooking_time': meal.get('cooking_time', 15),
+                    'calories': meal.get('calories', 200),
+                    'is_spicy': meal.get('is_spicy', False),
+                    'is_vegetarian': meal.get('is_vegetarian', False),
+                    'is_available': meal.get('is_available', True),
+                    'image': meal.get('image', '🍽️'),
+                    'created_date': meal.get('created_date', datetime.datetime.now().strftime('%Y-%m-%d'))
+                }
+                standard_data.append(standard_meal)
+            
+            # 保存到数据管理器
+            data_manager.save_data('meals', standard_data)
+            return True
+        except Exception as e:
+            print(f"保存菜品数据失败: {e}")
+            return False
     
     def notify_data_update(self):
         """通知其他模块数据已更新"""
-        print("📢 通知所有模块菜品数据已更新...")
-        # 这是一个简化的实现，实际项目中可能需要更精细的发布/订阅系统
-        sales_module = data_manager.get_module('sales')
-        if sales_module and hasattr(sales_module, 'refresh_meals_data'):
-            try:
-                sales_module.refresh_meals_data()
-                print("✅ 已通知销售模块刷新")
-            except Exception as e:
-                print(f"⚠️ 通知销售模块失败: {e}")
-        
-        inventory_module = data_manager.get_module('inventory')
-        if inventory_module and hasattr(inventory_module, 'refresh_possible_meals'):
-            try:
-                inventory_module.refresh_possible_meals()
-                print("✅ 已通知库存模块刷新可制作菜品")
-            except Exception as e:
-                print(f"⚠️ 通知库存模块失败: {e}")
+        try:
+            # 通知销售管理模块刷新菜品数据
+            if hasattr(data_manager, 'notify_modules'):
+                data_manager.notify_modules('meals_updated')
+            else:
+                # 直接通知已注册的模块
+                if hasattr(data_manager, 'registered_modules'):
+                    for module_type, module_instance in data_manager.registered_modules.items():
+                        if module_type == 'sales' and hasattr(module_instance, 'refresh_meals_data'):
+                            module_instance.refresh_meals_data()
+        except Exception as e:
+            print(f"通知其他模块失败: {e}")
     
     def show(self):
         """显示菜品配置模块"""
@@ -461,50 +533,56 @@ class ModernMealModule:
             self.stats_labels["辣味菜品"].config(text=f"{spicy_meals}")
             
     def add_meal(self):
-        """添加新菜品"""
-        dialog = MealDialog(self.parent_frame, "添加新菜品")
+        """添加菜品"""
+        dialog = MealDialog(self.parent_frame, "添加菜品")
         if dialog.result:
-            try:
-                meal_info = dialog.result['basic_info']
-                ingredients = dialog.result['ingredients']
-                new_meal_id = data_manager.add_meal(meal_info)
-                if ingredients:
-                    data_manager.update_meal_recipe(new_meal_id, ingredients)
-                messagebox.showinfo("成功", f"菜品 '{meal_info['name']}' 添加成功！")
-                self.refresh_meals()
-                self.notify_data_update()
-            except Exception as e:
-                messagebox.showerror("添加失败", f"添加菜品时出错: {e}")
-
+            # 生成新ID
+            new_id = f"MEAL{len(self.meal_data) + 1:03d}"
+            dialog.result['id'] = new_id
+            dialog.result['created_date'] = datetime.datetime.now().strftime("%Y-%m-%d")
+            
+            # 添加到数据
+            self.meal_data.append(dialog.result)
+            
+            # 保存到数据管理器
+            self.save_meal_data()
+            
+            self.refresh_meals_display()
+            messagebox.showinfo("成功", "菜品添加成功！")
+            
+            # 通知其他模块数据更新
+            self.notify_data_update()
+            
     def edit_meal(self, meal):
         """编辑菜品"""
-        dialog = MealDialog(self.parent_frame, f"编辑菜品 - {meal['name']}", meal_data=meal)
+        dialog = MealDialog(self.parent_frame, "编辑菜品", meal)
         if dialog.result:
-            try:
-                meal_info = dialog.result['basic_info']
-                ingredients = dialog.result['ingredients']
-                meal_id = meal['id']
-                data_manager.update_meal(meal_id, meal_info)
-                data_manager.update_meal_recipe(meal_id, ingredients)
-                messagebox.showinfo("成功", f"菜品 '{meal_info['name']}' 更新成功！")
-                self.refresh_meals()
-                self.notify_data_update()
-            except Exception as e:
-                messagebox.showerror("更新失败", f"更新菜品时出错: {e}")
-
+            # 更新数据
+            meal.update(dialog.result)
+            
+            # 保存到数据管理器
+            self.save_meal_data()
+            
+            self.refresh_meals_display()
+            messagebox.showinfo("成功", "菜品信息更新成功！")
+            
+            # 通知其他模块数据更新
+            self.notify_data_update()
+            
     def toggle_meal_status(self, meal):
-        """上架或下架菜品"""
-        new_status = not meal.get('is_available', False)
-        action_text = "上架" if new_status else "下架"
-        
-        if messagebox.askyesno("确认操作", f"确定要 {action_text} 菜品 '{meal['name']}' 吗？"):
-            try:
-                data_manager.update_meal(meal['id'], {'is_available': new_status})
-                messagebox.showinfo("成功", f"菜品已成功 {action_text}！")
-                self.refresh_meals()
-                self.notify_data_update()
-            except Exception as e:
-                messagebox.showerror("操作失败", f"操作失败: {e}")
+        """切换菜品状态"""
+        action = "上架" if not meal["is_available"] else "下架"
+        if messagebox.askyesno("确认操作", f"确定要{action}菜品 '{meal['name']}' 吗？"):
+            meal["is_available"] = not meal["is_available"]
+            
+            # 保存到数据管理器
+            self.save_meal_data()
+            
+            self.refresh_meals_display()
+            messagebox.showinfo("成功", f"菜品已{action}！")
+            
+            # 通知其他模块数据更新
+            self.notify_data_update()
             
     def export_meals(self):
         """导出菜品数据"""
@@ -805,223 +883,343 @@ class ModernMealModule:
             messagebox.showerror("刷新失败", f"刷新菜品数据时发生错误：{e}")
 
 class MealDialog:
-    """菜品编辑/添加对话框，带配方管理"""
+    """菜品对话框"""
     def __init__(self, parent, title, meal_data=None):
         self.result = None
-        self.meal_data = meal_data if meal_data else {}
-        
-        # 从数据管理器获取所有可用作配料的库存物品
-        try:
-            self.all_ingredients_master = data_manager.get_inventory()
-        except Exception as e:
-            print(f"❌ 无法从数据库获取原料列表: {e}")
-            self.all_ingredients_master = []
-
-        # 获取当前菜品的配方
-        self.current_ingredients = []
-        if self.meal_data.get('id'):
-            try:
-                # 注意：get_recipes返回的是所有菜品的配方列表
-                all_recipes = data_manager.get_recipes()
-                this_recipe = next((r for r in all_recipes if r['meal_id'] == self.meal_data['id']), None)
-                if this_recipe and 'ingredients' in this_recipe:
-                    # 将数据库配方格式转换为UI所需格式
-                    for ing_db in this_recipe['ingredients']:
-                        ing_master = next((m for m in self.all_ingredients_master if m['name'] == ing_db['ingredient_name']), None)
-                        if ing_master:
-                            self.current_ingredients.append({
-                                'id': ing_master['id'],
-                                'name': ing_db['ingredient_name'],
-                                'quantity': ing_db['quantity_per_serving'],
-                                'unit': ing_master.get('unit', '')
-                            })
-            except Exception as e:
-                print(f"❌ 获取菜品配方失败: {e}")
-
-        # 创建对话框窗口
+          # 创建对话框窗口
         self.dialog = tk.Toplevel(parent)
         self.dialog.title(title)
-        self.dialog.geometry("550x750")
-        self.colors = {
-            'primary': '#FF6B35', 'background': '#F8F9FA', 'surface': '#FFFFFF',
-            'text_primary': '#2D3436', 'text_secondary': '#636E72', 'border': '#E0E0E0'
-        }
-        self.fonts = {
-            'heading': ('Microsoft YaHei UI', 16, 'bold'), 'body': ('Microsoft YaHei UI', 12),
-            'button': ('Microsoft YaHei UI', 11, 'bold'), 'subheading': ('Microsoft YaHei UI', 14, 'bold')
-        }
-        self.dialog.configure(bg=self.colors['background'])
+        self.dialog.geometry("600x800")  # 增加高度从700到800
+        self.dialog.configure(bg="#f8f9fa")
         self.dialog.resizable(False, False)
         self.dialog.grab_set()
-
-        # 初始化UI变量
-        self.name_var = tk.StringVar(self.dialog, value=self.meal_data.get('name', ''))
-        self.category_var = tk.StringVar(self.dialog, value=self.meal_data.get('category', ''))
-        self.price_var = tk.DoubleVar(self.dialog, value=self.meal_data.get('price', 0.0))
-        self.cost_var = tk.DoubleVar(self.dialog, value=self.meal_data.get('cost', 0.0))
-        self.is_available_var = tk.BooleanVar(self.dialog, value=self.meal_data.get('is_available', True))
-        self.description_var = None # Text组件不能直接用StringVar
-
+        
+        # 居中显示
+        self.center_window()
+        
+        # 颜色主题
+        self.colors = {
+            'primary': '#FF6B35',
+            'background': '#F8F9FA',
+            'surface': '#FFFFFF',
+            'text_primary': '#2D3436',
+            'text_secondary': '#636E72',
+            'border': '#E0E0E0'
+        }
+        
+        # 字体
+        self.fonts = {
+            'heading': ('Microsoft YaHei UI', 16, 'bold'),
+            'body': ('Microsoft YaHei UI', 12),
+            'button': ('Microsoft YaHei UI', 11, 'bold')
+        }
+          # 创建变量
+        self.name_var = tk.StringVar(self.dialog, value=meal_data['name'] if meal_data else "")
+        self.category_var = tk.StringVar(self.dialog, value=meal_data['category'] if meal_data else "")
+        self.price_var = tk.DoubleVar(self.dialog, value=meal_data['price'] if meal_data else 0.0)
+        self.cost_var = tk.DoubleVar(self.dialog, value=meal_data['cost'] if meal_data else 0.0)
+        self.description_var = tk.StringVar(self.dialog, value=meal_data['description'] if meal_data else "")
+        self.cooking_time_var = tk.IntVar(self.dialog, value=meal_data['cooking_time'] if meal_data else 0)
+        self.calories_var = tk.IntVar(self.dialog, value=meal_data['calories'] if meal_data else 0)
+        self.is_spicy_var = tk.BooleanVar(self.dialog, value=meal_data['is_spicy'] if meal_data else False)
+        self.is_vegetarian_var = tk.BooleanVar(self.dialog, value=meal_data['is_vegetarian'] if meal_data else False)
+        self.is_available_var = tk.BooleanVar(self.dialog, value=meal_data['is_available'] if meal_data else True)
+        self.image_var = tk.StringVar(self.dialog, value=meal_data['image'] if meal_data else "🍽️")
+        
+        # 食材列表
+        self.ingredients = meal_data['ingredients'].copy() if meal_data else []
+        
+        # 创建界面
         self.create_dialog_ui()
-
+        
+    def center_window(self):
+        """窗口居中"""
+        self.dialog.update_idletasks()
+        width = self.dialog.winfo_width()
+        height = self.dialog.winfo_height()
+        x = (self.dialog.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.dialog.winfo_screenheight() // 2) - (height // 2)
+        self.dialog.geometry(f'{width}x{height}+{x}+{y}')
+        
     def create_dialog_ui(self):
         """创建对话框界面"""
+        # 主容器
         main_frame = tk.Frame(self.dialog, bg=self.colors['surface'])
         main_frame.pack(fill="both", expand=True, padx=20, pady=20)
         
-        tk.Label(main_frame, text="🍽️ 菜品信息", font=self.fonts['heading'], bg=self.colors['surface'], fg=self.colors['text_primary']).pack(pady=(0, 20))
+        # 滚动区域
+        canvas = tk.Canvas(main_frame, bg=self.colors['surface'])
+        scrollbar = ttk.Scrollbar(main_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg=self.colors['surface'])
         
-        self.create_form_field(main_frame, "菜品名称 *", self.name_var, "entry")
-        self.create_form_field(main_frame, "菜品分类 *", self.category_var, "combo", ["主食", "炒菜", "汤羹", "凉菜", "饮品", "小食"])
-        self.create_form_field(main_frame, "售价 *", self.price_var, "entry")
-        self.create_form_field(main_frame, "成本", self.cost_var, "entry")
-        self.create_form_field(main_frame, "描述", None, "text")
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
         
-        self.create_ingredients_section(main_frame)
-        self.create_options_section(main_frame)
-
-        button_frame = tk.Frame(main_frame, bg=self.colors['surface'])
-        button_frame.pack(fill="x", pady=(20, 0))
-        tk.Button(button_frame, text="取消", font=self.fonts['button'], bg=self.colors['background'], fg=self.colors['text_secondary'], bd=0, command=self.cancel, padx=30, pady=10).pack(side="right", padx=(10, 0))
-        tk.Button(button_frame, text="确定", font=self.fonts['button'], bg=self.colors['primary'], fg="white", bd=0, command=self.ok, padx=30, pady=10).pack(side="right")
-
-    def create_ingredients_section(self, parent):
-        """创建配方管理部分"""
-        section_frame = tk.Frame(parent, bg=self.colors['background'], bd=1, relief="groove", padx=5, pady=5)
-        section_frame.pack(fill="x", pady=10)
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
         
-        tk.Label(section_frame, text="🥬 配方管理", font=self.fonts['subheading'], bg=self.colors['background'], fg=self.colors['text_primary']).pack(pady=5)
-        
-        add_frame = tk.Frame(section_frame, bg=self.colors['background'])
-        add_frame.pack(fill="x", padx=10, pady=5)
-        
-        tk.Label(add_frame, text="选择原料:", bg=self.colors['background']).pack(side="left")
-        self.ingredient_var = tk.StringVar()
-        ingredient_names = [ing['name'] for ing in self.all_ingredients_master]
-        self.ingredient_combo = ttk.Combobox(add_frame, textvariable=self.ingredient_var, values=ingredient_names, width=15, state="readonly")
-        self.ingredient_combo.pack(side="left", padx=5)
-
-        tk.Label(add_frame, text="数量:", bg=self.colors['background']).pack(side="left")
-        self.quantity_var = tk.DoubleVar(value=0.1)
-        tk.Entry(add_frame, textvariable=self.quantity_var, width=8).pack(side="left", padx=5)
-
-        tk.Button(add_frame, text="➕ 添加", command=self.add_ingredient).pack(side="left", padx=10)
-
-        list_frame = tk.Frame(section_frame)
-        list_frame.pack(fill="both", expand=True, padx=10, pady=5)
-        self.ingredients_listbox = tk.Listbox(list_frame, height=5)
-        self.ingredients_listbox.pack(side="left", fill="both", expand=True)
-        
-        scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=self.ingredients_listbox.yview)
+        canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
-        self.ingredients_listbox.config(yscrollcommand=scrollbar.set)
         
-        tk.Button(section_frame, text="🗑️ 删除选中配料", command=self.remove_ingredient).pack(pady=5)
+        # 标题
+        title_label = tk.Label(scrollable_frame, text="🍜 菜品信息", font=self.fonts['heading'],
+                              bg=self.colors['surface'], fg=self.colors['text_primary'])
+        title_label.pack(pady=(0, 20))
         
-        self.refresh_ingredients_list()
-
-    def add_ingredient(self):
-        """添加配料到列表"""
-        name = self.ingredient_var.get()
-        try:
-            quantity = self.quantity_var.get()
-        except tk.TclError:
-            messagebox.showwarning("输入错误", "请输入有效的数量。")
-            return
-
-        if not name or quantity <= 0:
-            messagebox.showwarning("输入错误", "请选择一个原料并输入正数数量。")
-            return
-            
-        selected_ingredient = next((ing for ing in self.all_ingredients_master if ing['name'] == name), None)
-        if not selected_ingredient:
-            messagebox.showerror("错误", "选择的原料不存在！")
-            return
-
-        if any(ing['id'] == selected_ingredient['id'] for ing in self.current_ingredients):
-            messagebox.showwarning("重复添加", "该原料已在配方中。")
-            return
-
-        self.current_ingredients.append({
-            'id': selected_ingredient['id'], # ingredient_id
-            'name': name, 'quantity': quantity, 'unit': selected_ingredient.get('unit', '')
-        })
-        self.refresh_ingredients_list()
-        self.ingredient_var.set('')
-        self.quantity_var.set(0.1)
-
-    def remove_ingredient(self):
-        """从列表中移除配料"""
-        selected_indices = self.ingredients_listbox.curselection()
-        if not selected_indices:
-            messagebox.showwarning("未选择", "请选择要删除的配料。")
-            return
+        # 基本信息
+        self.create_basic_info_section(scrollable_frame)
         
-        # 从后往前删，避免索引错乱
-        for i in sorted(selected_indices, reverse=True):
-            del self.current_ingredients[i]
+        # 详细信息
+        self.create_detail_info_section(scrollable_frame)
+        
+        # 食材管理
+        self.create_ingredients_section(scrollable_frame)
+        
+        # 选项设置
+        self.create_options_section(scrollable_frame)
+        
+        # 按钮区域
+        button_frame = tk.Frame(scrollable_frame, bg=self.colors['surface'])
+        button_frame.pack(fill="x", pady=(20, 0))
+        
+        # 取消按钮
+        cancel_btn = tk.Button(button_frame, text="取消", font=self.fonts['button'],
+                              bg=self.colors['background'], fg=self.colors['text_secondary'],
+                              bd=0, relief="flat", cursor="hand2", command=self.cancel,
+                              padx=30, pady=10)
+        cancel_btn.pack(side="right", padx=(10, 0))
+        
+        # 确定按钮
+        ok_btn = tk.Button(button_frame, text="确定", font=self.fonts['button'],
+                          bg=self.colors['primary'], fg="white",
+                          bd=0, relief="flat", cursor="hand2", command=self.ok,
+                          padx=30, pady=10)
+        ok_btn.pack(side="right")
+        
+    def create_basic_info_section(self, parent):
+        """创建基本信息区域"""
+        section_frame = tk.Frame(parent, bg=self.colors['surface'])
+        section_frame.pack(fill="x", pady=(0, 20))
+        
+        section_title = tk.Label(section_frame, text="📝 基本信息", font=self.fonts['body'],
+                                bg=self.colors['surface'], fg=self.colors['text_primary'])
+        section_title.pack(anchor="w", pady=(0, 10))
+        
+        # 菜品名称
+        self.create_form_field(section_frame, "菜品名称 *", self.name_var, "entry")
+        
+        # 分类和图标
+        row_frame = tk.Frame(section_frame, bg=self.colors['surface'])
+        row_frame.pack(fill="x", pady=10)
+        
+        left_frame = tk.Frame(row_frame, bg=self.colors['surface'])
+        left_frame.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        self.create_form_field(left_frame, "分类 *", self.category_var, "combo", 
+                              ["主食", "热菜", "素菜", "汤品", "饮品", "甜品"])
+        
+        right_frame = tk.Frame(row_frame, bg=self.colors['surface'])
+        right_frame.pack(side="right", fill="x", expand=True, padx=(10, 0))
+        self.create_form_field(right_frame, "图标", self.image_var, "entry")
+        
+        # 价格和成本
+        row_frame2 = tk.Frame(section_frame, bg=self.colors['surface'])
+        row_frame2.pack(fill="x", pady=10)
+        
+        left_frame2 = tk.Frame(row_frame2, bg=self.colors['surface'])
+        left_frame2.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        self.create_form_field(left_frame2, "售价 (¥) *", self.price_var, "entry")
+        
+        right_frame2 = tk.Frame(row_frame2, bg=self.colors['surface'])
+        right_frame2.pack(side="right", fill="x", expand=True, padx=(10, 0))
+        self.create_form_field(right_frame2, "成本 (¥) *", self.cost_var, "entry")
+        
+    def create_detail_info_section(self, parent):
+        """创建详细信息区域"""
+        section_frame = tk.Frame(parent, bg=self.colors['surface'])
+        section_frame.pack(fill="x", pady=(0, 20))
+        
+        section_title = tk.Label(section_frame, text="📋 详细信息", font=self.fonts['body'],
+                                bg=self.colors['surface'], fg=self.colors['text_primary'])
+        section_title.pack(anchor="w", pady=(0, 10))
+        
+        # 描述
+        self.create_form_field(section_frame, "菜品描述", self.description_var, "text")
+        
+        # 制作时间和热量
+        row_frame = tk.Frame(section_frame, bg=self.colors['surface'])
+        row_frame.pack(fill="x", pady=10)
+        
+        left_frame = tk.Frame(row_frame, bg=self.colors['surface'])
+        left_frame.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        self.create_form_field(left_frame, "制作时间 (分钟)", self.cooking_time_var, "entry")
+        
+        right_frame = tk.Frame(row_frame, bg=self.colors['surface'])
+        right_frame.pack(side="right", fill="x", expand=True, padx=(10, 0))
+        self.create_form_field(right_frame, "热量 (卡路里)", self.calories_var, "entry")
+        
+    def create_ingredients_section(self, parent):
+        """创建食材区域"""
+        section_frame = tk.Frame(parent, bg=self.colors['surface'])
+        section_frame.pack(fill="x", pady=(0, 20))
+        
+        section_title = tk.Label(section_frame, text="🥗 食材配料", font=self.fonts['body'],
+                                bg=self.colors['surface'], fg=self.colors['text_primary'])
+        section_title.pack(anchor="w", pady=(0, 10))
+        
+        # 食材列表
+        ingredients_frame = tk.Frame(section_frame, bg=self.colors['background'])
+        ingredients_frame.pack(fill="x", pady=(0, 10))
+        
+        self.ingredients_listbox = tk.Listbox(ingredients_frame, height=4, font=self.fonts['body'])
+        self.ingredients_listbox.pack(fill="x")
+        
+        # 添加食材
+        add_ingredient_frame = tk.Frame(section_frame, bg=self.colors['surface'])
+        add_ingredient_frame.pack(fill="x")
+        
+        self.ingredient_var = tk.StringVar(self.dialog)
+        ingredient_entry = tk.Entry(add_ingredient_frame, textvariable=self.ingredient_var,
+                                   font=self.fonts['body'], width=30)
+        ingredient_entry.pack(side="left", padx=(0, 10), ipady=5)
+        
+        add_btn = tk.Button(add_ingredient_frame, text="添加", font=self.fonts['body'],
+                           bg=self.colors['primary'], fg="white", bd=0,
+                           cursor="hand2", command=self.add_ingredient, padx=15)
+        add_btn.pack(side="left", padx=(0, 10))
+        
+        remove_btn = tk.Button(add_ingredient_frame, text="删除", font=self.fonts['body'],
+                              bg=self.colors['background'], fg=self.colors['text_secondary'], bd=1,
+                              cursor="hand2", command=self.remove_ingredient, padx=15)
+        remove_btn.pack(side="left")
+        
+        # 刷新食材列表
         self.refresh_ingredients_list()
-
-    def refresh_ingredients_list(self):
-        """刷新配料列表显示"""
-        self.ingredients_listbox.delete(0, tk.END)
-        for ing in self.current_ingredients:
-            display_text = f"{ing['name']} - {ing['quantity']} {ing.get('unit', '')}"
-            self.ingredients_listbox.insert(tk.END, display_text)
-
+        
     def create_options_section(self, parent):
-        """创建开关选项"""
-        options_frame = tk.Frame(parent, bg=self.colors['surface'])
-        options_frame.pack(fill="x", pady=10)
-        tk.Checkbutton(options_frame, text="是否上架", variable=self.is_available_var, bg=self.colors['surface']).pack(side="left")
-
+        """创建选项区域"""
+        section_frame = tk.Frame(parent, bg=self.colors['surface'])
+        section_frame.pack(fill="x", pady=(0, 20))
+        
+        section_title = tk.Label(section_frame, text="⚙️ 菜品设置", font=self.fonts['body'],
+                                bg=self.colors['surface'], fg=self.colors['text_primary'])
+        section_title.pack(anchor="w", pady=(0, 10))
+        
+        # 选项复选框
+        options_frame = tk.Frame(section_frame, bg=self.colors['surface'])
+        options_frame.pack(fill="x")
+        
+        spicy_check = tk.Checkbutton(options_frame, text="🌶️ 辣味菜品", variable=self.is_spicy_var,
+                                    bg=self.colors['surface'], font=self.fonts['body'],
+                                    activebackground=self.colors['surface'])
+        spicy_check.pack(anchor="w", pady=2)
+        
+        veg_check = tk.Checkbutton(options_frame, text="🥬 素食菜品", variable=self.is_vegetarian_var,
+                                  bg=self.colors['surface'], font=self.fonts['body'],
+                                  activebackground=self.colors['surface'])
+        veg_check.pack(anchor="w", pady=2)
+        
+        available_check = tk.Checkbutton(options_frame, text="✅ 当前在售", variable=self.is_available_var,
+                                        bg=self.colors['surface'], font=self.fonts['body'],
+                                        activebackground=self.colors['surface'])
+        available_check.pack(anchor="w", pady=2)
+        
     def create_form_field(self, parent, label_text, variable, field_type, options=None):
-        """通用表单字段创建器"""
+        """创建表单字段"""
         field_frame = tk.Frame(parent, bg=self.colors['surface'])
-        field_frame.pack(fill="x", pady=8)
+        field_frame.pack(fill="x", pady=5)
         
-        label = tk.Label(field_frame, text=label_text, font=self.fonts['body'], bg=self.colors['surface'], fg=self.colors['text_secondary'], anchor="w", width=10)
-        label.pack(side="left")
+        # 标签
+        label = tk.Label(field_frame, text=label_text, font=self.fonts['body'],
+                        bg=self.colors['surface'], fg=self.colors['text_secondary'], anchor="w")
+        label.pack(fill="x", pady=(0, 5))
         
+        # 输入控件
         if field_type == "entry":
-            widget = tk.Entry(field_frame, textvariable=variable, font=self.fonts['body'], bg=self.colors['background'], bd=1, relief="solid")
-        elif field_type == "combo":
-            widget = ttk.Combobox(field_frame, textvariable=variable, values=options, font=self.fonts['body'], state="readonly")
+            entry = tk.Entry(field_frame, textvariable=variable, font=self.fonts['body'],
+                            bg=self.colors['background'], bd=1, relief="solid")
+            entry.pack(fill="x", ipady=8)
+        elif field_type == "combo" and options:
+            combo = ttk.Combobox(field_frame, textvariable=variable, values=options,
+                                font=self.fonts['body'], state="readonly")
+            combo.pack(fill="x", ipady=5)
         elif field_type == "text":
-            widget = tk.Text(field_frame, height=4, font=self.fonts['body'], bg=self.colors['background'], bd=1, relief="solid")
-            self.description_var = widget
-            widget.insert("1.0", self.meal_data.get('description', ''))
-        
-        widget.pack(side="left", fill="x", expand=True, padx=10)
-
-    def ok(self):
-        """点击确定，验证并收集数据"""
-        try:
-            price = self.price_var.get()
-            cost = self.cost_var.get()
-            if price < 0 or cost < 0:
-                messagebox.showerror("错误", "价格和成本不能为负数")
-                return
-        except tk.TclError:
-            messagebox.showerror("错误", "请输入有效的价格和成本")
-            return
+            text_entry = tk.Entry(field_frame, textvariable=variable, font=self.fonts['body'],
+                                 bg=self.colors['background'], bd=1, relief="solid")
+            text_entry.pack(fill="x", ipady=8)
             
+    def add_ingredient(self):
+        """添加食材"""
+        ingredient = self.ingredient_var.get().strip()
+        if ingredient and ingredient not in self.ingredients:
+            self.ingredients.append(ingredient)
+            self.ingredient_var.set("")
+            self.refresh_ingredients_list()
+            
+    def remove_ingredient(self):
+        """删除食材"""
+        selection = self.ingredients_listbox.curselection()
+        if selection:
+            index = selection[0]
+            del self.ingredients[index]
+            self.refresh_ingredients_list()
+            
+    def refresh_ingredients_list(self):
+        """刷新食材列表"""
+        self.ingredients_listbox.delete(0, tk.END)
+        for ingredient in self.ingredients:
+            self.ingredients_listbox.insert(tk.END, ingredient)
+            
+    def ok(self):
+        """确定按钮处理"""
+        # 验证必填字段
         if not self.name_var.get().strip():
             messagebox.showerror("错误", "请输入菜品名称")
             return
-
+        if not self.category_var.get().strip():
+            messagebox.showerror("错误", "请选择菜品分类")
+            return
+            
+        # 验证数值
+        try:
+            price = self.price_var.get()
+            cost = self.cost_var.get()
+            cooking_time = self.cooking_time_var.get()
+            calories = self.calories_var.get()
+            
+            if price <= 0 or cost <= 0:
+                messagebox.showerror("错误", "价格和成本必须大于0")
+                return
+                
+            if cooking_time < 0 or calories < 0:
+                messagebox.showerror("错误", "制作时间和热量不能为负数")
+                return
+                
+        except tk.TclError:
+            messagebox.showerror("错误", "请输入有效的数值")
+            return
+        
+        # 保存结果
         self.result = {
-            'basic_info': {
-                'name': self.name_var.get().strip(), 'category': self.category_var.get(),
-                'price': price, 'cost': cost,
-                'description': self.description_var.get("1.0", tk.END).strip(),
-                'is_available': self.is_available_var.get(),
-            },
-            'ingredients': self.current_ingredients
+            'name': self.name_var.get().strip(),
+            'category': self.category_var.get(),
+            'price': price,
+            'cost': cost,
+            'description': self.description_var.get().strip(),
+            'ingredients': self.ingredients.copy(),
+            'cooking_time': cooking_time,
+            'calories': calories,
+            'is_spicy': self.is_spicy_var.get(),
+            'is_vegetarian': self.is_vegetarian_var.get(),
+            'is_available': self.is_available_var.get(),
+            'image': self.image_var.get().strip() or "🍽️"
         }
+        
         self.dialog.destroy()
         
     def cancel(self):
+        """取消按钮处理"""
         self.dialog.destroy()
 
 if __name__ == "__main__":

@@ -74,14 +74,63 @@ class ModernInventoryModule:
     def load_inventory_data(self):
         """从数据管理中心加载库存数据"""
         try:
-            # 数据已在data_manager/database_manager中处理好字段名兼容
-            return data_manager.get_inventory()
+            # 从数据管理器获取库存数据
+            inventory_data = data_manager.get_inventory()
+            
+            # 转换数据格式以适配现有界面
+            formatted_data = []
+            for item in inventory_data:
+                formatted_item = {
+                    "id": item.get('id', ''),
+                    "name": item.get('name', ''),
+                    "category": item.get('category', ''),
+                    "current_stock": item.get('quantity', 0),
+                    "min_stock": item.get('min_stock', 0),
+                    "max_stock": item.get('max_stock', 100),
+                    "unit": item.get('unit', '个'),
+                    "price": item.get('price', 0.0),
+                    "supplier": item.get('supplier', '未知供应商'),
+                    "last_updated": item.get('update_time', datetime.datetime.now().strftime('%Y-%m-%d'))
+                }
+                formatted_data.append(formatted_item)
+            
+            return formatted_data
         except Exception as e:
-            print(f"❌ 加载库存数据失败: {e}")
-            # 保留默认数据以防UI崩溃
+            print(f"加载库存数据失败: {e}")            # 返回丰富的默认示例数据
             return [
+                # 蔬菜类
                 {"id": "INV001", "name": "番茄", "category": "蔬菜", "current_stock": 50, "min_stock": 10, "max_stock": 100, "unit": "kg", "price": 8.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
+                {"id": "INV002", "name": "洋葱", "category": "蔬菜", "current_stock": 30, "min_stock": 8, "max_stock": 80, "unit": "kg", "price": 6.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
+                {"id": "INV003", "name": "青椒", "category": "蔬菜", "current_stock": 25, "min_stock": 5, "max_stock": 60, "unit": "kg", "price": 12.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
+                {"id": "INV004", "name": "生菜", "category": "蔬菜", "current_stock": 40, "min_stock": 10, "max_stock": 80, "unit": "kg", "price": 10.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
+                {"id": "INV005", "name": "胡萝卜", "category": "蔬菜", "current_stock": 35, "min_stock": 8, "max_stock": 70, "unit": "kg", "price": 7.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
+                
+                # 肉类
                 {"id": "INV010", "name": "牛肉", "category": "肉类", "current_stock": 20, "min_stock": 5, "max_stock": 50, "unit": "kg", "price": 68.0, "supplier": "优质肉类供应商", "last_updated": "2025-06-21"},
+                {"id": "INV011", "name": "猪肉", "category": "肉类", "current_stock": 25, "min_stock": 5, "max_stock": 60, "unit": "kg", "price": 28.0, "supplier": "优质肉类供应商", "last_updated": "2025-06-21"},
+                {"id": "INV012", "name": "鸡胸肉", "category": "肉类", "current_stock": 15, "min_stock": 3, "max_stock": 40, "unit": "kg", "price": 22.0, "supplier": "优质肉类供应商", "last_updated": "2025-06-21"},
+                {"id": "INV013", "name": "鸡蛋", "category": "肉类", "current_stock": 200, "min_stock": 50, "max_stock": 300, "unit": "个", "price": 1.2, "supplier": "优质肉类供应商", "last_updated": "2025-06-21"},
+                
+                # 主食类
+                {"id": "INV020", "name": "面条", "category": "主食", "current_stock": 100, "min_stock": 20, "max_stock": 200, "unit": "包", "price": 3.5, "supplier": "优质粮食供应商", "last_updated": "2025-06-21"},
+                {"id": "INV021", "name": "大米", "category": "主食", "current_stock": 80, "min_stock": 15, "max_stock": 150, "unit": "kg", "price": 4.5, "supplier": "优质粮食供应商", "last_updated": "2025-06-21"},
+                {"id": "INV022", "name": "面包", "category": "主食", "current_stock": 60, "min_stock": 20, "max_stock": 120, "unit": "个", "price": 8.0, "supplier": "优质粮食供应商", "last_updated": "2025-06-21"},
+                {"id": "INV023", "name": "土豆", "category": "主食", "current_stock": 45, "min_stock": 10, "max_stock": 90, "unit": "kg", "price": 5.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
+                
+                # 饮料类
+                {"id": "INV030", "name": "可乐", "category": "饮料", "current_stock": 80, "min_stock": 30, "max_stock": 150, "unit": "瓶", "price": 5.0, "supplier": "饮料供应商", "last_updated": "2025-06-21"},
+                {"id": "INV031", "name": "雪碧", "category": "饮料", "current_stock": 75, "min_stock": 25, "max_stock": 120, "unit": "瓶", "price": 5.0, "supplier": "饮料供应商", "last_updated": "2025-06-21"},
+                {"id": "INV032", "name": "橙汁", "category": "饮料", "current_stock": 50, "min_stock": 20, "max_stock": 100, "unit": "瓶", "price": 8.0, "supplier": "饮料供应商", "last_updated": "2025-06-21"},
+                {"id": "INV033", "name": "咖啡豆", "category": "饮料", "current_stock": 5, "min_stock": 2, "max_stock": 20, "unit": "kg", "price": 180.0, "supplier": "咖啡供应商", "last_updated": "2025-06-21"},
+                {"id": "INV034", "name": "牛奶", "category": "饮料", "current_stock": 40, "min_stock": 15, "max_stock": 80, "unit": "瓶", "price": 6.0, "supplier": "乳制品供应商", "last_updated": "2025-06-21"},
+                
+                # 调料类
+                {"id": "INV040", "name": "食用油", "category": "调料", "current_stock": 10, "min_stock": 3, "max_stock": 25, "unit": "瓶", "price": 25.0, "supplier": "调料供应商", "last_updated": "2025-06-21"},
+                {"id": "INV041", "name": "生抽", "category": "调料", "current_stock": 8, "min_stock": 2, "max_stock": 20, "unit": "瓶", "price": 12.0, "supplier": "调料供应商", "last_updated": "2025-06-21"},
+                {"id": "INV042", "name": "老抽", "category": "调料", "current_stock": 6, "min_stock": 2, "max_stock": 15, "unit": "瓶", "price": 15.0, "supplier": "调料供应商", "last_updated": "2025-06-21"},
+                {"id": "INV043", "name": "盐", "category": "调料", "current_stock": 20, "min_stock": 5, "max_stock": 50, "unit": "包", "price": 3.0, "supplier": "调料供应商", "last_updated": "2025-06-21"},
+                {"id": "INV044", "name": "糖", "category": "调料", "current_stock": 15, "min_stock": 3, "max_stock": 30, "unit": "包", "price": 8.0, "supplier": "调料供应商", "last_updated": "2025-06-21"},
+                {"id": "INV045", "name": "辣椒粉", "category": "调料", "current_stock": 12, "min_stock": 3, "max_stock": 25, "unit": "包", "price": 18.0, "supplier": "调料供应商", "last_updated": "2025-06-21"}
             ]
     
     def show(self):
@@ -356,6 +405,13 @@ class ModernInventoryModule:
         
     def refresh_inventory_list(self):
         """刷新库存列表"""
+        # 如果UI组件还未创建（模块未显示），则不执行刷新
+        if not hasattr(self, 'inventory_tree') or not self.inventory_tree:
+            print("库存UI未初始化，跳过UI刷新。")
+            # 也可以在这里只重新加载数据
+            self.inventory_data = self.load_inventory_data()
+            return
+            
         # 清空现有数据
         for item in self.inventory_tree.get_children():
             self.inventory_tree.delete(item)
@@ -497,13 +553,22 @@ class ModernInventoryModule:
         """添加库存商品"""
         dialog = InventoryItemDialog(self.parent_frame, "添加商品")
         if dialog.result:
-            try:
-                data_manager.add_ingredient(dialog.result)
-                messagebox.showinfo("成功", "商品添加成功！")
-                self.refresh_inventory() # 从数据库刷新整个视图
-            except Exception as e:
-                messagebox.showerror("添加失败", f"添加商品时出错: {e}")
-
+            # 生成新ID - 找到最大编号并+1
+            existing_ids = [item['id'] for item in self.inventory_data if item['id'].startswith('INV')]
+            if existing_ids:
+                # 提取数字部分，找到最大值
+                max_num = max([int(id_str[3:]) for id_str in existing_ids])
+                new_id = f"INV{max_num + 1:03d}"  # 格式化为INV001这样的格式
+            else:
+                new_id = "INV001"
+            
+            dialog.result['id'] = new_id
+            dialog.result['last_updated'] = datetime.datetime.now().strftime("%Y-%m-%d")
+              # 添加到数据
+            self.inventory_data.append(dialog.result)
+            self.refresh_inventory_list()
+            messagebox.showinfo("成功", "商品添加成功！")
+            
     def edit_inventory_item(self, event):
         """编辑库存商品"""
         self.edit_selected_item()
@@ -515,25 +580,17 @@ class ModernInventoryModule:
             messagebox.showwarning("提示", "请选择要编辑的商品")
             return
             
-        item_id_str = self.inventory_tree.item(selected[0])['values'][0]
-        try:
-            item_id = int(item_id_str)
-        except (ValueError, TypeError):
-            messagebox.showerror("错误", f"无效的商品ID: {item_id_str}")
-            return
-
+        item_id = self.inventory_tree.item(selected[0])['values'][0]  # 直接获取字符串ID，不转换为int
         item_data = next((item for item in self.inventory_data if item['id'] == item_id), None)
         
         if item_data:
             dialog = InventoryItemDialog(self.parent_frame, "编辑商品", item_data)
-            if dialog.result:
-                try:
-                    data_manager.update_ingredient(item_id, dialog.result)
-                    messagebox.showinfo("成功", "商品信息更新成功！")
-                    self.refresh_inventory()
-                except Exception as e:
-                    messagebox.showerror("更新失败", f"更新商品时出错: {e}")
-
+            if dialog.result:                # 更新数据
+                item_data.update(dialog.result)
+                item_data['last_updated'] = datetime.datetime.now().strftime("%Y-%m-%d")
+                self.refresh_inventory_list()
+                messagebox.showinfo("成功", "商品信息更新成功！")
+                
     def delete_selected_item(self):
         """删除选中的商品"""
         selected = self.inventory_tree.selection()
@@ -542,18 +599,12 @@ class ModernInventoryModule:
             return
             
         item_name = self.inventory_tree.item(selected[0])['values'][1]
-        if messagebox.askyesno("确认删除", f"确定要删除商品 '{item_name}' 吗？此操作不可恢复。"):
-            item_id_str = self.inventory_tree.item(selected[0])['values'][0]
-            try:
-                item_id = int(item_id_str)
-                data_manager.delete_ingredient(item_id)
-                messagebox.showinfo("成功", "商品删除成功！")
-                self.refresh_inventory()
-            except ValueError as ve:
-                 messagebox.showerror("删除失败", f"无法删除: {ve}")
-            except Exception as e:
-                messagebox.showerror("删除失败", f"删除商品时出错: {e}")
-
+        if messagebox.askyesno("确认删除", f"确定要删除商品 '{item_name}' 吗？"):
+            item_id = self.inventory_tree.item(selected[0])['values'][0]  # 直接获取字符串ID
+            self.inventory_data = [item for item in self.inventory_data if item['id'] != item_id]
+            self.refresh_inventory_list()
+            messagebox.showinfo("成功", "商品删除成功！")
+            
     def restock_item(self):
         """补货"""
         selected = self.inventory_tree.selection()
@@ -561,27 +612,17 @@ class ModernInventoryModule:
             messagebox.showwarning("提示", "请选择要补货的商品")
             return
             
-        item_id_str = self.inventory_tree.item(selected[0])['values'][0]
-        try:
-            item_id = int(item_id_str)
-        except (ValueError, TypeError):
-            messagebox.showerror("错误", f"无效的商品ID: {item_id_str}")
-            return
-
+        item_id = self.inventory_tree.item(selected[0])['values'][0]  # 直接获取字符串ID
         item_data = next((item for item in self.inventory_data if item['id'] == item_id), None)
         
         if item_data:
-            quantity = simpledialog.askinteger("补货", f"请输入 {item_data['name']} 的补货数量：", minvalue=1, parent=self.parent_frame.winfo_toplevel())
+            quantity = simpledialog.askinteger("补货", f"请输入 {item_data['name']} 的补货数量：", minvalue=1)
             if quantity:
-                try:
-                    new_stock = item_data['current_stock'] + quantity
-                    update_data = {'current_stock': new_stock}
-                    data_manager.update_ingredient(item_id, update_data)
-                    messagebox.showinfo("成功", f"已为 {item_data['name']} 补货 {quantity} {item_data['unit']}")
-                    self.refresh_inventory()
-                except Exception as e:
-                    messagebox.showerror("补货失败", f"补货时出错: {e}")
-
+                item_data['current_stock'] += quantity
+                item_data['last_updated'] = datetime.datetime.now().strftime("%Y-%m-%d")
+                self.refresh_inventory_list()
+                messagebox.showinfo("成功", f"已为 {item_data['name']} 补货 {quantity} {item_data['unit']}")
+                
     def adjust_stock(self):
         """调整库存"""
         selected = self.inventory_tree.selection()
@@ -589,28 +630,19 @@ class ModernInventoryModule:
             messagebox.showwarning("提示", "请选择要调整库存的商品")
             return
             
-        item_id_str = self.inventory_tree.item(selected[0])['values'][0]
-        try:
-            item_id = int(item_id_str)
-        except (ValueError, TypeError):
-            messagebox.showerror("错误", f"无效的商品ID: {item_id_str}")
-            return
-            
+        item_id = self.inventory_tree.item(selected[0])['values'][0]  # 直接获取字符串ID
         item_data = next((item for item in self.inventory_data if item['id'] == item_id), None)
         
         if item_data:
             new_stock = simpledialog.askinteger("调整库存", 
                                                f"{item_data['name']} 当前库存：{item_data['current_stock']} {item_data['unit']}\n请输入新的库存数量：", 
-                                               minvalue=0, parent=self.parent_frame.winfo_toplevel())
+                                               minvalue=0)
             if new_stock is not None:
-                try:
-                    update_data = {'current_stock': new_stock}
-                    data_manager.update_ingredient(item_id, update_data)
-                    messagebox.showinfo("成功", f"{item_data['name']} 库存已调整为 {new_stock} {item_data['unit']}")
-                    self.refresh_inventory()
-                except Exception as e:
-                    messagebox.showerror("调整失败", f"调整库存时出错: {e}")
-
+                item_data['current_stock'] = new_stock
+                item_data['last_updated'] = datetime.datetime.now().strftime("%Y-%m-%d")
+                self.refresh_inventory_list()
+                messagebox.showinfo("成功", f"{item_data['name']} 库存已调整为 {new_stock} {item_data['unit']}")
+                
     def export_inventory(self):
         """导出库存数据"""
         try:
@@ -914,37 +946,39 @@ class ModernInventoryModule:
             return [item for item in self.inventory_data if item.get('type') == inventory_type]
     
     def refresh_inventory(self):
-        """刷新库存数据和UI"""
-        print("🔄 正在刷新库存模块...")
+        """刷新库存数据"""
+        print("🔄 正在刷新库存数据...")
         try:
-            # 重新从数据库加载库存数据
+            # 重新加载库存数据
             self.inventory_data = self.load_inventory_data()
-            
-            # 刷新UI组件
-            # 1. 刷新库存列表
-            if self.inventory_tree:
-                self.refresh_inventory_list()
-            
-            # 2. 刷新可制作菜品
-            if hasattr(self, 'meals_container'):
-                self.refresh_possible_meals()
-            
-            # 3. 刷新统计卡片（如果可见）
-            if self.stats_labels:
-                 self.update_stats_cards()
+            # 重新显示库存列表
+            self.refresh_inventory_list()
+            # 刷新可制作菜品
+            self.refresh_possible_meals()
+            # self.update_stats_cards() # 统计卡片已隐藏
 
-            print("✅ 库存模块刷新完成")
-            # 为避免干扰，暂时注释掉messagebox
-            # messagebox.showinfo("刷新成功", "库存数据已刷新")
+            # 如果模块是可见的，才显示成功消息框
+            if self.parent_frame.winfo_viewable():
+                messagebox.showinfo("刷新成功", "库存数据已更新。", parent=self.parent_frame)
         except Exception as e:
-            messagebox.showerror("刷新失败", f"刷新库存数据时发生错误：{e}")
+            # 只有在模块可见时才弹窗，否则只打印日志
+            if self.parent_frame.winfo_viewable():
+                messagebox.showerror("刷新失败", f"刷新库存数据时发生错误: {e}", parent=self.parent_frame)
+            else:
+                print(f"后台刷新库存失败: {e}")
     
     def load_recipe_data(self):
-        """从数据管理中心加载配方数据"""
+        """加载配方数据"""
         try:
-            return data_manager.get_recipes()
+            recipes_file = os.path.join(os.path.dirname(__file__), '..', 'data', 'recipes.json')
+            if os.path.exists(recipes_file):
+                with open(recipes_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            else:
+                print("配方文件不存在，使用默认配方")
+                return self.get_default_recipes()
         except Exception as e:
-            print(f"❌ 加载配方数据失败: {e}")
+            print(f"加载配方数据失败: {e}")
             return self.get_default_recipes()
     
     def get_default_recipes(self):
@@ -980,30 +1014,25 @@ class ModernInventoryModule:
             meal_name = recipe['meal_name']
             min_possible = float('inf')
             
-            # 确保配方中有ingredients键
-            if 'ingredients' not in recipe:
-                continue
-
             for ingredient in recipe['ingredients']:
                 ingredient_name = ingredient['ingredient_name']
                 required_quantity = ingredient['quantity_per_serving']
                 
-                if required_quantity <= 0: # 防止除以零
-                    continue
-
                 if ingredient_name in inventory_dict:
                     current_stock = inventory_dict[ingredient_name]
-                    possible_servings = int(current_stock / required_quantity)
-                    min_possible = min(min_possible, possible_servings)
+                    # 防止除零错误
+                    if required_quantity > 0:
+                        possible_servings = int(current_stock / required_quantity)
+                        min_possible = min(min_possible, possible_servings)
+                    else:
+                        min_possible = 0
+                        break
                 else:
-                    # 如果配方需要的某个原料在库存里不存在
                     min_possible = 0
                     break
             
-            # 如果循环正常结束但没有原料（空配方），则可制作无限份
             if min_possible == float('inf'):
-                # 对于没有配方的菜品，我们不在此显示
-                continue
+                min_possible = 0
                 
             possible_meals[meal_name] = {
                 'possible_servings': min_possible,
@@ -1045,6 +1074,11 @@ class ModernInventoryModule:
     
     def refresh_possible_meals(self):
         """刷新可制作菜品显示"""
+        # 如果UI组件还未创建，则跳过刷新
+        if not hasattr(self, 'meals_container') or not self.meals_container:
+            print("可制作菜品UI未初始化，跳过UI刷新。")
+            return
+            
         # 清空现有显示
         for widget in self.meals_container.winfo_children():
             widget.destroy()

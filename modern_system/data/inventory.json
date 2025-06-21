@@ -1,0 +1,38 @@
+[
+  {
+    "id": "INV001",
+    "name": "番茄",
+    "category": "蔬菜",
+    "quantity": 50,
+    "unit": "kg",
+    "price": 8.0,
+    "min_stock": 10
+  },
+  {
+    "id": "INV002",
+    "name": "牛肉",
+    "category": "肉类",
+    "quantity": 20,
+    "unit": "kg",
+    "price": 68.0,
+    "min_stock": 5
+  },
+  {
+    "id": "INV003",
+    "name": "面条",
+    "category": "主食",
+    "quantity": 100,
+    "unit": "包",
+    "price": 3.5,
+    "min_stock": 20
+  },
+  {
+    "id": "INV004",
+    "name": "可乐",
+    "category": "饮料",
+    "quantity": 80,
+    "unit": "瓶",
+    "price": 5.0,
+    "min_stock": 30
+  }
+]
