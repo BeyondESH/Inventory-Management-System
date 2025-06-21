@@ -45,7 +45,10 @@ class ModernMealModule:
             'success': '#00B894',      # 成功色
             'warning': '#FDCB6E',      # 警告色
             'error': '#E84393',        # 错误色
-            'card_shadow': '#F0F0F0'   # 卡片阴影
+            'card_shadow': '#F0F0F0',   # 卡片阴影
+            'info': '#366092',         # 信息色
+            'white': '#FFFFFF',        # 白色
+            'danger': '#E74C3C'        # 危险色
         }
         
         # 字体配置
@@ -61,11 +64,8 @@ class ModernMealModule:
         
         # 菜品数据
         self.meal_data = self.load_meal_data()        # 界面变量 (延迟初始化)
-        self.search_var = None
-        self.category_filter_var = None
-        self.status_filter_var = None
-          # UI组件引用
-        self.meals_container = None
+        
+        # 统计标签引用
         self.stats_labels = {}
     
     def load_meal_data(self):
@@ -90,7 +90,7 @@ class ModernMealModule:
                     "is_spicy": meal.get('is_spicy', False),
                     "is_vegetarian": meal.get('is_vegetarian', False),
                     "is_available": meal.get('is_available', True),
-                    "image": meal.get('image', '�️'),
+                    "image": meal.get('image', '🍽️'),
                     "created_date": meal.get('created_date', datetime.datetime.now().strftime('%Y-%m-%d'))
                 }
                 formatted_data.append(formatted_meal)
@@ -105,7 +105,7 @@ class ModernMealModule:
                     "cost": 15.0, "description": "经典番茄牛肉面，汤鲜味美",
                     "ingredients": ["番茄", "牛肉", "面条"], "cooking_time": 15,
                     "calories": 450, "is_spicy": False, "is_vegetarian": False,
-                    "is_available": True, "image": "�", "created_date": "2025-06-21"
+                    "is_available": True, "image": "🍽️", "created_date": "2025-06-21"
                 },
                 {
                     "id": "MEAL002", "name": "鸡蛋炒饭", "category": "炒饭", "price": 18.0,
@@ -126,7 +126,7 @@ class ModernMealModule:
                     "cost": 6.0, "description": "酥脆金黄薯条",
                     "ingredients": ["土豆"], "cooking_time": 8,
                     "calories": 280, "is_spicy": False, "is_vegetarian": True,
-                    "is_available": True, "image": "�", "created_date": "2025-06-21"                }            ]
+                    "is_available": True, "image": "🍽️", "created_date": "2025-06-21"                }            ]
     
     def save_meal_data(self):
         """保存菜品数据到数据管理中心"""
@@ -181,11 +181,6 @@ class ModernMealModule:
         
         # 重新加载最新数据
         self.meal_data = self.load_meal_data()
-          # 初始化界面变量（如果还没有初始化）
-        if self.search_var is None:
-            self.search_var = tk.StringVar(self.parent_frame)
-            self.category_filter_var = tk.StringVar(self.parent_frame, value="全部")
-            self.status_filter_var = tk.StringVar(self.parent_frame, value="全部")
         
         self.clear_frames()
         self.update_title()
@@ -216,39 +211,29 @@ class ModernMealModule:
         action_frame = tk.Frame(self.title_frame, bg=self.colors['surface'])
         action_frame.pack(side="right", padx=30, pady=20)
         
-        # 菜单导出按钮
-        export_btn = self.create_action_button(action_frame, "📋 导出菜单", self.export_menu)
-        export_btn.pack(side="right", padx=(10, 0))
-        
         # 添加菜品按钮
-        add_btn = self.create_action_button(action_frame, "➕ 添加菜品", self.add_meal, primary=True)
-        add_btn.pack(side="right", padx=(10, 0))
+        add_btn = tk.Button(action_frame, text="➕ 添加菜品", 
+                           font=('Microsoft YaHei UI', 10),
+                           bg=self.colors['primary'], fg=self.colors['white'],
+                           bd=0, padx=20, pady=8, cursor='hand2',
+                           command=self.add_meal)
+        add_btn.pack(side='right', padx=5)
         
-    def create_action_button(self, parent, text, command, primary=False):
-        """创建操作按钮"""
-        if primary:
-            bg_color = self.colors['primary']
-            fg_color = "white"
-            hover_color = self.colors['secondary']
-        else:
-            bg_color = self.colors['background']
-            fg_color = self.colors['text_secondary']
-            hover_color = self.colors['border']
-            
-        btn = tk.Button(parent, text=text, font=self.fonts['body'],
-                       bg=bg_color, fg=fg_color, bd=0, relief="flat",
-                       cursor="hand2", command=command, padx=20, pady=8)
+        # 刷新按钮
+        refresh_btn = tk.Button(action_frame, text="🔄 刷新", 
+                               font=('Microsoft YaHei UI', 10),
+                               bg=self.colors['info'], fg=self.colors['white'],
+                               bd=0, padx=20, pady=8, cursor='hand2',
+                               command=self.refresh_meals)
+        refresh_btn.pack(side='right', padx=5)
         
-        # 悬停效果
-        def on_enter(event):
-            btn.configure(bg=hover_color)
-        def on_leave(event):
-            btn.configure(bg=bg_color)
-            
-        btn.bind("<Enter>", on_enter)
-        btn.bind("<Leave>", on_leave)
-        
-        return btn
+        # 导出按钮
+        export_btn = tk.Button(action_frame, text="📊 导出", 
+                              font=('Microsoft YaHei UI', 10),
+                              bg=self.colors['success'], fg=self.colors['white'],
+                              bd=0, padx=20, pady=8, cursor='hand2',
+                              command=self.export_meals)
+        export_btn.pack(side='right', padx=5)
         
     def create_meal_interface(self):
         """创建菜品管理界面"""
@@ -258,9 +243,6 @@ class ModernMealModule:
         
         # 顶部统计卡片
         self.create_stats_cards(main_container)
-        
-        # 中间筛选和搜索区域
-        self.create_filter_section(main_container)
         
         # 底部菜品网格
         self.create_meals_grid(main_container)
@@ -318,62 +300,6 @@ class ModernMealModule:
         # 保存引用用于更新
         self.stats_labels[data["title"]] = value_label
         
-    def create_filter_section(self, parent):
-        """创建筛选区域"""
-        filter_frame = tk.Frame(parent, bg=self.colors['surface'], height=80)
-        filter_frame.pack(fill="x", pady=(0, 20))
-        filter_frame.pack_propagate(False)
-        
-        content_frame = tk.Frame(filter_frame, bg=self.colors['surface'])
-        content_frame.pack(fill="both", expand=True, padx=30, pady=20)
-        
-        # 搜索框
-        search_frame = tk.Frame(content_frame, bg=self.colors['surface'])
-        search_frame.pack(side="left", fill="y")
-        
-        search_label = tk.Label(search_frame, text="🔍 搜索菜品", font=self.fonts['subheading'],
-                               bg=self.colors['surface'], fg=self.colors['text_primary'])
-        search_label.pack(side="left")
-        
-        search_entry = tk.Entry(search_frame, textvariable=self.search_var, font=self.fonts['body'],
-                               bg=self.colors['background'], fg=self.colors['text_primary'],
-                               bd=1, relief="solid", width=25)
-        search_entry.pack(side="left", padx=(20, 10), ipady=8)
-        
-        search_btn = tk.Button(search_frame, text="搜索", font=self.fonts['body'],
-                              bg=self.colors['primary'], fg="white", bd=0,
-                              cursor="hand2", command=self.search_meals, padx=15)
-        search_btn.pack(side="left")
-        
-        # 筛选器
-        filter_controls = tk.Frame(content_frame, bg=self.colors['surface'])
-        filter_controls.pack(side="right", fill="y")
-        
-        # 分类筛选
-        category_label = tk.Label(filter_controls, text="分类:", font=self.fonts['body'],
-                                 bg=self.colors['surface'], fg=self.colors['text_secondary'])
-        category_label.pack(side="left", padx=(0, 5))
-        
-        categories = ["全部", "主食", "热菜", "素菜", "汤品", "饮品"]
-        category_combo = ttk.Combobox(filter_controls, textvariable=self.category_filter_var,
-                                     values=categories, state="readonly", width=10)
-        category_combo.pack(side="left", padx=(0, 20))
-        category_combo.bind('<<ComboboxSelected>>', lambda e: self.filter_meals())
-        
-        # 状态筛选
-        status_label = tk.Label(filter_controls, text="状态:", font=self.fonts['body'],
-                               bg=self.colors['surface'], fg=self.colors['text_secondary'])
-        status_label.pack(side="left", padx=(0, 5))
-        
-        status_options = ["全部", "在售", "下架"]
-        status_combo = ttk.Combobox(filter_controls, textvariable=self.status_filter_var,
-                                   values=status_options, state="readonly", width=10)
-        status_combo.pack(side="left")
-        status_combo.bind('<<ComboboxSelected>>', lambda e: self.filter_meals())
-        
-        # 绑定回车键搜索
-        search_entry.bind('<Return>', lambda e: self.search_meals())
-        
     def create_meals_grid(self, parent):
         """创建菜品网格"""
         grid_frame = tk.Frame(parent, bg=self.colors['background'])
@@ -419,49 +345,50 @@ class ModernMealModule:
         
     def refresh_meals_display(self):
         """刷新菜品显示"""
-        # 清空现有菜品
+        # 清空现有显示
         for widget in self.meals_container.winfo_children():
             widget.destroy()
-            
-        # 根据筛选条件获取菜品
-        filtered_meals = self.get_filtered_meals()
         
-        # 计算网格布局
-        cols = 3  # 每行3个菜品卡片
-        for i, meal in enumerate(filtered_meals):
-            row = i // cols
-            col = i % cols
+        # 获取所有菜品数据
+        meals_to_show = self.get_filtered_meals()
+        
+        if not meals_to_show:
+            no_data_label = tk.Label(self.meals_container, 
+                                   text="暂无菜品数据",
+                                   font=self.fonts['body'],
+                                   bg=self.colors['background'],
+                                   fg=self.colors['text_secondary'])
+            no_data_label.pack(pady=50)
+            return
+        
+        # 创建网格布局
+        row = 0
+        col = 0
+        max_cols = 4
+        
+        for meal in meals_to_show:
             self.create_meal_card(self.meals_container, meal, row, col)
             
+            col += 1
+            if col >= max_cols:
+                col = 0
+                row += 1
+        
+        # 配置网格权重
+        for i in range(max_cols):
+            self.meals_container.grid_columnconfigure(i, weight=1)
+        
         # 更新统计卡片
         self.update_stats_cards()
         
     def get_filtered_meals(self):
-        """获取筛选后的菜品"""
-        filtered_meals = self.meal_data.copy()
-        
-        # 按搜索关键词筛选
-        search_term = self.search_var.get().strip().lower()
-        if search_term:
-            filtered_meals = [meal for meal in filtered_meals 
-                            if search_term in meal['name'].lower() or 
-                               search_term in meal['description'].lower() or
-                               any(search_term in ingredient.lower() for ingredient in meal['ingredients'])]
-        
-        # 按分类筛选
-        category_filter = self.category_filter_var.get()
-        if category_filter != "全部":
-            filtered_meals = [meal for meal in filtered_meals if meal['category'] == category_filter]
-        
-        # 按状态筛选
-        status_filter = self.status_filter_var.get()
-        if status_filter != "全部":
-            if status_filter == "在售":
-                filtered_meals = [meal for meal in filtered_meals if meal['is_available']]
-            elif status_filter == "下架":
-                filtered_meals = [meal for meal in filtered_meals if not meal['is_available']]
-        
-        return filtered_meals
+        """获取筛选后的菜品列表"""
+        # 直接返回所有菜品，不进行筛选
+        return self.meal_data
+    
+    def filter_meals(self):
+        """筛选菜品（已简化，直接刷新显示）"""
+        self.refresh_meals_display()
         
     def create_meal_card(self, parent, meal, row, col):
         """创建菜品卡片"""
@@ -590,31 +517,21 @@ class ModernMealModule:
     
     def update_stats_cards(self):
         """更新统计卡片"""
-        filtered_meals = self.get_filtered_meals()
-        
-        total_meals = len(filtered_meals)
-        available_meals = len([meal for meal in filtered_meals if meal['is_available']])
-        avg_price = sum(meal['price'] for meal in filtered_meals) / total_meals if total_meals > 0 else 0
-        spicy_meals = len([meal for meal in filtered_meals if meal['is_spicy']])
+        total_meals = len(self.meal_data)
+        available_meals = len([meal for meal in self.meal_data if meal['is_available']])
+        avg_price = sum(meal['price'] for meal in self.meal_data) / total_meals if total_meals > 0 else 0
+        spicy_meals = len([meal for meal in self.meal_data if meal['is_spicy']])
         
         # 更新标签
         if "菜品总数" in self.stats_labels:
-            self.stats_labels["菜品总数"].configure(text=f"{total_meals}")
+            self.stats_labels["菜品总数"].config(text=f"{total_meals}")
         if "在售菜品" in self.stats_labels:
-            self.stats_labels["在售菜品"].configure(text=f"{available_meals}")
+            self.stats_labels["在售菜品"].config(text=f"{available_meals}")
         if "平均价格" in self.stats_labels:
-            self.stats_labels["平均价格"].configure(text=f"¥{avg_price:.1f}")
+            self.stats_labels["平均价格"].config(text=f"¥{avg_price:.1f}")
         if "辣味菜品" in self.stats_labels:
-            self.stats_labels["辣味菜品"].configure(text=f"{spicy_meals}")
+            self.stats_labels["辣味菜品"].config(text=f"{spicy_meals}")
             
-    def search_meals(self):
-        """搜索菜品"""
-        self.refresh_meals_display()
-        
-    def filter_meals(self):
-        """筛选菜品"""
-        self.refresh_meals_display()
-        
     def add_meal(self):
         """添加菜品"""
         dialog = MealDialog(self.parent_frame, "添加菜品")
@@ -667,9 +584,303 @@ class ModernMealModule:
             # 通知其他模块数据更新
             self.notify_data_update()
             
-    def export_menu(self):
-        """导出菜单"""
-        messagebox.showinfo("导出菜单", "菜单导出功能开发中...")
+    def export_meals(self):
+        """导出菜品数据"""
+        try:
+            from tkinter import filedialog
+            import datetime
+            
+            # 创建导出选择对话框
+            dialog = tk.Toplevel(self.parent_frame)
+            dialog.title("导出菜品数据")
+            dialog.geometry("400x300")
+            dialog.configure(bg=self.colors['background'])
+            dialog.transient(self.parent_frame)
+            dialog.grab_set()
+            
+            # 居中显示
+            dialog.update_idletasks()
+            x = (dialog.winfo_screenwidth() // 2) - (200)
+            y = (dialog.winfo_screenheight() // 2) - (150)
+            dialog.geometry(f"400x300+{x}+{y}")
+            
+            # 标题
+            tk.Label(dialog, text="导出菜品数据", font=('Microsoft YaHei UI', 14, 'bold'),
+                    bg=self.colors['background'], fg=self.colors['text']).pack(pady=15)
+            
+            # 导出选项框架
+            options_frame = tk.Frame(dialog, bg=self.colors['background'])
+            options_frame.pack(fill="both", expand=True, padx=20, pady=10)
+            
+            # 导出格式选择
+            tk.Label(options_frame, text="选择导出格式:", font=('Microsoft YaHei UI', 12),
+                    bg=self.colors['background'], fg=self.colors['text']).pack(anchor="w", pady=(0, 10))
+            
+            format_var = tk.StringVar(dialog, value="Excel")
+            format_options = ["Excel", "CSV", "PDF"]
+            
+            format_frame = tk.Frame(options_frame, bg=self.colors['background'])
+            format_frame.pack(anchor="w")
+            
+            for i, fmt in enumerate(format_options):
+                rb = tk.Radiobutton(format_frame, text=fmt, variable=format_var, value=fmt,
+                                  font=('Microsoft YaHei UI', 10), bg=self.colors['background'], 
+                                  fg=self.colors['text'], selectcolor=self.colors['surface'])
+                rb.grid(row=0, column=i, sticky="w", padx=(0, 20))
+            
+            # 菜品状态筛选
+            tk.Label(options_frame, text="菜品状态:", font=('Microsoft YaHei UI', 12),
+                    bg=self.colors['background'], fg=self.colors['text']).pack(anchor="w", pady=(20, 10))
+            
+            status_var = tk.StringVar(dialog, value="全部")
+            status_options = ["全部", "上架", "下架"]
+            
+            status_combo = ttk.Combobox(options_frame, textvariable=status_var, 
+                                      values=status_options, state="readonly", width=20)
+            status_combo.pack(anchor="w")
+            
+            # 按钮框架
+            btn_frame = tk.Frame(dialog, bg=self.colors['background'])
+            btn_frame.pack(fill="x", padx=20, pady=20)
+            
+            def do_export():
+                try:
+                    file_format = format_var.get()
+                    meal_status = status_var.get()
+                    
+                    # 获取当前时间戳
+                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                    filename = f"菜品数据_{meal_status}_{timestamp}"
+                    
+                    # 选择保存路径
+                    if file_format == "Excel":
+                        file_path = filedialog.asksaveasfilename(
+                            defaultextension=".xlsx",
+                            filetypes=[("Excel文件", "*.xlsx")],
+                            initialname=filename
+                        )
+                        if file_path:
+                            success = self.export_meals_to_excel(file_path, meal_status)
+                    elif file_format == "CSV":
+                        file_path = filedialog.asksaveasfilename(
+                            defaultextension=".csv",
+                            filetypes=[("CSV文件", "*.csv")],
+                            initialname=filename
+                        )
+                        if file_path:
+                            success = self.export_meals_to_csv(file_path, meal_status)
+                    elif file_format == "PDF":
+                        file_path = filedialog.asksaveasfilename(
+                            defaultextension=".pdf",
+                            filetypes=[("PDF文件", "*.pdf")],
+                            initialname=filename
+                        )
+                        if file_path:
+                            success = self.export_meals_to_pdf(file_path, meal_status)
+                    
+                    if success:
+                        messagebox.showinfo("导出成功", f"菜品数据已成功导出为 {file_format} 格式", parent=dialog)
+                        dialog.destroy()
+                    else:
+                        messagebox.showerror("导出失败", "导出过程中发生错误", parent=dialog)
+                        
+                except Exception as e:
+                    messagebox.showerror("错误", f"导出失败：{e}", parent=dialog)
+            
+            tk.Button(btn_frame, text="📊 开始导出", command=do_export,
+                     bg=self.colors['primary'], fg='white', bd=0, pady=8, padx=20,
+                     font=('Microsoft YaHei UI', 10)).pack(side="left")
+            tk.Button(btn_frame, text="取消", command=dialog.destroy,
+                     bg=self.colors['text_light'], fg='white', bd=0, pady=8, padx=20,
+                     font=('Microsoft YaHei UI', 10)).pack(side="right")
+                     
+        except Exception as e:
+            messagebox.showerror("错误", f"打开导出对话框失败：{e}")
+    
+    def export_meals_to_excel(self, file_path: str, meal_status: str) -> bool:
+        """导出菜品为Excel格式"""
+        try:
+            import openpyxl
+            from openpyxl.styles import Font, Alignment, PatternFill
+            
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "菜品数据"
+            
+            # 设置标题
+            title = f"智慧餐饮管理系统 - 菜品数据 ({meal_status})"
+            ws['A1'] = title
+            ws['A1'].font = Font(size=16, bold=True)
+            ws.merge_cells('A1:F1')
+            
+            # 设置表头样式
+            header_font = Font(bold=True, color="FFFFFF")
+            header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+            header_alignment = Alignment(horizontal="center", vertical="center")
+            
+            # 表头
+            headers = ["菜品名称", "价格", "分类", "状态", "描述", "创建时间"]
+            ws.append(headers)
+            
+            # 设置表头样式
+            for cell in ws[2]:
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
+            
+            # 获取菜品数据
+            meals = self.get_filtered_meals_for_export(meal_status)
+            
+            # 添加数据
+            for meal in meals:
+                row = [
+                    meal.get('name', ''),
+                    f"￥{meal.get('price', 0):.2f}",
+                    meal.get('category', ''),
+                    meal.get('status', ''),
+                    meal.get('description', ''),
+                    meal.get('created_at', '')
+                ]
+                ws.append(row)
+            
+            # 调整列宽
+            for column in ws.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 50)
+                ws.column_dimensions[column_letter].width = adjusted_width
+            
+            wb.save(file_path)
+            return True
+            
+        except ImportError:
+            messagebox.showerror("错误", "请安装openpyxl库：pip install openpyxl")
+            return False
+        except Exception as e:
+            print(f"导出Excel失败: {e}")
+            return False
+    
+    def export_meals_to_csv(self, file_path: str, meal_status: str) -> bool:
+        """导出菜品为CSV格式"""
+        try:
+            import csv
+            
+            with open(file_path, 'w', newline='', encoding='utf-8-sig') as csvfile:
+                fieldnames = ["菜品名称", "价格", "分类", "状态", "描述", "创建时间"]
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                
+                # 获取菜品数据
+                meals = self.get_filtered_meals_for_export(meal_status)
+                
+                for meal in meals:
+                    writer.writerow({
+                        "菜品名称": meal.get('name', ''),
+                        "价格": f"￥{meal.get('price', 0):.2f}",
+                        "分类": meal.get('category', ''),
+                        "状态": meal.get('status', ''),
+                        "描述": meal.get('description', ''),
+                        "创建时间": meal.get('created_at', '')
+                    })
+            
+            return True
+            
+        except Exception as e:
+            print(f"导出CSV失败: {e}")
+            return False
+    
+    def export_meals_to_pdf(self, file_path: str, meal_status: str) -> bool:
+        """导出菜品为PDF格式"""
+        try:
+            from reportlab.lib.pagesizes import A4
+            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib import colors
+            
+            doc = SimpleDocTemplate(file_path, pagesize=A4)
+            story = []
+            
+            # 标题样式
+            styles = getSampleStyleSheet()
+            title_style = ParagraphStyle(
+                'CustomTitle',
+                parent=styles['Heading1'],
+                fontSize=16,
+                spaceAfter=30,
+                alignment=1  # 居中
+            )
+            
+            # 添加标题
+            title = Paragraph(f"智慧餐饮管理系统 - 菜品数据 ({meal_status})", title_style)
+            story.append(title)
+            story.append(Spacer(1, 20))
+            
+            # 获取菜品数据
+            meals = self.get_filtered_meals_for_export(meal_status)
+            
+            # 创建表格数据
+            table_data = [["菜品名称", "价格", "分类", "状态", "描述", "创建时间"]]
+            
+            for meal in meals:
+                row = [
+                    meal.get('name', ''),
+                    f"￥{meal.get('price', 0):.2f}",
+                    meal.get('category', ''),
+                    meal.get('status', ''),
+                    meal.get('description', ''),
+                    meal.get('created_at', '')
+                ]
+                table_data.append(row)
+            
+            # 创建表格
+            table = Table(table_data)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('FONTSIZE', (0, 1), (-1, -1), 8),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.beige, colors.white])
+            ]))
+            story.append(table)
+            
+            doc.build(story)
+            return True
+            
+        except ImportError:
+            messagebox.showerror("错误", "请安装reportlab库：pip install reportlab")
+            return False
+        except Exception as e:
+            print(f"导出PDF失败: {e}")
+            return False
+    
+    def get_filtered_meals_for_export(self, meal_status: str) -> List[Dict]:
+        """获取筛选后的菜品数据用于导出"""
+        if meal_status == "全部":
+            return self.meal_data
+        else:
+            return [meal for meal in self.meal_data if meal.get('status') == meal_status]
+    
+    def refresh_meals(self):
+        """刷新菜品数据"""
+        try:
+            # 重新加载菜品数据
+            self.meal_data = data_manager.get_meals()
+            # 重新显示菜品列表
+            self.refresh_meals_display()
+            messagebox.showinfo("刷新成功", "菜品数据已刷新")
+        except Exception as e:
+            messagebox.showerror("刷新失败", f"刷新菜品数据时发生错误：{e}")
 
 class MealDialog:
     """菜品对话框"""
@@ -684,7 +895,6 @@ class MealDialog:
         self.dialog.grab_set()
         
         # 居中显示
-        self.dialog.transient(parent)
         self.center_window()
         
         # 颜色主题

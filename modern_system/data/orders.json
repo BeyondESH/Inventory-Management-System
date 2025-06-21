@@ -251,5 +251,375 @@
     "id": "ORD20250621124747",
     "create_time": "2025-06-21T12:47:47.156183",
     "status": "待处理"
+  },
+  {
+    "customer_name": "桌号桌号1",
+    "phone": "",
+    "address": "堂食",
+    "items": [
+      {
+        "product_id": "鸡蛋炒饭",
+        "quantity": 1
+      }
+    ],
+    "meals": [
+      {
+        "name": "鸡蛋炒饭",
+        "price": 18.0,
+        "quantity": 1,
+        "subtotal": 18.0
+      }
+    ],
+    "total_amount": 18.0,
+    "payment": "现金",
+    "type": "堂食",
+    "note": "桌号: 桌号1",
+    "id": "ORD20250621182735",
+    "create_time": "2025-06-21T18:27:35.837923",
+    "status": "待处理"
+  },
+  {
+    "customer_name": "桌号桌号1",
+    "phone": "",
+    "address": "堂食",
+    "items": [
+      {
+        "product_id": "番茄牛肉面",
+        "quantity": 1
+      }
+    ],
+    "meals": [
+      {
+        "name": "番茄牛肉面",
+        "price": 25.0,
+        "quantity": 1,
+        "subtotal": 25.0
+      }
+    ],
+    "total_amount": 25.0,
+    "payment": "现金",
+    "type": "堂食",
+    "note": "桌号: 桌号1",
+    "id": "ORD20250621182943",
+    "create_time": "2025-06-21T18:29:43.346829",
+    "status": "待处理"
+  },
+  {
+    "customer_name": "测试桌号1",
+    "phone": "",
+    "address": "堂食",
+    "items": [
+      {
+        "product_id": "番茄牛肉面",
+        "quantity": 1
+      },
+      {
+        "product_id": "鸡蛋炒饭",
+        "quantity": 1
+      }
+    ],
+    "meals": [
+      {
+        "name": "番茄牛肉面",
+        "price": 25.0,
+        "quantity": 1,
+        "subtotal": 25.0
+      },
+      {
+        "name": "鸡蛋炒饭",
+        "price": 18.0,
+        "quantity": 1,
+        "subtotal": 18.0
+      }
+    ],
+    "total_amount": 43.0,
+    "payment_method": "现金",
+    "order_type": "堂食",
+    "note": "测试订单",
+    "id": "ORD20250621183233",
+    "create_time": "2025-06-21T18:32:33.285789",
+    "status": "待处理"
+  },
+  {
+    "customer_name": "测试桌号1",
+    "phone": "",
+    "address": "堂食",
+    "items": [
+      {
+        "product_id": "番茄牛肉面",
+        "quantity": 1
+      },
+      {
+        "product_id": "鸡蛋炒饭",
+        "quantity": 1
+      }
+    ],
+    "meals": [
+      {
+        "name": "番茄牛肉面",
+        "price": 25.0,
+        "quantity": 1,
+        "subtotal": 25.0
+      },
+      {
+        "name": "鸡蛋炒饭",
+        "price": 18.0,
+        "quantity": 1,
+        "subtotal": 18.0
+      }
+    ],
+    "total_amount": 43.0,
+    "payment_method": "现金",
+    "order_type": "堂食",
+    "note": "测试订单",
+    "id": "ORD20250621183412",
+    "create_time": "2025-06-21T18:34:12.582251",
+    "status": "待处理"
+  },
+  {
+    "customer_name": "测试桌号1",
+    "phone": "",
+    "address": "堂食",
+    "items": [
+      {
+        "product_id": "番茄牛肉面",
+        "quantity": 1
+      },
+      {
+        "product_id": "鸡蛋炒饭",
+        "quantity": 1
+      }
+    ],
+    "meals": [
+      {
+        "name": "番茄牛肉面",
+        "price": 25.0,
+        "quantity": 1,
+        "subtotal": 25.0
+      },
+      {
+        "name": "鸡蛋炒饭",
+        "price": 18.0,
+        "quantity": 1,
+        "subtotal": 18.0
+      }
+    ],
+    "total_amount": 43.0,
+    "payment_method": "现金",
+    "order_type": "堂食",
+    "note": "测试订单",
+    "id": "ORD20250621183656",
+    "create_time": "2025-06-21T18:36:56.605635",
+    "status": "待处理"
+  },
+  {
+    "customer_name": "测试桌号1",
+    "phone": "",
+    "address": "堂食",
+    "items": [
+      {
+        "product_id": "番茄牛肉面",
+        "quantity": 1
+      },
+      {
+        "product_id": "鸡蛋炒饭",
+        "quantity": 1
+      }
+    ],
+    "meals": [
+      {
+        "name": "番茄牛肉面",
+        "price": 25.0,
+        "quantity": 1,
+        "subtotal": 25.0
+      },
+      {
+        "name": "鸡蛋炒饭",
+        "price": 18.0,
+        "quantity": 1,
+        "subtotal": 18.0
+      }
+    ],
+    "total_amount": 43.0,
+    "payment_method": "现金",
+    "order_type": "堂食",
+    "note": "测试订单",
+    "id": "ORD20250621183718",
+    "create_time": "2025-06-21T18:37:18.299932",
+    "status": "待处理"
+  },
+  {
+    "customer_name": "桌号桌号1",
+    "phone": "",
+    "address": "堂食",
+    "items": [
+      {
+        "product_id": "MEAL001",
+        "quantity": 1,
+        "name": "番茄牛肉面"
+      }
+    ],
+    "meals": [
+      {
+        "name": "番茄牛肉面",
+        "price": 25.0,
+        "quantity": 1,
+        "subtotal": 25.0
+      }
+    ],
+    "total_amount": 25.0,
+    "payment_method": "现金",
+    "order_type": "堂食",
+    "note": "桌号: 桌号1",
+    "id": "ORD20250621183855",
+    "create_time": "2025-06-21T18:38:55.993942",
+    "status": "待处理"
+  },
+  {
+    "customer_name": "桌号桌号1",
+    "phone": "",
+    "address": "堂食",
+    "items": [
+      {
+        "product_id": "MEAL001",
+        "quantity": 1,
+        "name": "番茄牛肉面"
+      }
+    ],
+    "meals": [
+      {
+        "name": "番茄牛肉面",
+        "price": 25.0,
+        "quantity": 1,
+        "subtotal": 25.0
+      }
+    ],
+    "total_amount": 25.0,
+    "payment_method": "现金",
+    "order_type": "堂食",
+    "note": "桌号: 桌号1",
+    "id": "ORD20250621184239",
+    "create_time": "2025-06-21T18:42:39.435167",
+    "status": "待处理"
+  },
+  {
+    "customer_name": "诊断测试桌",
+    "phone": "",
+    "address": "堂食",
+    "items": [
+      {
+        "product_id": "番茄牛肉面",
+        "quantity": 1
+      }
+    ],
+    "meals": [
+      {
+        "name": "番茄牛肉面",
+        "price": 25.0,
+        "quantity": 1,
+        "subtotal": 25.0
+      }
+    ],
+    "total_amount": 25.0,
+    "payment_method": "诊断测试",
+    "order_type": "堂食",
+    "note": "支付诊断测试订单",
+    "id": "ORD20250621184505",
+    "create_time": "2025-06-21T18:45:05.321796",
+    "status": "待处理"
+  },
+  {
+    "customer_name": "桌号桌号1",
+    "phone": "",
+    "address": "堂食",
+    "items": [
+      {
+        "product_id": "MEAL001",
+        "quantity": 1,
+        "name": "番茄牛肉面"
+      }
+    ],
+    "meals": [
+      {
+        "name": "番茄牛肉面",
+        "price": 25.0,
+        "quantity": 1,
+        "subtotal": 25.0
+      }
+    ],
+    "total_amount": 25.0,
+    "payment_method": "现金",
+    "order_type": "堂食",
+    "note": "桌号: 桌号1",
+    "id": "ORD20250621184743",
+    "create_time": "2025-06-21T18:47:43.713432",
+    "status": "待处理"
+  },
+  {
+    "customer_name": "快速测试",
+    "items": [
+      {
+        "product_id": "可乐",
+        "quantity": 1
+      }
+    ],
+    "total_amount": 5.0,
+    "id": "ORD20250621185026",
+    "create_time": "2025-06-21T18:50:26.565301",
+    "status": "待处理"
+  },
+  {
+    "customer_name": "桌号桌号1",
+    "phone": "",
+    "address": "堂食",
+    "items": [
+      {
+        "product_id": "MEAL001",
+        "quantity": 1,
+        "name": "番茄牛肉面"
+      }
+    ],
+    "meals": [
+      {
+        "name": "番茄牛肉面",
+        "price": 25.0,
+        "quantity": 1,
+        "subtotal": 25.0
+      }
+    ],
+    "total_amount": 25.0,
+    "payment_method": "现金",
+    "order_type": "堂食",
+    "note": "桌号: 桌号1",
+    "id": "ORD20250621185034",
+    "create_time": "2025-06-21T18:50:34.014473",
+    "status": "待处理"
+  },
+  {
+    "customer_name": "桌号桌号1",
+    "phone": "",
+    "address": "堂食",
+    "items": [
+      {
+        "product_id": "MEAL001",
+        "quantity": 1,
+        "name": "番茄牛肉面"
+      }
+    ],
+    "meals": [
+      {
+        "name": "番茄牛肉面",
+        "price": 25.0,
+        "quantity": 1,
+        "subtotal": 25.0
+      }
+    ],
+    "total_amount": 25.0,
+    "payment_method": "现金",
+    "order_type": "堂食",
+    "note": "桌号: 桌号1",
+    "id": "ORD20250621185238",
+    "create_time": "2025-06-21T18:52:38.709070",
+    "status": "待处理"
   }
 ]

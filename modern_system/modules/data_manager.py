@@ -3,6 +3,7 @@
 """
 数据管理中心
 负责各模块间的数据联动和统一管理
+使用SQLite数据库替代JSON文件存储
 """
 
 import json
@@ -11,6 +12,16 @@ import datetime
 from typing import Dict, List, Any, Optional
 from threading import Lock
 
+# 导入数据库管理器
+try:
+    from .database_manager import database_manager
+except ImportError:
+    try:
+        from database_manager import database_manager
+    except ImportError:
+        print("❌ 无法导入数据库管理器，将使用JSON文件存储")
+        database_manager = None
+
 class DataManager:
     def __init__(self):
         self.data_lock = Lock()
@@ -18,13 +29,20 @@ class DataManager:
         self.data_path = os.path.join(os.path.dirname(__file__), '..', 'data')
         self.ensure_data_directory()
         
-        # 数据存储
-        self.orders = self.load_orders()
-        self.inventory = self.load_inventory()
-        self.customers = self.load_customers()
-        self.meals = self.load_meals()
-        self.employees = self.load_employees()
-        self.financial_records = self.load_financial_records()
+        # 检查是否使用数据库
+        self.use_database = database_manager is not None
+        
+        if self.use_database:
+            print("✅ 使用SQLite数据库存储")
+        else:
+            print("⚠️ 使用JSON文件存储（数据库不可用）")
+            # 数据存储（JSON模式）
+            self.orders = self.load_orders()
+            self.inventory = self.load_inventory()
+            self.customers = self.load_customers()
+            self.meals = self.load_meals()
+            self.employees = self.load_employees()
+            self.financial_records = self.load_financial_records()
         
         # 统计数据缓存
         self.dashboard_stats = {
@@ -48,9 +66,49 @@ class DataManager:
         """获取模块实例"""
         return self.modules.get(module_type)
     
+    def load_data(self, data_type: str):
+        """通用数据加载方法"""
+        if self.use_database:
+            # 数据库模式
+            if data_type == 'meals':
+                return database_manager.get_meals()
+            elif data_type == 'inventory':
+                return database_manager.get_inventory()
+            elif data_type == 'orders':
+                return database_manager.get_orders()
+            elif data_type == 'customers':
+                return database_manager.get_customers()
+            elif data_type == 'employees':
+                return database_manager.get_employees()
+            elif data_type == 'finance':
+                return database_manager.get_financial_records()
+            else:
+                print(f"未知的数据类型: {data_type}")
+                return []
+        else:
+            # JSON文件模式
+            if data_type == 'meals':
+                return self.load_meals()
+            elif data_type == 'inventory':
+                return self.load_inventory()
+            elif data_type == 'orders':
+                return self.load_orders()
+            elif data_type == 'customers':
+                return self.load_customers()
+            elif data_type == 'employees':
+                return self.load_employees()
+            elif data_type == 'finance':
+                return self.load_financial_records()
+            else:
+                print(f"未知的数据类型: {data_type}")
+                return []
+    
     # ==================== 订单管理 ====================
     def load_orders(self) -> List[Dict]:
-        """加载订单数据"""
+        """加载订单数据（JSON模式）"""
+        if self.use_database:
+            return database_manager.get_orders()
+        
         try:
             orders_file = os.path.join(self.data_path, 'orders.json')
             if os.path.exists(orders_file):
@@ -61,7 +119,10 @@ class DataManager:
         return self.get_default_orders()
     
     def save_orders(self):
-        """保存订单数据"""
+        """保存订单数据（JSON模式）"""
+        if self.use_database:
+            return  # 数据库模式不需要手动保存
+        
         try:
             orders_file = os.path.join(self.data_path, 'orders.json')
             with open(orders_file, 'w', encoding='utf-8') as f:
@@ -71,19 +132,57 @@ class DataManager:
     
     def add_order(self, order_data: Dict) -> str:
         """添加新订单并处理库存扣减"""
+        if self.use_database:
+            # 数据库模式
+            try:
+                cart_items = order_data.get('items', [])
+                if not cart_items:
+                    raise ValueError("购物车为空，无法创建订单")
+                order_ids = []
+                for item in cart_items:
+                    # 优先用id（meal_id）
+                    meal_id = item.get('id') or item.get('meal_id')
+                    if not meal_id:
+                        # 兜底用name查找
+                        meal_name = item.get('name', '')
+                        meals = database_manager.get_meals()
+                        for meal in meals:
+                            if meal.get('name') == meal_name:
+                                meal_id = meal.get('meal_id')
+                                break
+                    if not meal_id:
+                        print(f"⚠️ 未找到餐食: {item.get('name','')}")
+                        continue
+                    db_order_data = {
+                        'meal_id': meal_id,
+                        'customer_id': order_data.get('customer_id', 1),
+                        'employee_id': order_data.get('employee_id', 1),
+                        'payment_method_id': order_data.get('payment_method_id', 1),
+                        'delivery_date': order_data.get('delivery_date'),
+                        'order_status': order_data.get('order_status', '已接收'),
+                        'note': order_data.get('note', ''),
+                        'quantity': item.get('quantity', 1),
+                        'total_amount': item.get('price', 0) * item.get('quantity', 1)
+                    }
+                    order_id = database_manager.create_order(db_order_data)
+                    order_ids.append(str(order_id))
+                if not order_ids:
+                    raise ValueError("没有有效的餐食，无法创建订单")
+                self.notify_modules('order_added', order_data)
+                return order_ids[0]
+            except Exception as e:
+                print(f"❌ 数据库创建订单失败: {e}")
+                raise
+        # JSON文件模式
         with self.data_lock:
             # 生成订单ID
             order_id = f"ORD{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
             order_data['id'] = order_id
             order_data['create_time'] = datetime.datetime.now().isoformat()
             order_data['status'] = '待处理'
-            
-            # 检查库存并扣减
             if self.check_and_reduce_inventory(order_data.get('items', [])):
                 self.orders.append(order_data)
                 self.save_orders()
-                
-                # 添加财务记录
                 self.add_financial_record({
                     'type': 'income',
                     'category': '销售收入',
@@ -91,13 +190,8 @@ class DataManager:
                     'description': f"订单收入 - {order_id}",
                     'order_id': order_id
                 })
-                
-                # 更新统计数据
                 self.update_dashboard_stats()
-                
-                # 通知相关模块
                 self.notify_modules('order_added', order_data)
-                
                 return order_id
             else:
                 raise ValueError("库存不足，无法创建订单")
@@ -108,6 +202,15 @@ class DataManager:
     
     def update_order_status(self, order_id: str, new_status: str) -> bool:
         """更新订单状态"""
+        if self.use_database:
+            # 数据库模式
+            try:
+                return database_manager.update_order_status(int(order_id), new_status)
+            except Exception as e:
+                print(f"❌ 数据库更新订单状态失败: {e}")
+                return False
+        
+        # JSON文件模式
         with self.data_lock:
             for order in self.orders:
                 if order['id'] == order_id:
@@ -135,13 +238,19 @@ class DataManager:
     
     def get_orders(self, status_filter: Optional[str] = None) -> List[Dict]:
         """获取订单列表"""
+        if self.use_database:
+            return database_manager.get_orders(status_filter)
+        
         if status_filter:
             return [order for order in self.orders if order.get('status') == status_filter]
         return self.orders.copy()
     
     # ==================== 库存管理 ====================
     def load_inventory(self) -> List[Dict]:
-        """加载库存数据"""
+        """加载库存数据（JSON模式）"""
+        if self.use_database:
+            return database_manager.get_inventory()
+        
         try:
             inventory_file = os.path.join(self.data_path, 'inventory.json')
             if os.path.exists(inventory_file):
@@ -152,7 +261,10 @@ class DataManager:
         return self.get_default_inventory()
     
     def save_inventory(self):
-        """保存库存数据"""
+        """保存库存数据（JSON模式）"""
+        if self.use_database:
+            return  # 数据库模式不需要手动保存
+        
         try:
             inventory_file = os.path.join(self.data_path, 'inventory.json')
             with open(inventory_file, 'w', encoding='utf-8') as f:
@@ -160,16 +272,48 @@ class DataManager:
         except Exception as e:
             print(f"保存库存数据失败: {e}")
     
+    @property
+    def inventory(self):
+        """获取库存数据"""
+        if self.use_database:
+            return database_manager.get_inventory()
+        return self._inventory if hasattr(self, '_inventory') else []
+    
+    @inventory.setter
+    def inventory(self, value):
+        """设置库存数据（JSON模式）"""
+        if not self.use_database:
+            self._inventory = value
+    
     def check_and_reduce_inventory(self, order_items: List[Dict]) -> bool:
         """检查库存并扣减"""
+        if self.use_database:
+            # 数据库模式 - 这里需要根据餐食ID来扣减库存
+            # 暂时返回True，实际扣减在create_order中处理
+            return True
+        
+        # JSON文件模式
+        print(f"开始检查库存，订单项目: {order_items}")
+        
         # 先检查库存是否充足
         for item in order_items:
             product_id = item.get('product_id')
             quantity = item.get('quantity', 0)
             
+            print(f"检查库存: {product_id}, 数量: {quantity}")
+            
             inventory_item = self.find_inventory_item(product_id)
-            if not inventory_item or inventory_item.get('stock', 0) < quantity:
-                return False
+            if inventory_item:
+                current_stock = inventory_item.get('stock', 0)
+                print(f"找到库存项目: {inventory_item['name']}, 当前库存: {current_stock}")
+                if current_stock < quantity:
+                    print(f"库存不足: 需要{quantity}, 只有{current_stock}")
+                    return False
+            else:
+                print(f"未找到库存项目: {product_id}, 跳过库存检查")
+                # 对于堂食菜品，如果没有对应的库存项目，可以允许下单
+                # 这是因为有些菜品可能不需要库存管理（如现做菜品）
+                continue
         
         # 库存充足，执行扣减
         for item in order_items:
@@ -178,14 +322,22 @@ class DataManager:
             
             inventory_item = self.find_inventory_item(product_id)
             if inventory_item:
+                old_stock = inventory_item['stock']
                 inventory_item['stock'] -= quantity
                 inventory_item['last_update'] = datetime.datetime.now().isoformat()
+                print(f"库存扣减: {inventory_item['name']}, {old_stock} -> {inventory_item['stock']}")
         
         self.save_inventory()
+        print("库存检查和扣减完成")
         return True
     
     def restore_inventory(self, order_items: List[Dict]):
         """恢复库存（订单取消时）"""
+        if self.use_database:
+            # 数据库模式 - 暂时不处理
+            return
+        
+        # JSON文件模式
         for item in order_items:
             product_id = item.get('product_id')
             quantity = item.get('quantity', 0)
@@ -199,82 +351,112 @@ class DataManager:
     
     def find_inventory_item(self, product_id: str) -> Optional[Dict]:
         """查找库存项目"""
+        if not product_id:
+            return None
+            
+        # 尝试多种匹配方式
         for item in self.inventory:
-            if item.get('id') == product_id or item.get('name') == product_id:
+            # 精确匹配ID
+            if item.get('id') == product_id:
                 return item
+            # 精确匹配名称
+            if item.get('name') == product_id:
+                return item
+        
+        # 模糊匹配（包含关系）
+        for item in self.inventory:
+            item_name = item.get('name', '').lower()
+            if product_id.lower() in item_name:
+                return item
+        
         return None
     
     def get_low_stock_items(self, threshold: int = 10) -> List[Dict]:
-        """获取低库存商品"""
+        """获取低库存项目"""
+        if self.use_database:
+            return database_manager.get_low_stock_items(threshold)
+        
         return [item for item in self.inventory if item.get('stock', 0) <= threshold]
     
     # ==================== 财务管理 ====================
     def load_financial_records(self) -> List[Dict]:
-        """加载财务记录"""
+        """加载财务记录（JSON模式）"""
+        if self.use_database:
+            return database_manager.get_financial_records()
+        
         try:
             finance_file = os.path.join(self.data_path, 'finance.json')
             if os.path.exists(finance_file):
                 with open(finance_file, 'r', encoding='utf-8') as f:
                     return json.load(f)
         except Exception as e:
-            print(f"加载财务数据失败: {e}")
+            print(f"加载财务记录失败: {e}")
         return []
     
     def save_financial_records(self):
-        """保存财务记录"""
+        """保存财务记录（JSON模式）"""
+        if self.use_database:
+            return  # 数据库模式不需要手动保存
+        
         try:
             finance_file = os.path.join(self.data_path, 'finance.json')
             with open(finance_file, 'w', encoding='utf-8') as f:
                 json.dump(self.financial_records, f, ensure_ascii=False, indent=2)
         except Exception as e:
-            print(f"保存财务数据失败: {e}")
+            print(f"保存财务记录失败: {e}")
     
     def add_financial_record(self, record_data: Dict) -> str:
         """添加财务记录"""
-        with self.data_lock:
-            record_id = f"FIN{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
-            record_data['id'] = record_id
-            record_data['create_time'] = datetime.datetime.now().isoformat()
-            
-            self.financial_records.append(record_data)
-            self.save_financial_records()
-            
-            # 通知财务模块
-            self.notify_modules('financial_record_added', record_data)
-            
-            return record_id
+        if self.use_database:
+            # 数据库模式 - 财务记录在创建订单时自动添加
+            return "DB_RECORD"
+        
+        # JSON文件模式
+        record_id = f"FIN{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
+        record_data['id'] = record_id
+        record_data['create_time'] = datetime.datetime.now().isoformat()
+        
+        self.financial_records.append(record_data)
+        self.save_financial_records()
+        
+        return record_id
     
     def get_financial_records(self, record_type: Optional[str] = None) -> List[Dict]:
         """获取财务记录"""
+        if self.use_database:
+            return database_manager.get_financial_records(record_type)
+        
         if record_type:
             return [record for record in self.financial_records if record.get('type') == record_type]
         return self.financial_records.copy()
     
-    # ==================== 统计数据 ====================
     def update_dashboard_stats(self):
         """更新仪表盘统计数据"""
-        today = datetime.date.today()
-        today_str = today.isoformat()
+        if self.use_database:
+            self.dashboard_stats = database_manager.get_dashboard_stats()
+            return
         
-        # 今日销售额
+        # JSON文件模式
+        today = datetime.datetime.now().date()
         today_sales = 0
-        today_orders = 0
+        order_count = 0
         
+        # 计算今日销售额和订单数
         for order in self.orders:
-            order_date = order.get('create_time', '')[:10]  # 取日期部分
-            if order_date == today_str and order.get('status') != '已取消':
+            order_date = datetime.datetime.fromisoformat(order.get('create_time', '')).date()
+            if order_date == today:
+                order_count += 1
                 today_sales += order.get('total_amount', 0)
-                today_orders += 1
         
-        # 库存预警数量
+        # 计算低库存项目数
         low_stock_count = len(self.get_low_stock_items())
         
-        # 客户总数
+        # 计算客户总数
         customer_count = len(self.customers)
         
         self.dashboard_stats = {
             'today_sales': today_sales,
-            'order_count': today_orders,
+            'order_count': order_count,
             'low_stock_count': low_stock_count,
             'customer_count': customer_count,
             'last_update': datetime.datetime.now().isoformat()
@@ -282,17 +464,17 @@ class DataManager:
     
     def get_dashboard_stats(self) -> Dict:
         """获取仪表盘统计数据"""
-        # 如果数据太旧，重新计算
-        if (not self.dashboard_stats.get('last_update') or 
-            datetime.datetime.now() - datetime.datetime.fromisoformat(self.dashboard_stats['last_update']) > 
-            datetime.timedelta(minutes=5)):
-            self.update_dashboard_stats()
+        if self.use_database:
+            return database_manager.get_dashboard_stats()
         
-        return self.dashboard_stats.copy()
+        return self.dashboard_stats
     
-    # ==================== 其他数据管理 ====================
+    # ==================== 客户管理 ====================
     def load_customers(self) -> List[Dict]:
-        """加载客户数据"""
+        """加载客户数据（JSON模式）"""
+        if self.use_database:
+            return database_manager.get_customers()
+        
         try:
             customers_file = os.path.join(self.data_path, 'customers.json')
             if os.path.exists(customers_file):
@@ -302,19 +484,96 @@ class DataManager:
             print(f"加载客户数据失败: {e}")
         return self.get_default_customers()
     
+    def get_customers(self) -> List[Dict]:
+        """获取客户列表"""
+        if self.use_database:
+            return database_manager.get_customers()
+        return self.customers.copy()
+    
+    def add_customer(self, customer_data: Dict) -> int:
+        """添加新客户"""
+        if self.use_database:
+            return database_manager.create_customer(customer_data)
+        
+        # JSON文件模式
+        with self.data_lock:
+            customer_id = f"CUST{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
+            customer_data['id'] = customer_id
+            customer_data['created_at'] = datetime.datetime.now().isoformat()
+            self.customers.append(customer_data)
+            self.save_customers()
+            return customer_id
+    
+    def update_customer(self, customer_id: str, customer_data: Dict) -> bool:
+        """更新客户信息"""
+        if self.use_database:
+            try:
+                return database_manager.update_customer(int(customer_id), customer_data)
+            except Exception as e:
+                print(f"❌ 数据库更新客户失败: {e}")
+                return False
+        
+        # JSON文件模式
+        with self.data_lock:
+            for customer in self.customers:
+                if customer['id'] == customer_id:
+                    customer.update(customer_data)
+                    customer['updated_at'] = datetime.datetime.now().isoformat()
+                    self.save_customers()
+                    return True
+            return False
+    
+    def delete_customer(self, customer_id: str) -> bool:
+        """删除客户"""
+        if self.use_database:
+            try:
+                return database_manager.delete_customer(int(customer_id))
+            except Exception as e:
+                print(f"❌ 数据库删除客户失败: {e}")
+                return False
+        
+        # JSON文件模式
+        with self.data_lock:
+            for i, customer in enumerate(self.customers):
+                if customer['id'] == customer_id:
+                    del self.customers[i]
+                    self.save_customers()
+                    return True
+            return False
+    
+    def save_customers(self):
+        """保存客户数据（JSON模式）"""
+        if self.use_database:
+            return  # 数据库模式不需要手动保存
+        
+        try:
+            customers_file = os.path.join(self.data_path, 'customers.json')
+            with open(customers_file, 'w', encoding='utf-8') as f:
+                json.dump(self.customers, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"保存客户数据失败: {e}")
+    
+    # ==================== 餐食管理 ====================
     def load_meals(self) -> List[Dict]:
-        """加载菜品数据"""
+        """加载餐食数据（JSON模式）"""
+        if self.use_database:
+            return database_manager.get_meals()
+        
         try:
             meals_file = os.path.join(self.data_path, 'meals.json')
             if os.path.exists(meals_file):
                 with open(meals_file, 'r', encoding='utf-8') as f:
                     return json.load(f)
         except Exception as e:
-            print(f"加载菜品数据失败: {e}")
+            print(f"加载餐食数据失败: {e}")
         return self.get_default_meals()
     
+    # ==================== 员工管理 ====================
     def load_employees(self) -> List[Dict]:
-        """加载员工数据"""
+        """加载员工数据（JSON模式）"""
+        if self.use_database:
+            return database_manager.get_employees()
+        
         try:
             employees_file = os.path.join(self.data_path, 'employees.json')
             if os.path.exists(employees_file):
@@ -326,136 +585,56 @@ class DataManager:
     
     # ==================== 模块通知 ====================
     def notify_modules(self, event_type: str, data: Any):
-        """通知相关模块数据变更"""
+        """通知相关模块"""
         for module_type, module_instance in self.modules.items():
+            self._safe_notify_module(module_instance, event_type, data)
+    
+    def _safe_notify_module(self, module_instance, event_type: str, data: Any):
+        """安全地通知模块"""
+        try:
             if hasattr(module_instance, 'on_data_changed'):
-                try:
-                    module_instance.on_data_changed(event_type, data)
-                except Exception as e:
-                    print(f"通知模块 {module_type} 失败: {e}")
+                module_instance.on_data_changed(event_type, data)
+        except Exception as e:
+            print(f"通知模块 {type(module_instance).__name__} 失败: {e}")
     
     # ==================== 默认数据 ====================
     def get_default_orders(self) -> List[Dict]:
         """获取默认订单数据"""
-        return [
-            {
-                'id': 'ORD20240615001',
-                'customer_name': '张三',
-                'customer_phone': '138****1234',
-                'delivery_address': '北京市朝阳区xxx街道1号',
-                'items': [
-                    {'product_id': '番茄牛肉面', 'name': '番茄牛肉面', 'quantity': 2, 'price': 25.0},
-                    {'product_id': '可乐', 'name': '可乐', 'quantity': 1, 'price': 5.0}
-                ],
-                'total_amount': 55.0,
-                'status': '已完成',
-                'order_type': '外卖',
-                'payment_method': '微信支付',
-                'note': '少放辣椒',
-                'create_time': '2024-06-15T12:30:00',
-                'update_time': '2024-06-15T12:45:00'
-            },
-            {
-                'id': 'ORD20240615002',
-                'customer_name': '李四',
-                'customer_phone': '139****5678',
-                'delivery_address': '北京市海淀区xxx路88号',
-                'items': [
-                    {'product_id': '鸡蛋炒饭', 'name': '鸡蛋炒饭', 'quantity': 1, 'price': 18.0}
-                ],
-                'total_amount': 18.0,
-                'status': '制作中',
-                'order_type': '外卖',
-                'payment_method': '支付宝',
-                'note': '',
-                'create_time': '2024-06-15T12:45:00',
-                'update_time': '2024-06-15T12:45:00'
-            },
-            {
-                'id': 'ORD20240615003',
-                'customer_name': '王五',
-                'customer_phone': '136****9012',
-                'delivery_address': '北京市西城区xxx胡同66号',
-                'items': [
-                    {'product_id': '牛肉汉堡', 'name': '牛肉汉堡', 'quantity': 3, 'price': 32.0},
-                    {'product_id': '薯条', 'name': '薯条', 'quantity': 2, 'price': 12.0}
-                ],
-                'total_amount': 120.0,
-                'status': '待接单',
-                'order_type': '外卖',
-                'payment_method': '现金',
-                'note': '汉堡不要洋葱',
-                'create_time': '2024-06-15T11:20:00',
-                'update_time': '2024-06-15T11:20:00'
-            },
-            {
-                'id': 'ORD20240615004',
-                'customer_name': '赵六',
-                'customer_phone': '137****3456',
-                'delivery_address': '堂食',
-                'items': [
-                    {'product_id': '红烧肉', 'name': '红烧肉', 'quantity': 1, 'price': 35.0},
-                    {'product_id': '米饭', 'name': '米饭', 'quantity': 2, 'price': 3.0}
-                ],
-                'total_amount': 41.0,
-                'status': '配送中',
-                'order_type': '堂食',
-                'payment_method': '微信支付',
-                'note': '',
-                'create_time': '2024-06-15T13:15:00',
-                'update_time': '2024-06-15T13:15:00'
-            },
-            {
-                'id': 'ORD20240615005',
-                'customer_name': '钱七',
-                'customer_phone': '135****7890',
-                'delivery_address': '上海市浦东新区xxx路99号',
-                'items': [
-                    {'product_id': '宫保鸡丁', 'name': '宫保鸡丁', 'quantity': 1, 'price': 28.0},
-                    {'product_id': '白米饭', 'name': '白米饭', 'quantity': 1, 'price': 3.0}
-                ],
-                'total_amount': 31.0,
-                'status': '已完成',
-                'order_type': '外卖',
-                'payment_method': '现金',
-                'note': '不要太辣',
-                'create_time': '2024-06-15T14:20:00',
-                'update_time': '2024-06-15T14:50:00'
-            }
-        ]
+        return []
     
     def get_default_inventory(self) -> List[Dict]:
         """获取默认库存数据"""
         return [
-            {'id': 'INV001', 'name': '鸡肉', 'category': '肉类', 'stock': 50, 'unit': '斤', 'price': 15.0, 'min_stock': 10},
-            {'id': 'INV002', 'name': '豆腐', 'category': '豆制品', 'stock': 30, 'unit': '块', 'price': 3.0, 'min_stock': 5},
-            {'id': 'INV003', 'name': '大米', 'category': '主食', 'stock': 100, 'unit': '斤', 'price': 5.0, 'min_stock': 20},
-            {'id': 'INV004', 'name': '青菜', 'category': '蔬菜', 'stock': 8, 'unit': '斤', 'price': 4.0, 'min_stock': 10}  # 低库存示例
+            {"id": "ING001", "name": "大米", "stock": 100, "unit": "kg", "price": 5.5},
+            {"id": "ING002", "name": "鸡胸肉", "stock": 50, "unit": "kg", "price": 18.0},
+            {"id": "ING003", "name": "牛肉", "stock": 30, "unit": "kg", "price": 35.0},
+            {"id": "ING004", "name": "三文鱼", "stock": 15, "unit": "kg", "price": 45.0},
+            {"id": "ING005", "name": "西兰花", "stock": 25, "unit": "kg", "price": 8.0},
+            {"id": "ING006", "name": "胡萝卜", "stock": 20, "unit": "kg", "price": 4.0},
+            {"id": "ING007", "name": "洋葱", "stock": 30, "unit": "kg", "price": 3.5},
+            {"id": "ING008", "name": "大蒜", "stock": 10, "unit": "kg", "price": 12.0},
+            {"id": "ING009", "name": "生抽", "stock": 20, "unit": "瓶", "price": 8.5},
+            {"id": "ING010", "name": "香油", "stock": 15, "unit": "瓶", "price": 15.0}
         ]
     
     def get_default_customers(self) -> List[Dict]:
         """获取默认客户数据"""
-        return [
-            {'id': 'CUS001', 'name': '张三', 'phone': '13800138001', 'address': '北京市朝阳区', 'level': 'VIP'},
-            {'id': 'CUS002', 'name': '李四', 'phone': '13800138002', 'address': '北京市海淀区', 'level': '普通'},
-            {'id': 'CUS003', 'name': '王五', 'phone': '13800138003', 'address': '北京市西城区', 'level': '普通'}
-        ]
+        return []
     
     def get_default_meals(self) -> List[Dict]:
-        """获取默认菜品数据"""
+        """获取默认餐食数据"""
         return [
-            {'id': 'MEAL001', 'name': '宫保鸡丁', 'category': '川菜', 'price': 28.0, 'cost': 18.0, 'description': '经典川菜'},
-            {'id': 'MEAL002', 'name': '麻婆豆腐', 'category': '川菜', 'price': 18.0, 'cost': 12.0, 'description': '麻辣可口'},
-            {'id': 'MEAL003', 'name': '红烧肉', 'category': '家常菜', 'price': 35.0, 'cost': 25.0, 'description': '肥而不腻'}
+            {"id": "MEAL001", "name": "经典牛肉饭", "category": "面食", "price": 25.0, "image": "🍜"},
+            {"id": "MEAL002", "name": "鸡蛋炒饭", "category": "炒饭", "price": 18.0, "image": "🍚"},
+            {"id": "MEAL003", "name": "牛肉汉堡", "category": "西餐", "price": 32.0, "image": "🍔"},
+            {"id": "MEAL004", "name": "薯条", "category": "小食", "price": 12.0, "image": "🍟"},
+            {"id": "MEAL005", "name": "可乐", "category": "饮料", "price": 8.0, "image": "🥤"},
+            {"id": "MEAL006", "name": "咖啡", "category": "饮料", "price": 15.0, "image": "☕"}
         ]
     
     def get_default_employees(self) -> List[Dict]:
         """获取默认员工数据"""
-        return [
-            {'id': 'EMP001', 'name': '管理员', 'position': '经理', 'department': '管理部', 'salary': 8000, 'phone': '13900139001'},
-            {'id': 'EMP002', 'name': '小王', 'position': '服务员', 'department': '服务部', 'salary': 4000, 'phone': '13900139002'},
-            {'id': 'EMP003', 'name': '小李', 'position': '厨师', 'department': '厨房', 'salary': 6000, 'phone': '13900139003'}
-        ]
+        return []
 
 # 创建全局数据管理器实例
 data_manager = DataManager()

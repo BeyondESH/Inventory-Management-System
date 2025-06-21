@@ -10,6 +10,7 @@ from tkinter import ttk, messagebox, simpledialog
 from typing import Dict, List, Any, Optional
 import datetime
 import json
+import threading
 
 # 导入数据管理中心
 try:
@@ -50,19 +51,23 @@ class ModernSalesModule:
         
         # 现代化配色方案
         self.colors = {
-            'primary': '#FF6B35',
-            'secondary': '#F7931E',
-            'success': '#00B894',
-            'warning': '#FDCB6E',
-            'danger': '#E74C3C',
-            'info': '#3498DB',
-            'background': '#F8F9FA',
-            'surface': '#FFFFFF',
-            'text_primary': '#2D3436',
-            'text_secondary': '#636E72',
-            'border': '#E1E8ED',
+            'primary': '#FF6B35',      # 主色调
+            'secondary': '#F7931E',    # 次色调
+            'accent': '#FFD23F',       # 强调色
+            'background': '#F8F9FA',   # 背景色
+            'surface': '#FFFFFF',      # 卡片背景
+            'text_primary': '#2D3436', # 主文字
+            'text_secondary': '#636E72', # 次文字
+            'border': '#E0E0E0',       # 边框
+            'success': '#00B894',      # 成功色
+            'warning': '#FDCB6E',      # 警告色
+            'error': '#E84393',        # 错误色
+            'card_shadow': '#F0F0F0',  # 卡片阴影
+            'white': '#FFFFFF',        # 白色
             'cart_bg': '#FFF8E1',
-            'selected': '#E8F5E8'
+            'selected': '#E8F5E8',
+            'info': '#3498DB',         # 信息色
+            'danger': '#E74C3C'        # 危险色
         }
         
         # 字体配置
@@ -88,20 +93,75 @@ class ModernSalesModule:
         self.table_var = None  # 延迟初始化
         
     def load_meals_data(self):
-        """加载菜品数据"""
+        """加载菜品数据 - 只显示上架的菜品"""
         try:
-            return data_manager.load_data('meals')
-        except:
-            # 默认菜品数据
+            meals = data_manager.load_data('meals')
+            # 过滤只显示上架的菜品
+            available_meals = []
+            for meal in meals:
+                # 检查菜品是否上架
+                is_available = meal.get('is_available', True)  # 默认为True
+                if isinstance(is_available, str):
+                    is_available = is_available.lower() in ['true', '1', 'yes', '上架']
+                elif isinstance(is_available, int):
+                    is_available = is_available == 1
+                
+                if is_available:
+                    # 为数据库中的餐食添加默认图标和描述，并兼容所有UI字段
+                    # name字段
+                    if 'name' not in meal:
+                        meal['name'] = meal.get('meal_name', '')
+                    # price字段
+                    if 'price' not in meal:
+                        meal['price'] = meal.get('meal_price', 0)
+                    # id字段
+                    if 'id' not in meal:
+                        meal['id'] = meal.get('meal_id', meal.get('id', ''))
+                    # category字段
+                    if 'category' not in meal:
+                        meal['category'] = meal.get('meal_category', '其他')
+                    # image字段
+                    if 'image' not in meal:
+                        meal_name = meal['name'].lower()
+                        if '面' in meal_name or '饭' in meal_name:
+                            meal['image'] = '🍜'
+                        elif '汉堡' in meal_name:
+                            meal['image'] = '🍔'
+                        elif '薯条' in meal_name:
+                            meal['image'] = '🍟'
+                        elif '可乐' in meal_name:
+                            meal['image'] = '🥤'
+                        elif '咖啡' in meal_name:
+                            meal['image'] = '☕'
+                        elif '鸡' in meal_name:
+                            meal['image'] = '🍗'
+                        elif '鱼' in meal_name:
+                            meal['image'] = '🐟'
+                        elif '豆腐' in meal_name:
+                            meal['image'] = '🥘'
+                        else:
+                            meal['image'] = '🍽️'
+                    # description字段
+                    if 'description' not in meal:
+                        meal['description'] = meal.get('meal_details', f"美味的{meal['name']}")
+                    
+                    available_meals.append(meal)
+            
+            print(f"✅ 销售模块加载了 {len(available_meals)} 个上架菜品")
+            return available_meals
+            
+        except Exception as e:
+            print(f"加载餐食数据异常: {e}")
+            # 默认菜品数据（只包含上架的）
             return [
-                {"id": "MEAL001", "name": "番茄牛肉面", "category": "面食", "price": 25.0, "image": "🍜", "description": "经典番茄牛肉面，汤鲜味美"},
-                {"id": "MEAL002", "name": "鸡蛋炒饭", "category": "炒饭", "price": 18.0, "image": "🍚", "description": "香喷喷的鸡蛋炒饭"},
-                {"id": "MEAL003", "name": "牛肉汉堡", "category": "西餐", "price": 32.0, "image": "🍔", "description": "美味牛肉汉堡套餐"},
-                {"id": "MEAL004", "name": "薯条", "category": "小食", "price": 12.0, "image": "🍟", "description": "酥脆金黄薯条"},
-                {"id": "MEAL005", "name": "可乐", "category": "饮料", "price": 8.0, "image": "🥤", "description": "冰爽可乐"},
-                {"id": "MEAL006", "name": "咖啡", "category": "饮料", "price": 15.0, "image": "☕", "description": "香浓咖啡"},
-                {"id": "MEAL007", "name": "宫保鸡丁", "category": "川菜", "price": 28.0, "image": "🍗", "description": "经典川菜宫保鸡丁"},
-                {"id": "MEAL008", "name": "麻婆豆腐", "category": "川菜", "price": 22.0, "image": "🥘", "description": "麻辣鲜香麻婆豆腐"}
+                {"id": "MEAL001", "name": "番茄牛肉面", "category": "面食", "price": 25.0, "image": "🍜", "description": "经典番茄牛肉面，汤鲜味美", "is_available": True},
+                {"id": "MEAL002", "name": "鸡蛋炒饭", "category": "炒饭", "price": 18.0, "image": "🍚", "description": "香喷喷的鸡蛋炒饭", "is_available": True},
+                {"id": "MEAL003", "name": "牛肉汉堡", "category": "西餐", "price": 32.0, "image": "🍔", "description": "美味牛肉汉堡套餐", "is_available": True},
+                {"id": "MEAL004", "name": "薯条", "category": "小食", "price": 12.0, "image": "🍟", "description": "酥脆金黄薯条", "is_available": True},
+                {"id": "MEAL005", "name": "可乐", "category": "饮料", "price": 8.0, "image": "🥤", "description": "冰爽可乐", "is_available": True},
+                {"id": "MEAL006", "name": "咖啡", "category": "饮料", "price": 15.0, "image": "☕", "description": "香浓咖啡", "is_available": True},
+                {"id": "MEAL007", "name": "宫保鸡丁", "category": "川菜", "price": 28.0, "image": "🍗", "description": "经典川菜宫保鸡丁", "is_available": True},
+                {"id": "MEAL008", "name": "麻婆豆腐", "category": "川菜", "price": 22.0, "image": "🥘", "description": "麻辣鲜香麻婆豆腐", "is_available": True}
             ]
         
     def show(self):
@@ -257,74 +317,47 @@ class ModernSalesModule:
             self.scrollable_frame.columnconfigure(i, weight=1)
             
     def create_meal_card(self, parent, meal):
-        """创建菜品卡片"""
+        """创建菜品卡片，字段兜底防止KeyError"""
         card = tk.Frame(parent, bg=self.colors['background'], relief="flat", bd=1)
         card.configure(width=200, height=180)
         card.pack_propagate(False)
-        
         # 菜品图标
         icon_label = tk.Label(card, text=meal.get('image', '🍽️'), 
                              font=('Segoe UI Emoji', 32),
                              bg=self.colors['background'])
         icon_label.pack(pady=(15, 5))
-        
         # 菜品名称
-        name_label = tk.Label(card, text=meal['name'], 
+        name_label = tk.Label(card, text=meal.get('name', ''), 
                              font=self.fonts['heading'],
                              bg=self.colors['background'], 
                              fg=self.colors['text_primary'])
-        name_label.pack()        # 描述 - 限制显示为一行
+        name_label.pack()
+        # 描述
         description = meal.get('description', '')
-        # 如果描述过长，截断并添加省略号（限制为10字）
         if len(description) > 10:
             description = description[:10] + "..."
-        
         desc_label = tk.Label(card, text=description, 
                              font=self.fonts['small'],
                              bg=self.colors['background'], 
                              fg=self.colors['text_secondary'],
                              wraplength=150,
                              justify='left',
-                             height=1)  # 限制为1行
-        desc_label.pack(pady=(2, 5))
-        
-        # 价格和添加按钮
+                             height=1)
+        desc_label.pack()
+        # 价格
+        price = meal.get('price', 0)
         bottom_frame = tk.Frame(card, bg=self.colors['background'])
-        bottom_frame.pack(fill="x", padx=10, pady=(0, 10))
-        
-        price_label = tk.Label(bottom_frame, text=f"￥{meal['price']:.0f}", 
+        bottom_frame.pack(side="bottom", fill="x", pady=(10, 0))
+        price_label = tk.Label(bottom_frame, text=f"￥{price:.0f}",
                               font=self.fonts['price'],
-                              bg=self.colors['background'], 
+                              bg=self.colors['background'],
                               fg=self.colors['primary'])
-        price_label.pack(side="left")
-        
-        add_btn = tk.Button(bottom_frame, text="➕",
-                           font=('Segoe UI Emoji', 16),
-                           bg=self.colors['primary'], fg='white',
-                           bd=0, width=3, cursor="hand2",
-                           command=lambda m=meal: self.add_to_cart(m))
-        add_btn.pack(side="right")
-        
-        # 悬停效果
-        def on_enter(e):
-            card.configure(bg=self.colors['selected'])
-            icon_label.configure(bg=self.colors['selected'])
-            name_label.configure(bg=self.colors['selected'])
-            desc_label.configure(bg=self.colors['selected'])
-            bottom_frame.configure(bg=self.colors['selected'])
-            price_label.configure(bg=self.colors['selected'])
-            
-        def on_leave(e):
-            card.configure(bg=self.colors['background'])
-            icon_label.configure(bg=self.colors['background'])
-            name_label.configure(bg=self.colors['background'])
-            desc_label.configure(bg=self.colors['background'])
-            bottom_frame.configure(bg=self.colors['background'])
-            price_label.configure(bg=self.colors['background'])
-        
-        card.bind("<Enter>", on_enter)
-        card.bind("<Leave>", on_leave)
-        
+        price_label.pack(side="left", padx=(10, 0))
+        # 加入购物车按钮
+        add_btn = tk.Button(bottom_frame, text="加入购物车", font=self.fonts['small'],
+                            bg=self.colors['primary'], fg="white", bd=0, padx=10, pady=3,
+                            cursor="hand2", command=lambda m=meal: self.add_to_cart(m))
+        add_btn.pack(side="right", padx=(0, 10))
         return card
 
     def create_cart_area(self, parent):
@@ -402,7 +435,7 @@ class ModernSalesModule:
                              font=self.fonts['body'],
                              bg=self.colors['text_secondary'], fg='white',
                              bd=0, pady=8, cursor="hand2",
-                             command=self.clear_cart)
+                             command=self.clear_cart_with_confirm)
         clear_btn.pack(fill="x")
         
     def switch_category(self, category):
@@ -564,12 +597,21 @@ class ModernSalesModule:
         
     def clear_cart(self):
         """清空购物车"""
+        self.cart_items.clear()
+        self.update_cart_display()
+    
+    def clear_cart_with_confirm(self):
+        """清空购物车（带确认对话框）"""
         if self.cart_items:
-            root = self.main_frame.winfo_toplevel()
-            result = messagebox.askyesno("确认清空", "确定要清空购物车吗？", parent=root)
-            if result:
-                self.cart_items.clear()
-                self.update_cart_display()
+            try:
+                root = self.main_frame.winfo_toplevel()
+                result = messagebox.askyesno("确认清空", "确定要清空购物车吗？", parent=root)
+                if result:
+                    self.clear_cart()
+            except Exception as e:
+                print(f"清空购物车确认对话框错误: {e}")
+                # 如果对话框出错，直接清空
+                self.clear_cart()
     
     def on_table_changed(self, event=None):
         """桌号改变事件"""
@@ -720,84 +762,217 @@ class ModernSalesModule:
         
     def process_payment(self, dialog, payment_method):
         """处理支付"""
+        print("🔄 开始处理支付...")
+        
+        # 立即禁用支付按钮，防止重复点击
         try:
-            # 准备订单项目用于库存检查
-            order_items = []
-            meals_data = []
-            
-            for item in self.cart_items:
-                # 为库存检查准备数据（使用菜品名称作为product_id）
-                order_items.append({
-                    'product_id': item['name'],  # 使用菜品名称作为库存中的产品ID
-                    'quantity': item['quantity']
-                })
-                
-                # 为订单记录准备菜品数据
-                meals_data.append({
-                    'name': item['name'],
-                    'price': item['price'],
-                    'quantity': item['quantity'],
-                    'subtotal': item['price'] * item['quantity']
-                })
-            
-            # 创建订单数据
-            order_data = {
-                'customer_name': f"桌号{self.current_table}",
-                'phone': '',
-                'address': '堂食',
-                'items': order_items,  # 用于库存检查
-                'meals': meals_data,   # 用于订单显示
-                'total_amount': self.total_amount,
-                'payment': payment_method,
-                'type': '堂食',
-                'note': f"桌号: {self.current_table}"
-            }
-            
-            # 使用数据管理器创建订单（包含库存检查）
+            for widget in dialog.winfo_children():
+                self._disable_payment_buttons(widget)
+        except Exception as e:
+            print(f"禁用按钮时出错: {e}")
+        
+        # 立即更新界面显示
+        try:
+            dialog.update_idletasks()
+        except Exception as e:
+            print(f"更新界面时出错: {e}")
+        
+        # 在独立的函数中处理支付逻辑，避免阻塞UI
+        def _do_payment():
             try:
+                print("📦 准备订单数据...")
+                # 准备订单项目用于库存检查
+                order_items = []
+                meals_data = []
+                for item in self.cart_items:
+                    order_items.append({
+                        'product_id': item.get('id', item.get('meal_id', item['name'])),
+                        'quantity': item['quantity'],
+                        'name': item['name'],
+                        'id': item.get('id', item.get('meal_id', '')),
+                        'price': item.get('price', 0)
+                    })
+                    meals_data.append({
+                        'name': item['name'],
+                        'price': item['price'],
+                        'quantity': item['quantity'],
+                        'subtotal': item['price'] * item['quantity']
+                    })
+                # 创建订单数据 - 适配数据库字段
+                order_data = {
+                    'items': order_items,
+                    'meals': meals_data,
+                    'customer_id': 1,  # 默认客户ID，实际应从登录用户获取
+                    'employee_id': 1,  # 默认员工ID
+                    'payment_method_id': 1,  # 默认支付方式ID
+                    'delivery_date': datetime.datetime.now().strftime('%Y-%m-%d'),
+                    'order_status': '已接收',
+                    'note': f"桌号: {self.current_table}",
+                    'quantity': sum(item['quantity'] for item in self.cart_items),
+                    'total_amount': self.total_amount,
+                    'customer_name': f"桌号{self.current_table}",
+                    'phone': '',
+                    'address': '堂食',
+                    'payment_method': payment_method,
+                    'order_type': '堂食'
+                }
+                print(f"💰 订单总金额: ￥{self.total_amount:.2f}")
+                print("🏪 创建订单...")
                 order_id = data_manager.create_order(order_data)
-                
-                # 关闭对话框
-                dialog.destroy()
-                
-                # 显示成功消息
+                print(f"✅ 订单创建成功: {order_id}")
+                dialog.after(0, lambda: self._handle_payment_success(dialog, order_id, payment_method))
+            except Exception as e:
+                print(f"❌ 支付处理失败: {e}")
+                dialog.after(0, lambda e=e: self._handle_payment_error(dialog, e))
+        
+        # 使用线程处理支付逻辑，避免阻塞UI
+        payment_thread = threading.Thread(target=_do_payment)
+        payment_thread.start()
+    
+    def _disable_payment_buttons(self, widget):
+        """递归禁用支付按钮"""
+        try:
+            if isinstance(widget, tk.Button):
+                text = widget.cget('text')
+                if "确认支付" in text:
+                    widget.configure(state="disabled", text="💳 处理中...")
+            
+            if hasattr(widget, 'winfo_children'):
+                for child in widget.winfo_children():
+                    self._disable_payment_buttons(child)
+        except:
+            pass
+    
+    def _handle_payment_success(self, dialog, order_id, payment_method):
+        """处理支付成功"""
+        try:
+            print(f"🎉 支付成功处理: {order_id}")
+            
+            # 关闭支付对话框
+            dialog.destroy()
+            
+            # 显示成功消息
+            try:
                 root = self.main_frame.winfo_toplevel()
                 messagebox.showinfo("支付成功", 
-                                   f"订单 {order_id} 支付成功！\n桌号: {self.current_table}\n支付方式: {payment_method}\n总金额: ￥{self.total_amount:.2f}", 
+                                   f"订单 {order_id} 支付成功！\n\n桌号: {self.current_table}\n支付方式: {payment_method}\n总金额: ￥{self.total_amount:.2f}", 
                                    parent=root)
-                
-                # 清空购物车
-                self.clear_cart()
-                
-                # 通知其他模块刷新数据
-                self.notify_order_created(order_id)
-                
-            except ValueError as e:
-                if "库存不足" in str(e):
-                    messagebox.showerror("库存不足", 
-                                        "部分商品库存不足，无法完成订单。\n请联系工作人员或选择其他商品。",
-                                        parent=dialog)
-                else:
-                    messagebox.showerror("订单创建失败", f"创建订单失败：{e}", parent=dialog)
-            except Exception as e:                messagebox.showerror("系统错误", f"处理订单时发生错误：{e}", parent=dialog)
-                
+            except Exception as msg_error:
+                print(f"显示成功消息失败: {msg_error}")
+                # 备用消息显示
+                try:
+                    messagebox.showinfo("支付成功", f"订单 {order_id} 支付成功！")
+                except:
+                    print("所有消息显示方式都失败，但支付已成功")
+            
+            # 清空购物车（不显示确认对话框）
+            self.clear_cart()
+            
+            # 异步通知其他模块
+            self.main_frame.after(500, lambda: self._safe_notify_modules(order_id))
+            
         except Exception as e:
-            messagebox.showerror("支付失败", f"支付处理失败：{e}", parent=dialog)
+            print(f"处理支付成功时出错: {e}")
+    
+    def _handle_payment_error(self, dialog, error):
+        """处理支付错误"""
+        try:
+            print(f"🔧 处理支付错误: {error}")
+            
+            error_msg = str(error)
+            if "库存不足" in error_msg or "库存" in error_msg:
+                messagebox.showerror("库存不足", 
+                                    "部分商品库存不足，无法完成订单。\n请联系工作人员或选择其他商品。",
+                                    parent=dialog)
+            else:
+                messagebox.showerror("支付失败", f"支付处理失败：{error_msg}", parent=dialog)
+            
+            # 重新启用支付按钮
+            self._enable_payment_buttons(dialog)
+            
+        except Exception as e:
+            print(f"处理支付错误时出错: {e}")
+    
+    def _enable_payment_buttons(self, widget):
+        """递归启用支付按钮"""
+        try:
+            if isinstance(widget, tk.Button):
+                text = widget.cget('text')
+                if "处理中" in text:
+                    widget.configure(state="normal", text="✅ 确认支付")
+            
+            if hasattr(widget, 'winfo_children'):
+                for child in widget.winfo_children():
+                    self._enable_payment_buttons(child)
+        except:
+            pass
+    
+    def _safe_notify_modules(self, order_id):
+        """安全地通知其他模块"""
+        try:
+            print(f"📢 通知其他模块订单创建: {order_id}")
+            
+            # 通知订单模块
+            if self.order_module and hasattr(self.order_module, 'refresh_order_list'):
+                try:
+                    self.order_module.refresh_order_list()
+                    print("✅ 订单模块已通知")
+                except Exception as e:
+                    print(f"⚠️ 通知订单模块失败: {e}")
+            
+            # 通知库存模块
+            if self.inventory_module and hasattr(self.inventory_module, 'refresh_inventory'):
+                try:
+                    self.inventory_module.refresh_inventory()
+                    print("✅ 库存模块已通知")
+                except Exception as e:
+                    print(f"⚠️ 通知库存模块失败: {e}")
+            
+            # 通知财务模块
+            if hasattr(self, 'finance_module') and self.finance_module and hasattr(self.finance_module, 'refresh_finance_records'):
+                try:
+                    self.finance_module.refresh_finance_records()
+                    print("✅ 财务模块已通知")
+                except Exception as e:
+                    print(f"⚠️ 通知财务模块失败: {e}")
+            
+        except Exception as e:
+            print(f"⚠️ 通知模块时发生错误（不影响订单）: {e}")
     
     def notify_order_created(self, order_id):
         """通知其他模块订单已创建"""
         try:
-            # 通知订单模块刷新
-            if self.order_module and hasattr(self.order_module, 'refresh_order_list'):
-                self.order_module.refresh_order_list()
+            print(f"开始通知其他模块，订单ID: {order_id}")
             
-            # 通知库存模块刷新
+            # 使用try-except为每个模块单独处理，避免一个模块出错影响其他模块
+            
+            # 通知订单模块刷新（延迟执行，避免阻塞）
+            if self.order_module and hasattr(self.order_module, 'refresh_order_list'):
+                try:
+                    # 延迟执行刷新，避免阻塞UI
+                    if hasattr(self, 'main_frame') and self.main_frame:
+                        self.main_frame.after(500, self.order_module.refresh_order_list)
+                    else:
+                        self.order_module.refresh_order_list()
+                    print("✅ 已通知订单模块刷新")
+                except Exception as e:
+                    print(f"⚠️ 通知订单模块失败: {e}")
+            
+            # 通知库存模块刷新（延迟执行，避免阻塞）
             if self.inventory_module and hasattr(self.inventory_module, 'refresh_inventory'):
-                self.inventory_module.refresh_inventory()
-                
-            print(f"✅ 订单 {order_id} 创建成功，已通知相关模块刷新")
+                try:
+                    # 延迟执行刷新，避免阻塞UI
+                    if hasattr(self, 'main_frame') and self.main_frame:
+                        self.main_frame.after(1000, self.inventory_module.refresh_inventory)
+                    else:
+                        self.inventory_module.refresh_inventory()
+                    print("✅ 已通知库存模块刷新")
+                except Exception as e:
+                    print(f"⚠️ 通知库存模块失败: {e}")
+                    
+            print(f"✅ 订单 {order_id} 通知完成")
         except Exception as e:
-            print(f"⚠️ 通知模块刷新时发生错误：{e}")
+            print(f"⚠️ 通知模块刷新时发生错误（不影响订单创建）：{e}")
     
     def clear_cart(self):
         """清空购物车"""

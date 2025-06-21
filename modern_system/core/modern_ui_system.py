@@ -294,11 +294,15 @@ class ModernFoodServiceSystem:
             self.customer_module = ModernCustomerModule(self.main_content_frame, self.content_header)
             self.order_module = ModernOrderModule(self.main_content_frame, self.content_header, 
                                           self.inventory_module, self.customer_module)
-            self.sales_module = ModernSalesModule(self.main_content_frame, self.content_header, 
-                                          self.meal_module, self.inventory_module, self.order_module)
             self.employee_module = ModernEmployeeModule(self.main_content_frame, self.content_header)
             self.finance_module = ModernFinanceModule(self.main_content_frame, self.content_header, 
                                               self.order_module, self.employee_module)
+            self.sales_module = ModernSalesModule(self.main_content_frame, self.content_header, 
+                                          self.meal_module, self.inventory_module, self.order_module)
+            
+            # 设置销售模块对财务模块的引用
+            self.sales_module.finance_module = self.finance_module
+            
             self.charts_module = ModernChartsModule(self.main_content_frame, self.content_header)
         except Exception as e:
             print(f"初始化模块失败: {e}")

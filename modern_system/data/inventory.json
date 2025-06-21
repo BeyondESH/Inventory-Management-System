@@ -40,19 +40,19 @@
     "unit": "瓶",
     "price": 5.0,
     "min_stock": 30,
-    "stock": 96,
-    "last_update": "2025-06-21T12:16:42.018841"
+    "stock": 95,
+    "last_update": "2025-06-21T18:50:26.565578"
   },
   {
     "id": "INV005",
     "name": "鸡蛋炒饭",
     "category": "成品",
-    "stock": 49,
+    "stock": 44,
     "min_stock": 10,
     "max_stock": 200,
     "unit": "份",
     "cost_price": 12.0,
-    "last_update": "2025-06-21T12:43:57.840890",
+    "last_update": "2025-06-21T18:37:18.300310",
     "supplier": "厨房制作"
   },
   {
@@ -83,12 +83,12 @@
     "id": "MEAL001",
     "name": "番茄牛肉面",
     "category": "菜品",
-    "stock": 49,
+    "stock": 38,
     "min_stock": 10,
     "max_stock": 100,
     "unit": "份",
     "cost_price": 15.0,
-    "last_update": "2025-06-21T12:16:42.018837",
+    "last_update": "2025-06-21T18:52:38.709306",
     "supplier": "厨房制作",
     "price": 25.0
   },

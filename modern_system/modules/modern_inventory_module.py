@@ -47,7 +47,9 @@ class ModernInventoryModule:
             'success': '#00B894',      # 成功色
             'warning': '#FDCB6E',      # 警告色
             'error': '#E84393',        # 错误色
-            'card_shadow': '#F0F0F0'   # 卡片阴影
+            'card_shadow': '#F0F0F0',  # 卡片阴影
+            'white': '#FFFFFF',        # 白色
+            'info': '#3498DB'          # 信息色
         }
         
         # 字体配置
@@ -173,39 +175,21 @@ class ModernInventoryModule:
         action_frame = tk.Frame(self.title_frame, bg=self.colors['surface'])
         action_frame.pack(side="right", padx=30, pady=20)
         
-        # 导出报表按钮
-        export_btn = self.create_action_button(action_frame, "📊 导出报表", self.export_report)
-        export_btn.pack(side="right", padx=(10, 0))
+        # 刷新按钮
+        refresh_btn = tk.Button(action_frame, text="🔄 刷新", 
+                               font=('Microsoft YaHei UI', 10),
+                               bg=self.colors['primary'], fg=self.colors['white'],
+                               bd=0, padx=20, pady=8, cursor='hand2',
+                               command=self.refresh_inventory)
+        refresh_btn.pack(side='right', padx=5)
         
-        # 添加库存按钮
-        add_btn = self.create_action_button(action_frame, "➕ 添加商品", self.add_inventory_item, primary=True)
-        add_btn.pack(side="right", padx=(10, 0))
-        
-    def create_action_button(self, parent, text, command, primary=False):
-        """创建操作按钮"""
-        if primary:
-            bg_color = self.colors['primary']
-            fg_color = "white"
-            hover_color = self.colors['secondary']
-        else:
-            bg_color = self.colors['background']
-            fg_color = self.colors['text_secondary']
-            hover_color = self.colors['border']
-            
-        btn = tk.Button(parent, text=text, font=self.fonts['body'],
-                       bg=bg_color, fg=fg_color, bd=0, relief="flat",
-                       cursor="hand2", command=command, padx=20, pady=8)
-        
-        # 悬停效果
-        def on_enter(event):
-            btn.configure(bg=hover_color)
-        def on_leave(event):
-            btn.configure(bg=bg_color)
-            
-        btn.bind("<Enter>", on_enter)
-        btn.bind("<Leave>", on_leave)
-        
-        return btn
+        # 导出按钮
+        export_btn = tk.Button(action_frame, text="📊 导出", 
+                              font=('Microsoft YaHei UI', 10),
+                              bg=self.colors['success'], fg=self.colors['white'],
+                              bd=0, padx=20, pady=8, cursor='hand2',
+                              command=self.export_inventory)
+        export_btn.pack(side='right', padx=5)
         
     def create_inventory_interface(self):
         """创建库存管理界面"""        # 主容器
@@ -652,10 +636,321 @@ class ModernInventoryModule:
                 self.refresh_inventory_list()
                 messagebox.showinfo("成功", f"{item_data['name']} 库存已调整为 {new_stock} {item_data['unit']}")
                 
-    def export_report(self):
-        """导出报表"""
-        messagebox.showinfo("导出报表", "报表导出功能开发中...")
-        
+    def export_inventory(self):
+        """导出库存数据"""
+        try:
+            from tkinter import filedialog
+            import datetime
+            
+            # 创建导出选择对话框
+            dialog = tk.Toplevel(self.parent_frame)
+            dialog.title("导出库存数据")
+            dialog.geometry("400x300")
+            dialog.configure(bg=self.colors['background'])
+            dialog.transient(self.parent_frame)
+            dialog.grab_set()
+            
+            # 居中显示
+            dialog.update_idletasks()
+            x = (dialog.winfo_screenwidth() // 2) - (200)
+            y = (dialog.winfo_screenheight() // 2) - (150)
+            dialog.geometry(f"400x300+{x}+{y}")
+            
+            # 标题
+            tk.Label(dialog, text="导出库存数据", font=('Microsoft YaHei UI', 14, 'bold'),
+                    bg=self.colors['background'], fg=self.colors['text']).pack(pady=15)
+            
+            # 导出选项框架
+            options_frame = tk.Frame(dialog, bg=self.colors['background'])
+            options_frame.pack(fill="both", expand=True, padx=20, pady=10)
+            
+            # 导出格式选择
+            tk.Label(options_frame, text="选择导出格式:", font=('Microsoft YaHei UI', 12),
+                    bg=self.colors['background'], fg=self.colors['text']).pack(anchor="w", pady=(0, 10))
+            
+            format_var = tk.StringVar(dialog, value="Excel")
+            format_options = ["Excel", "CSV", "PDF"]
+            
+            format_frame = tk.Frame(options_frame, bg=self.colors['background'])
+            format_frame.pack(anchor="w")
+            
+            for i, fmt in enumerate(format_options):
+                rb = tk.Radiobutton(format_frame, text=fmt, variable=format_var, value=fmt,
+                                  font=('Microsoft YaHei UI', 10), bg=self.colors['background'], 
+                                  fg=self.colors['text'], selectcolor=self.colors['surface'])
+                rb.grid(row=0, column=i, sticky="w", padx=(0, 20))
+            
+            # 库存类型筛选
+            tk.Label(options_frame, text="库存类型:", font=('Microsoft YaHei UI', 12),
+                    bg=self.colors['background'], fg=self.colors['text']).pack(anchor="w", pady=(20, 10))
+            
+            type_var = tk.StringVar(dialog, value="全部")
+            type_options = ["全部", "原料", "容器"]
+            
+            type_combo = ttk.Combobox(options_frame, textvariable=type_var, 
+                                    values=type_options, state="readonly", width=20)
+            type_combo.pack(anchor="w")
+            
+            # 按钮框架
+            btn_frame = tk.Frame(dialog, bg=self.colors['background'])
+            btn_frame.pack(fill="x", padx=20, pady=20)
+            
+            def do_export():
+                try:
+                    file_format = format_var.get()
+                    inventory_type = type_var.get()
+                    
+                    # 获取当前时间戳
+                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                    filename = f"库存数据_{inventory_type}_{timestamp}"
+                    
+                    # 选择保存路径
+                    if file_format == "Excel":
+                        file_path = filedialog.asksaveasfilename(
+                            defaultextension=".xlsx",
+                            filetypes=[("Excel文件", "*.xlsx")],
+                            initialname=filename
+                        )
+                        if file_path:
+                            success = self.export_inventory_to_excel(file_path, inventory_type)
+                    elif file_format == "CSV":
+                        file_path = filedialog.asksaveasfilename(
+                            defaultextension=".csv",
+                            filetypes=[("CSV文件", "*.csv")],
+                            initialname=filename
+                        )
+                        if file_path:
+                            success = self.export_inventory_to_csv(file_path, inventory_type)
+                    elif file_format == "PDF":
+                        file_path = filedialog.asksaveasfilename(
+                            defaultextension=".pdf",
+                            filetypes=[("PDF文件", "*.pdf")],
+                            initialname=filename
+                        )
+                        if file_path:
+                            success = self.export_inventory_to_pdf(file_path, inventory_type)
+                    
+                    if success:
+                        messagebox.showinfo("导出成功", f"库存数据已成功导出为 {file_format} 格式", parent=dialog)
+                        dialog.destroy()
+                    else:
+                        messagebox.showerror("导出失败", "导出过程中发生错误", parent=dialog)
+                        
+                except Exception as e:
+                    messagebox.showerror("错误", f"导出失败：{e}", parent=dialog)
+            
+            tk.Button(btn_frame, text="📊 开始导出", command=do_export,
+                     bg=self.colors['primary'], fg='white', bd=0, pady=8, padx=20,
+                     font=('Microsoft YaHei UI', 10)).pack(side="left")
+            tk.Button(btn_frame, text="取消", command=dialog.destroy,
+                     bg=self.colors['text_light'], fg='white', bd=0, pady=8, padx=20,
+                     font=('Microsoft YaHei UI', 10)).pack(side="right")
+                     
+        except Exception as e:
+            messagebox.showerror("错误", f"打开导出对话框失败：{e}")
+    
+    def export_inventory_to_excel(self, file_path: str, inventory_type: str) -> bool:
+        """导出库存为Excel格式"""
+        try:
+            import openpyxl
+            from openpyxl.styles import Font, Alignment, PatternFill
+            
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "库存数据"
+            
+            # 设置标题
+            title = f"智慧餐饮管理系统 - 库存数据 ({inventory_type})"
+            ws['A1'] = title
+            ws['A1'].font = Font(size=16, bold=True)
+            ws.merge_cells('A1:F1')
+            
+            # 设置表头样式
+            header_font = Font(bold=True, color="FFFFFF")
+            header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+            header_alignment = Alignment(horizontal="center", vertical="center")
+            
+            # 表头
+            headers = ["物品名称", "类型", "当前库存", "单位", "预警阈值", "状态"]
+            ws.append(headers)
+            
+            # 设置表头样式
+            for cell in ws[2]:
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
+            
+            # 获取库存数据
+            inventory_data = self.get_filtered_inventory(inventory_type)
+            
+            # 添加数据
+            for item in inventory_data:
+                # 判断库存状态
+                current_stock = item.get('stock', 0)
+                warning_threshold = item.get('warning_threshold', 0)
+                status = "正常" if current_stock > warning_threshold else "预警"
+                
+                row = [
+                    item.get('name', ''),
+                    item.get('type', ''),
+                    current_stock,
+                    item.get('unit', ''),
+                    warning_threshold,
+                    status
+                ]
+                ws.append(row)
+            
+            # 调整列宽
+            for column in ws.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 50)
+                ws.column_dimensions[column_letter].width = adjusted_width
+            
+            wb.save(file_path)
+            return True
+            
+        except ImportError:
+            messagebox.showerror("错误", "请安装openpyxl库：pip install openpyxl")
+            return False
+        except Exception as e:
+            print(f"导出Excel失败: {e}")
+            return False
+    
+    def export_inventory_to_csv(self, file_path: str, inventory_type: str) -> bool:
+        """导出库存为CSV格式"""
+        try:
+            import csv
+            
+            with open(file_path, 'w', newline='', encoding='utf-8-sig') as csvfile:
+                fieldnames = ["物品名称", "类型", "当前库存", "单位", "预警阈值", "状态"]
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                
+                # 获取库存数据
+                inventory_data = self.get_filtered_inventory(inventory_type)
+                
+                for item in inventory_data:
+                    # 判断库存状态
+                    current_stock = item.get('stock', 0)
+                    warning_threshold = item.get('warning_threshold', 0)
+                    status = "正常" if current_stock > warning_threshold else "预警"
+                    
+                    writer.writerow({
+                        "物品名称": item.get('name', ''),
+                        "类型": item.get('type', ''),
+                        "当前库存": current_stock,
+                        "单位": item.get('unit', ''),
+                        "预警阈值": warning_threshold,
+                        "状态": status
+                    })
+            
+            return True
+            
+        except Exception as e:
+            print(f"导出CSV失败: {e}")
+            return False
+    
+    def export_inventory_to_pdf(self, file_path: str, inventory_type: str) -> bool:
+        """导出库存为PDF格式"""
+        try:
+            from reportlab.lib.pagesizes import A4
+            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib import colors
+            
+            doc = SimpleDocTemplate(file_path, pagesize=A4)
+            story = []
+            
+            # 标题样式
+            styles = getSampleStyleSheet()
+            title_style = ParagraphStyle(
+                'CustomTitle',
+                parent=styles['Heading1'],
+                fontSize=16,
+                spaceAfter=30,
+                alignment=1  # 居中
+            )
+            
+            # 添加标题
+            title = Paragraph(f"智慧餐饮管理系统 - 库存数据 ({inventory_type})", title_style)
+            story.append(title)
+            story.append(Spacer(1, 20))
+            
+            # 获取库存数据
+            inventory_data = self.get_filtered_inventory(inventory_type)
+            
+            # 创建表格数据
+            table_data = [["物品名称", "类型", "当前库存", "单位", "预警阈值", "状态"]]
+            
+            for item in inventory_data:
+                # 判断库存状态
+                current_stock = item.get('stock', 0)
+                warning_threshold = item.get('warning_threshold', 0)
+                status = "正常" if current_stock > warning_threshold else "预警"
+                
+                row = [
+                    item.get('name', ''),
+                    item.get('type', ''),
+                    current_stock,
+                    item.get('unit', ''),
+                    warning_threshold,
+                    status
+                ]
+                table_data.append(row)
+            
+            # 创建表格
+            table = Table(table_data)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('FONTSIZE', (0, 1), (-1, -1), 8),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.beige, colors.white])
+            ]))
+            story.append(table)
+            
+            doc.build(story)
+            return True
+            
+        except ImportError:
+            messagebox.showerror("错误", "请安装reportlab库：pip install reportlab")
+            return False
+        except Exception as e:
+            print(f"导出PDF失败: {e}")
+            return False
+    
+    def get_filtered_inventory(self, inventory_type: str) -> List[Dict]:
+        """获取筛选后的库存数据"""
+        if inventory_type == "全部":
+            return self.inventory_data
+        else:
+            return [item for item in self.inventory_data if item.get('type') == inventory_type]
+    
+    def refresh_inventory(self):
+        """刷新库存数据"""
+        try:
+            # 重新加载库存数据
+            self.inventory_data = self.load_inventory_data()
+            # 重新显示库存列表
+            self.refresh_inventory_list()
+            # 刷新可制作菜品
+            self.refresh_possible_meals()
+            messagebox.showinfo("刷新成功", "库存数据已刷新")
+        except Exception as e:
+            messagebox.showerror("刷新失败", f"刷新库存数据时发生错误：{e}")
+    
     def load_recipe_data(self):
         """加载配方数据"""
         try:
@@ -982,7 +1277,6 @@ class InventoryItemDialog:
         self.dialog.grab_set()
         
         # 居中显示
-        self.dialog.transient(parent)
         self.center_window()
         
         # 颜色主题

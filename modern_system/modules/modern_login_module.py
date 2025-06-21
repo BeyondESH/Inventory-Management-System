@@ -10,7 +10,14 @@ from tkinter import ttk, messagebox
 import os
 import math
 import datetime
-from PIL import Image, ImageTk
+# PIL 是可选依赖，如果没有安装则跳过
+try:
+    from PIL import Image, ImageTk
+    PIL_AVAILABLE = True
+except ImportError:
+    PIL_AVAILABLE = False
+    print("⚠️ PIL库未安装，将使用基本界面（不影响功能）")
+
 try:
     from ..core.user_manager import UserManager, User
 except ImportError:

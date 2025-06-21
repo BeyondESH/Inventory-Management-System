@@ -56,7 +56,8 @@ class ModernFinanceModule:
             'surface': '#FFFFFF',
             'text_primary': '#2D3436',
             'text_secondary': '#636E72',
-            'border': '#E1E8ED'
+            'border': '#E1E8ED',
+            'white': '#FFFFFF'
         }
         
         # 字体配置
@@ -597,17 +598,10 @@ class ModernFinanceModule:
             self.finance_tree.heading(col, text=col)
             self.finance_tree.column(col, width=120, anchor="center")
         
-        # 添加示例数据
-        sample_data = [
-            ("12:30", "收入", "订单收入", "￥50", "微信支付", "张三-番茄牛肉面"),
-            ("12:45", "收入", "订单收入", "￥18", "支付宝", "李四-鸡蛋炒饭"),
-            ("09:00", "支出", "原料采购", "￥500", "现金", "蔬菜采购"),
-            ("10:30", "支出", "员工工资", "￥180", "银行转账", "小王-日薪")
-        ]
+        # 从数据库加载真实财务数据
+        self.load_finance_records()
         
-        for data in sample_data:
-            self.finance_tree.insert("", "end", values=data)
-          # 添加滚动条
+        # 添加滚动条
         scrollbar = ttk.Scrollbar(self.records_frame, orient="vertical", command=self.finance_tree.yview)
         self.finance_tree.configure(yscrollcommand=scrollbar.set)
         
@@ -617,7 +611,64 @@ class ModernFinanceModule:
         
         # 添加操作按钮
         self.create_finance_buttons(self.records_frame)
-        
+    
+    def load_finance_records(self):
+        """从数据库加载财务记录"""
+        try:
+            # 清空现有数据
+            for item in self.finance_tree.get_children():
+                self.finance_tree.delete(item)
+            
+            # 从数据管理器获取财务记录
+            finance_records = data_manager.get_financial_records()
+            
+            if not finance_records:
+                # 如果没有数据，显示提示
+                self.finance_tree.insert("", "end", values=("暂无数据", "", "", "", "", ""))
+                return
+            
+            # 插入真实数据
+            for record in finance_records:
+                # 处理时间格式
+                time_str = ""
+                if record.get('income_date'):
+                    time_str = str(record['income_date'])
+                elif record.get('created_at'):
+                    time_str = str(record['created_at'])[:10]  # 取日期部分
+                
+                # 处理金额
+                amount = record.get('amount', 0)
+                amount_str = f"￥{amount:.2f}" if amount else "￥0.00"
+                
+                # 处理类型
+                record_type = "收入" if record.get('income_type') == 'revenue' else "支出"
+                
+                # 处理描述
+                description = record.get('description', '')
+                
+                # 处理支付方式（从订单关联获取）
+                payment_method = "现金"  # 默认值
+                if record.get('order_price_id'):
+                    # 可以进一步查询订单表获取支付方式
+                    payment_method = "订单收入"
+                
+                # 处理备注
+                note = record.get('description', '')[:20] + "..." if len(record.get('description', '')) > 20 else record.get('description', '')
+                
+                self.finance_tree.insert("", "end", values=(
+                    time_str, record_type, description, amount_str, payment_method, note
+                ))
+                
+        except Exception as e:
+            print(f"加载财务记录失败: {e}")
+            # 如果加载失败，显示默认数据
+            self.finance_tree.insert("", "end", values=("加载失败", "", "", "", "", ""))
+    
+    def refresh_finance_records(self):
+        """刷新财务记录"""
+        if hasattr(self, 'finance_tree'):
+            self.load_finance_records()
+    
     def create_finance_buttons(self, parent):
         """创建财务操作按钮"""
         button_frame = tk.Frame(parent, bg=self.colors['surface'])
@@ -949,67 +1000,6 @@ class ModernFinanceModule:
             root = self.main_frame.winfo_toplevel()
             messagebox.showerror("错误", f"打开导出对话框失败：{e}", parent=root)
             
-            # 标题
-            tk.Label(dialog, text="📊 导出财务报表", font=self.fonts['heading'],
-                    bg=self.colors['background'], fg=self.colors['text_primary']).pack(pady=15)
-            
-            # 导出选项
-            options_frame = tk.Frame(dialog, bg=self.colors['background'])
-            options_frame.pack(fill="both", expand=True, padx=20, pady=10)
-            
-            # 导出类型选择
-            tk.Label(options_frame, text="选择导出内容:", bg=self.colors['background']).pack(anchor="w", pady=(0, 10))
-            
-            export_var = tk.StringVar(dialog, value="收支记录")
-            export_options = ["收支记录", "固定成本", "综合报表"]
-            
-            for option in export_options:
-                rb = tk.Radiobutton(options_frame, text=option, variable=export_var, value=option,
-                                   bg=self.colors['background'], font=self.fonts['body'])
-                rb.pack(anchor="w", pady=2)
-            
-            # 导出格式选择
-            tk.Label(options_frame, text="选择导出格式:", bg=self.colors['background']).pack(anchor="w", pady=(20, 10))
-            
-            format_var = tk.StringVar(dialog, value="CSV")
-            format_options = ["CSV", "Excel", "PDF"]
-            
-            for fmt in format_options:
-                rb = tk.Radiobutton(options_frame, text=fmt, variable=format_var, value=fmt,
-                                   bg=self.colors['background'], font=self.fonts['body'])
-                rb.pack(anchor="w", pady=2)
-            
-            # 按钮
-            btn_frame = tk.Frame(dialog, bg=self.colors['background'])
-            btn_frame.pack(fill="x", padx=20, pady=20)
-            
-            def do_export():
-                try:
-                    export_type = export_var.get()
-                    export_format = format_var.get()
-                    
-                    if export_format == "CSV":
-                        self.export_to_csv(export_type)
-                    elif export_format == "Excel":
-                        self.export_to_excel(export_type)
-                    elif export_format == "PDF":
-                        self.export_to_pdf(export_type)
-                    
-                    messagebox.showinfo("成功", f"{export_type}已导出为{export_format}格式", parent=dialog)
-                    dialog.destroy()
-                    
-                except Exception as e:
-                    messagebox.showerror("错误", f"导出失败：{e}", parent=dialog)
-            
-            tk.Button(btn_frame, text="导出", command=do_export,
-                     bg=self.colors['primary'], fg='white', bd=0, pady=8, padx=20).pack(side="left")
-            tk.Button(btn_frame, text="取消", command=dialog.destroy,
-                     bg=self.colors['text_secondary'], fg='white', bd=0, pady=8, padx=20).pack(side="right")
-                     
-        except Exception as e:
-            root = self.main_frame.winfo_toplevel()
-            messagebox.showerror("错误", f"打开导出对话框失败：{e}", parent=root)
-    
     def load_fixed_costs(self):
         """加载固定成本数据"""
         try:
@@ -1127,3 +1117,384 @@ class ModernFinanceModule:
                 return amount  # 默认按月计算
         except:
             return 0
+    
+    def perform_export(self, export_type: str, file_format: str, time_range: str) -> bool:
+        """执行导出操作"""
+        try:
+            from tkinter import filedialog
+            import csv
+            import datetime
+            
+            # 获取当前时间戳
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # 根据导出类型获取数据
+            if export_type == "收支记录":
+                data = self.get_finance_records_for_export(time_range)
+                filename = f"财务收支记录_{timestamp}"
+            elif export_type == "固定成本":
+                data = self.get_fixed_costs_for_export()
+                filename = f"固定成本报表_{timestamp}"
+            elif export_type == "财务概览":
+                data = self.get_finance_overview_for_export(time_range)
+                filename = f"财务概览报表_{timestamp}"
+            elif export_type == "完整报表":
+                data = self.get_complete_finance_report(time_range)
+                filename = f"完整财务报表_{timestamp}"
+            else:
+                return False
+            
+            # 选择保存路径
+            root = self.main_frame.winfo_toplevel()
+            if file_format == "Excel":
+                file_path = filedialog.asksaveasfilename(
+                    defaultextension=".xlsx",
+                    filetypes=[("Excel文件", "*.xlsx")],
+                    initialname=filename
+                )
+                if file_path:
+                    return self.export_to_excel(data, file_path, export_type)
+            elif file_format == "CSV":
+                file_path = filedialog.asksaveasfilename(
+                    defaultextension=".csv",
+                    filetypes=[("CSV文件", "*.csv")],
+                    initialname=filename
+                )
+                if file_path:
+                    return self.export_to_csv(data, file_path, export_type)
+            elif file_format == "PDF":
+                file_path = filedialog.asksaveasfilename(
+                    defaultextension=".pdf",
+                    filetypes=[("PDF文件", "*.pdf")],
+                    initialname=filename
+                )
+                if file_path:
+                    return self.export_to_pdf(data, file_path, export_type)
+            
+            return False
+            
+        except Exception as e:
+            print(f"导出失败: {e}")
+            return False
+    
+    def get_finance_records_for_export(self, time_range: str) -> List[Dict]:
+        """获取收支记录数据用于导出"""
+        try:
+            # 从数据库获取财务记录
+            records = data_manager.get_financial_records()
+            
+            # 根据时间范围过滤
+            filtered_records = []
+            current_date = datetime.datetime.now().date()
+            
+            for record in records:
+                record_date = None
+                if record.get('income_date'):
+                    record_date = datetime.datetime.strptime(str(record['income_date']), '%Y-%m-%d').date()
+                elif record.get('created_at'):
+                    record_date = datetime.datetime.strptime(str(record['created_at'])[:10], '%Y-%m-%d').date()
+                
+                if record_date:
+                    if time_range == "今日" and record_date == current_date:
+                        filtered_records.append(record)
+                    elif time_range == "本周" and (current_date - record_date).days <= 7:
+                        filtered_records.append(record)
+                    elif time_range == "本月" and record_date.month == current_date.month and record_date.year == current_date.year:
+                        filtered_records.append(record)
+                    elif time_range == "本季度":
+                        quarter_start = datetime.date(current_date.year, ((current_date.month - 1) // 3) * 3 + 1, 1)
+                        if record_date >= quarter_start:
+                            filtered_records.append(record)
+                    elif time_range == "本年" and record_date.year == current_date.year:
+                        filtered_records.append(record)
+                    elif time_range == "全部":
+                        filtered_records.append(record)
+            
+            return filtered_records
+        except Exception as e:
+            print(f"获取财务记录失败: {e}")
+            return []
+    
+    def get_fixed_costs_for_export(self) -> List[Dict]:
+        """获取固定成本数据用于导出"""
+        try:
+            costs = []
+            for item in self.costs_tree.get_children():
+                values = self.costs_tree.item(item)['values']
+                cost = {
+                    "成本类型": values[0],
+                    "项目": values[1],
+                    "金额": values[2],
+                    "周期": values[3],
+                    "下次日期": values[4],
+                    "状态": values[5],
+                    "备注": values[6] if len(values) > 6 else ""
+                }
+                costs.append(cost)
+            return costs
+        except Exception as e:
+            print(f"获取固定成本失败: {e}")
+            return []
+    
+    def get_finance_overview_for_export(self, time_range: str) -> Dict:
+        """获取财务概览数据用于导出"""
+        try:
+            # 获取统计数据
+            stats = data_manager.get_dashboard_stats()
+            
+            # 获取收支记录
+            records = self.get_finance_records_for_export(time_range)
+            
+            # 计算收入支出
+            total_income = sum(r.get('amount', 0) for r in records if r.get('income_type') == 'revenue')
+            total_expense = sum(r.get('amount', 0) for r in records if r.get('income_type') == 'cost')
+            
+            return {
+                "统计信息": {
+                    "今日销售额": f"￥{stats.get('today_sales', 0):.2f}",
+                    "订单数量": stats.get('order_count', 0),
+                    "库存预警": stats.get('low_stock_count', 0),
+                    "客户总数": stats.get('customer_count', 0)
+                },
+                "财务概览": {
+                    "总收入": f"￥{total_income:.2f}",
+                    "总支出": f"￥{total_expense:.2f}",
+                    "净收入": f"￥{total_income - total_expense:.2f}",
+                    "时间范围": time_range
+                }
+            }
+        except Exception as e:
+            print(f"获取财务概览失败: {e}")
+            return {}
+    
+    def get_complete_finance_report(self, time_range: str) -> Dict:
+        """获取完整财务报表数据"""
+        try:
+            return {
+                "财务概览": self.get_finance_overview_for_export(time_range),
+                "收支记录": self.get_finance_records_for_export(time_range),
+                "固定成本": self.get_fixed_costs_for_export()
+            }
+        except Exception as e:
+            print(f"获取完整报表失败: {e}")
+            return {}
+    
+    def export_to_excel(self, data: Any, file_path: str, export_type: str) -> bool:
+        """导出为Excel格式"""
+        try:
+            import openpyxl
+            from openpyxl.styles import Font, Alignment, PatternFill
+            
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "财务报表"
+            
+            # 设置标题
+            title = f"智慧餐饮管理系统 - {export_type}"
+            ws['A1'] = title
+            ws['A1'].font = Font(size=16, bold=True)
+            ws.merge_cells('A1:F1')
+            
+            # 设置表头样式
+            header_font = Font(bold=True, color="FFFFFF")
+            header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+            header_alignment = Alignment(horizontal="center", vertical="center")
+            
+            if export_type == "收支记录":
+                headers = ["时间", "类型", "描述", "金额", "支付方式", "备注"]
+                ws.append(headers)
+                
+                # 设置表头样式
+                for cell in ws[2]:
+                    cell.font = header_font
+                    cell.fill = header_fill
+                    cell.alignment = header_alignment
+                
+                # 添加数据
+                for record in data:
+                    row = [
+                        str(record.get('income_date', record.get('created_at', '')))[:10],
+                        "收入" if record.get('income_type') == 'revenue' else "支出",
+                        record.get('description', ''),
+                        f"￥{record.get('amount', 0):.2f}",
+                        "订单收入" if record.get('order_price_id') else "现金",
+                        record.get('description', '')[:20]
+                    ]
+                    ws.append(row)
+                    
+            elif export_type == "固定成本":
+                headers = ["成本类型", "项目", "金额", "周期", "下次日期", "状态", "备注"]
+                ws.append(headers)
+                
+                # 设置表头样式
+                for cell in ws[2]:
+                    cell.font = header_font
+                    cell.fill = header_fill
+                    cell.alignment = header_alignment
+                
+                # 添加数据
+                for cost in data:
+                    row = [
+                        cost.get("成本类型", ""),
+                        cost.get("项目", ""),
+                        cost.get("金额", ""),
+                        cost.get("周期", ""),
+                        cost.get("下次日期", ""),
+                        cost.get("状态", ""),
+                        cost.get("备注", "")
+                    ]
+                    ws.append(row)
+            
+            # 调整列宽
+            for column in ws.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 50)
+                ws.column_dimensions[column_letter].width = adjusted_width
+            
+            wb.save(file_path)
+            return True
+            
+        except ImportError:
+            messagebox.showerror("错误", "请安装openpyxl库：pip install openpyxl")
+            return False
+        except Exception as e:
+            print(f"导出Excel失败: {e}")
+            return False
+    
+    def export_to_csv(self, data: Any, file_path: str, export_type: str) -> bool:
+        """导出为CSV格式"""
+        try:
+            import csv
+            
+            with open(file_path, 'w', newline='', encoding='utf-8-sig') as csvfile:
+                if export_type == "收支记录":
+                    fieldnames = ["时间", "类型", "描述", "金额", "支付方式", "备注"]
+                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                    writer.writeheader()
+                    
+                    for record in data:
+                        writer.writerow({
+                            "时间": str(record.get('income_date', record.get('created_at', '')))[:10],
+                            "类型": "收入" if record.get('income_type') == 'revenue' else "支出",
+                            "描述": record.get('description', ''),
+                            "金额": f"￥{record.get('amount', 0):.2f}",
+                            "支付方式": "订单收入" if record.get('order_price_id') else "现金",
+                            "备注": record.get('description', '')[:20]
+                        })
+                        
+                elif export_type == "固定成本":
+                    fieldnames = ["成本类型", "项目", "金额", "周期", "下次日期", "状态", "备注"]
+                    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                    writer.writeheader()
+                    
+                    for cost in data:
+                        writer.writerow(cost)
+            
+            return True
+            
+        except Exception as e:
+            print(f"导出CSV失败: {e}")
+            return False
+    
+    def export_to_pdf(self, data: Any, file_path: str, export_type: str) -> bool:
+        """导出为PDF格式"""
+        try:
+            from reportlab.lib.pagesizes import letter, A4
+            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib import colors
+            from reportlab.lib.units import inch
+            
+            doc = SimpleDocTemplate(file_path, pagesize=A4)
+            story = []
+            
+            # 标题样式
+            styles = getSampleStyleSheet()
+            title_style = ParagraphStyle(
+                'CustomTitle',
+                parent=styles['Heading1'],
+                fontSize=16,
+                spaceAfter=30,
+                alignment=1  # 居中
+            )
+            
+            # 添加标题
+            title = Paragraph(f"智慧餐饮管理系统 - {export_type}", title_style)
+            story.append(title)
+            story.append(Spacer(1, 20))
+            
+            if export_type == "收支记录":
+                # 创建表格数据
+                table_data = [["时间", "类型", "描述", "金额", "支付方式", "备注"]]
+                
+                for record in data:
+                    row = [
+                        str(record.get('income_date', record.get('created_at', '')))[:10],
+                        "收入" if record.get('income_type') == 'revenue' else "支出",
+                        record.get('description', ''),
+                        f"￥{record.get('amount', 0):.2f}",
+                        "订单收入" if record.get('order_price_id') else "现金",
+                        record.get('description', '')[:20]
+                    ]
+                    table_data.append(row)
+                
+                # 创建表格
+                table = Table(table_data)
+                table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 12),
+                    ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                    ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black)
+                ]))
+                story.append(table)
+                
+            elif export_type == "固定成本":
+                # 创建表格数据
+                table_data = [["成本类型", "项目", "金额", "周期", "下次日期", "状态", "备注"]]
+                
+                for cost in data:
+                    row = [
+                        cost.get("成本类型", ""),
+                        cost.get("项目", ""),
+                        cost.get("金额", ""),
+                        cost.get("周期", ""),
+                        cost.get("下次日期", ""),
+                        cost.get("状态", ""),
+                        cost.get("备注", "")
+                    ]
+                    table_data.append(row)
+                
+                # 创建表格
+                table = Table(table_data)
+                table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                    ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                    ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                    ('FONTSIZE', (0, 0), (-1, 0), 12),
+                    ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                    ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black)
+                ]))
+                story.append(table)
+            
+            doc.build(story)
+            return True
+            
+        except ImportError:
+            messagebox.showerror("错误", "请安装reportlab库：pip install reportlab")
+            return False
+        except Exception as e:
+            print(f"导出PDF失败: {e}")
+            return False

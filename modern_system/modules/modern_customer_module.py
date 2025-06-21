@@ -35,17 +35,21 @@ class ModernCustomerModule:
         
         # 现代化配色方案
         self.colors = {
-            'primary': '#FF6B35',
-            'secondary': '#F7931E',
-            'success': '#00B894',
-            'warning': '#FDCB6E',
-            'danger': '#E74C3C',
-            'info': '#3498DB',
-            'background': '#F8F9FA',
-            'surface': '#FFFFFF',
-            'text_primary': '#2D3436',
-            'text_secondary': '#636E72',
-            'border': '#E1E8ED'
+            'primary': '#FF6B35',      # 主色调
+            'secondary': '#F7931E',    # 次色调
+            'accent': '#FFD23F',       # 强调色
+            'background': '#F8F9FA',   # 背景色
+            'surface': '#FFFFFF',      # 卡片背景
+            'text_primary': '#2D3436', # 主文字
+            'text_secondary': '#636E72', # 次文字
+            'border': '#E0E0E0',       # 边框
+            'success': '#00B894',      # 成功色
+            'warning': '#FDCB6E',      # 警告色
+            'error': '#E84393',        # 错误色
+            'card_shadow': '#F0F0F0',  # 卡片阴影
+            'white': '#FFFFFF',        # 白色
+            'info': '#3498DB',         # 信息色
+            'danger': '#E74C3C'        # 危险色
         }
         
         # 字体配置
@@ -60,16 +64,353 @@ class ModernCustomerModule:
         self.customer_data = self.load_customer_data()
         
     def load_customer_data(self):
-        """加载客户数据"""
+        """从数据库加载客户数据"""
         try:
-            return data_manager.load_data('customers')
-        except:
-            return [
-                {"id": "CUST001", "name": "张三", "phone": "138****1234", "address": "北京市朝阳区xxx街道1号", "total_orders": 15, "total_amount": 1580.0},
-                {"id": "CUST002", "name": "李四", "phone": "139****5678", "address": "北京市海淀区xxx路88号", "total_orders": 8, "total_amount": 890.0},
-                {"id": "CUST003", "name": "王五", "phone": "136****9012", "address": "北京市西城区xxx胡同66号", "total_orders": 12, "total_amount": 1250.0}
-            ]
+            # 从数据管理器获取客户数据
+            customers = data_manager.get_customers()
+            if not customers:
+                # 如果没有数据，返回默认示例数据
+                return [
+                    {"id": "CUST001", "name": "张三", "phone": "138****1234", "address": "北京市朝阳区xxx街道1号", "total_orders": 15, "total_amount": 1580.0},
+                    {"id": "CUST002", "name": "李四", "phone": "139****5678", "address": "北京市海淀区xxx路88号", "total_orders": 8, "total_amount": 890.0},
+                    {"id": "CUST003", "name": "王五", "phone": "136****9012", "address": "北京市西城区xxx胡同66号", "total_orders": 12, "total_amount": 1250.0}
+                ]
+            
+            # 处理数据库字段映射
+            formatted_customers = []
+            for customer in customers:
+                # 处理姓名字段
+                first_name = customer.get('first_name', '')
+                last_name = customer.get('last_name', '')
+                name = f"{first_name} {last_name}".strip()
+                
+                # 处理电话字段
+                phone = customer.get('customer_phone', customer.get('phone', ''))
+                
+                # 处理地址字段
+                address = customer.get('customer_address', customer.get('address', ''))
+                
+                # 处理ID字段
+                customer_id = customer.get('customer_id', customer.get('id', ''))
+                
+                # 计算订单数和消费金额（从订单表统计）
+                total_orders = customer.get('total_orders', 0)
+                total_amount = customer.get('total_amount', 0)
+                
+                formatted_customer = {
+                    'id': customer_id,
+                    'name': name,
+                    'phone': phone,
+                    'address': address,
+                    'total_orders': total_orders,
+                    'total_amount': total_amount,
+                    # 保留原始数据用于编辑
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'customer_phone': phone,
+                    'customer_address': address,
+                    'customer_email': customer.get('customer_email', ''),
+                    'payment_method_id': customer.get('payment_method_id')
+                }
+                formatted_customers.append(formatted_customer)
+            
+            return formatted_customers
+            
+        except Exception as e:
+            print(f"加载客户数据失败: {e}")
+            return []
+    
+    def refresh_customer_data(self):
+        """刷新客户数据"""
+        self.customer_data = self.load_customer_data()
+        self.refresh_customer_list()
+    
+    def refresh_customer_list(self):
+        """刷新客户列表显示"""
+        if hasattr(self, 'customer_tree'):
+            # 清空现有数据
+            for item in self.customer_tree.get_children():
+                self.customer_tree.delete(item)
+            
+            # 重新插入数据
+            for customer in self.customer_data:
+                values = (
+                    customer.get('id', ''),
+                    customer.get('name', ''),
+                    customer.get('phone', ''),
+                    customer.get('address', ''),
+                    customer.get('total_orders', 0),
+                    f"￥{customer.get('total_amount', 0):.0f}"
+                )
+                self.customer_tree.insert("", "end", values=values)
         
+    def create_customer_buttons(self, parent):
+        """创建客户操作按钮"""
+        button_frame = tk.Frame(parent, bg=self.colors['surface'])
+        button_frame.pack(fill="x", padx=10, pady=(0, 10))
+        
+        # 添加客户按钮
+        add_btn = tk.Button(button_frame, text="➕ 添加客户", 
+                           font=self.fonts['body'],
+                           bg=self.colors['success'], fg='white',
+                           bd=0, pady=8, padx=15, cursor="hand2",
+                           command=self.add_customer)
+        add_btn.pack(side="left", padx=(0, 10))
+        
+        # 编辑客户按钮
+        edit_btn = tk.Button(button_frame, text="✏️ 编辑客户", 
+                            font=self.fonts['body'],
+                            bg=self.colors['info'], fg='white',
+                            bd=0, pady=8, padx=15, cursor="hand2",
+                            command=self.edit_customer)
+        edit_btn.pack(side="left", padx=(0, 10))
+        
+        # 删除客户按钮
+        delete_btn = tk.Button(button_frame, text="🗑️ 删除客户", 
+                              font=self.fonts['body'],
+                              bg=self.colors['danger'], fg='white',
+                              bd=0, pady=8, padx=15, cursor="hand2",
+                              command=self.delete_customer)
+        delete_btn.pack(side="left", padx=(0, 10))
+        
+        # 刷新按钮
+        refresh_btn = tk.Button(button_frame, text="🔄 刷新", 
+                               font=self.fonts['body'],
+                               bg=self.colors['secondary'], fg='white',
+                               bd=0, pady=8, padx=15, cursor="hand2",
+                               command=self.refresh_customer_data)
+        refresh_btn.pack(side="right")
+        
+        # 导出按钮
+        export_btn = tk.Button(button_frame, text="📊 导出", 
+                              font=self.fonts['body'],
+                              bg=self.colors['success'], fg='white',
+                              bd=0, pady=8, padx=15, cursor="hand2",
+                              command=self.export_customers)
+        export_btn.pack(side="right")
+    
+    def add_customer(self):
+        """添加客户"""
+        try:
+            # 创建输入对话框
+            dialog = tk.Toplevel(self.main_frame)
+            dialog.title("添加客户")
+            dialog.geometry("400x350")
+            dialog.configure(bg=self.colors['background'])
+            dialog.transient(self.main_frame)
+            dialog.grab_set()
+            
+            # 居中显示
+            dialog.update_idletasks()
+            x = (dialog.winfo_screenwidth() // 2) - (200)
+            y = (dialog.winfo_screenheight() // 2) - (175)
+            dialog.geometry(f"400x350+{x}+{y}")
+            
+            # 输入字段
+            tk.Label(dialog, text="添加客户", font=self.fonts['heading'],
+                    bg=self.colors['background'], fg=self.colors['text_primary']).pack(pady=10)
+            
+            # 姓名
+            tk.Label(dialog, text="姓名:", bg=self.colors['background'], 
+                    fg=self.colors['text_primary']).pack(anchor="w", padx=20)
+            name_var = tk.StringVar(dialog)
+            name_entry = tk.Entry(dialog, textvariable=name_var, font=self.fonts['body'])
+            name_entry.pack(fill="x", padx=20, pady=5)
+            
+            # 电话
+            tk.Label(dialog, text="电话:", bg=self.colors['background'], 
+                    fg=self.colors['text_primary']).pack(anchor="w", padx=20)
+            phone_var = tk.StringVar(dialog)
+            phone_entry = tk.Entry(dialog, textvariable=phone_var, font=self.fonts['body'])
+            phone_entry.pack(fill="x", padx=20, pady=5)
+            
+            # 地址
+            tk.Label(dialog, text="地址:", bg=self.colors['background'], 
+                    fg=self.colors['text_primary']).pack(anchor="w", padx=20)
+            address_var = tk.StringVar(dialog)
+            address_entry = tk.Entry(dialog, textvariable=address_var, font=self.fonts['body'])
+            address_entry.pack(fill="x", padx=20, pady=5)
+            
+            # 按钮
+            btn_frame = tk.Frame(dialog, bg=self.colors['background'])
+            btn_frame.pack(fill="x", padx=20, pady=20)
+            
+            def save_customer():
+                try:
+                    name = name_var.get().strip()
+                    phone = phone_var.get().strip()
+                    address = address_var.get().strip()
+                    
+                    if not name or not phone:
+                        messagebox.showerror("错误", "请填写姓名和电话", parent=dialog)
+                        return
+                    
+                    # 创建客户数据
+                    customer_data = {
+                        'first_name': name.split()[0] if ' ' in name else name,
+                        'last_name': name.split()[1] if ' ' in name else '',
+                        'phone': phone,
+                        'address': address,
+                        'email': '',
+                        'registration_date': datetime.datetime.now().strftime('%Y-%m-%d')
+                    }
+                    
+                    # 使用数据管理器添加客户
+                    customer_id = data_manager.add_customer(customer_data)
+                    
+                    messagebox.showinfo("成功", f"客户添加成功，ID: {customer_id}", parent=dialog)
+                    dialog.destroy()
+                    self.refresh_customer_data()
+                    
+                except Exception as e:
+                    messagebox.showerror("错误", f"添加客户失败：{e}", parent=dialog)
+            
+            tk.Button(btn_frame, text="保存", command=save_customer,
+                     bg=self.colors['success'], fg='white', bd=0, pady=8, padx=20).pack(side="left")
+            tk.Button(btn_frame, text="取消", command=dialog.destroy,
+                     bg=self.colors['text_secondary'], fg='white', bd=0, pady=8, padx=20).pack(side="right")
+                     
+        except Exception as e:
+            messagebox.showerror("错误", f"打开添加客户对话框失败：{e}")
+    
+    def edit_customer(self):
+        """编辑客户"""
+        try:
+            # 获取选中的客户
+            selected_item = self.customer_tree.selection()
+            if not selected_item:
+                messagebox.showwarning("提示", "请先选择一个客户")
+                return
+            
+            # 获取客户数据
+            item_values = self.customer_tree.item(selected_item[0])['values']
+            customer_id = item_values[0]
+            
+            # 查找客户数据
+            customer = None
+            for c in self.customer_data:
+                if str(c.get('id', '')) == str(customer_id):
+                    customer = c
+                    break
+            
+            if not customer:
+                messagebox.showerror("错误", "未找到客户数据")
+                return
+            
+            # 创建编辑对话框
+            dialog = tk.Toplevel(self.main_frame)
+            dialog.title("编辑客户")
+            dialog.geometry("400x350")
+            dialog.configure(bg=self.colors['background'])
+            dialog.transient(self.main_frame)
+            dialog.grab_set()
+            
+            # 居中显示
+            dialog.update_idletasks()
+            x = (dialog.winfo_screenwidth() // 2) - (200)
+            y = (dialog.winfo_screenheight() // 2) - (175)
+            dialog.geometry(f"400x350+{x}+{y}")
+            
+            # 输入字段
+            tk.Label(dialog, text="编辑客户", font=self.fonts['heading'],
+                    bg=self.colors['background'], fg=self.colors['text_primary']).pack(pady=10)
+            
+            # 姓名
+            tk.Label(dialog, text="姓名:", bg=self.colors['background'], 
+                    fg=self.colors['text_primary']).pack(anchor="w", padx=20)
+            name_var = tk.StringVar(dialog, value=customer.get('name', ''))
+            name_entry = tk.Entry(dialog, textvariable=name_var, font=self.fonts['body'])
+            name_entry.pack(fill="x", padx=20, pady=5)
+            
+            # 电话
+            tk.Label(dialog, text="电话:", bg=self.colors['background'], 
+                    fg=self.colors['text_primary']).pack(anchor="w", padx=20)
+            phone_var = tk.StringVar(dialog, value=customer.get('phone', ''))
+            phone_entry = tk.Entry(dialog, textvariable=phone_var, font=self.fonts['body'])
+            phone_entry.pack(fill="x", padx=20, pady=5)
+            
+            # 地址
+            tk.Label(dialog, text="地址:", bg=self.colors['background'], 
+                    fg=self.colors['text_primary']).pack(anchor="w", padx=20)
+            address_var = tk.StringVar(dialog, value=customer.get('address', ''))
+            address_entry = tk.Entry(dialog, textvariable=address_var, font=self.fonts['body'])
+            address_entry.pack(fill="x", padx=20, pady=5)
+            
+            # 按钮
+            btn_frame = tk.Frame(dialog, bg=self.colors['background'])
+            btn_frame.pack(fill="x", padx=20, pady=20)
+            
+            def update_customer():
+                try:
+                    name = name_var.get().strip()
+                    phone = phone_var.get().strip()
+                    address = address_var.get().strip()
+                    
+                    if not name or not phone:
+                        messagebox.showerror("错误", "请填写姓名和电话", parent=dialog)
+                        return
+                    
+                    # 更新客户数据
+                    customer_data = {
+                        'id': customer_id,
+                        'first_name': name.split()[0] if ' ' in name else name,
+                        'last_name': name.split()[1] if ' ' in name else '',
+                        'phone': phone,
+                        'address': address
+                    }
+                    
+                    # 使用数据管理器更新客户
+                    success = data_manager.update_customer(customer_id, customer_data)
+                    
+                    if success:
+                        messagebox.showinfo("成功", "客户信息更新成功", parent=dialog)
+                        dialog.destroy()
+                        self.refresh_customer_data()
+                    else:
+                        messagebox.showerror("错误", "更新客户信息失败", parent=dialog)
+                    
+                except Exception as e:
+                    messagebox.showerror("错误", f"更新客户失败：{e}", parent=dialog)
+            
+            tk.Button(btn_frame, text="更新", command=update_customer,
+                     bg=self.colors['success'], fg='white', bd=0, pady=8, padx=20).pack(side="left")
+            tk.Button(btn_frame, text="取消", command=dialog.destroy,
+                     bg=self.colors['text_secondary'], fg='white', bd=0, pady=8, padx=20).pack(side="right")
+                     
+        except Exception as e:
+            messagebox.showerror("错误", f"编辑客户失败：{e}")
+    
+    def delete_customer(self):
+        """删除客户"""
+        try:
+            # 获取选中的客户
+            selected_item = self.customer_tree.selection()
+            if not selected_item:
+                messagebox.showwarning("提示", "请先选择一个客户")
+                return
+            
+            # 获取客户数据
+            item_values = self.customer_tree.item(selected_item[0])['values']
+            customer_id = item_values[0]
+            customer_name = item_values[1]
+            
+            # 确认删除
+            result = messagebox.askyesno("确认删除", f"确定要删除客户 {customer_name} 吗？\n此操作不可恢复！")
+            if not result:
+                return
+            
+            # 使用数据管理器删除客户
+            success = data_manager.delete_customer(customer_id)
+            
+            if success:
+                messagebox.showinfo("成功", f"客户 {customer_name} 已删除")
+                self.refresh_customer_data()
+            else:
+                messagebox.showerror("错误", "删除客户失败")
+                
+        except Exception as e:
+            messagebox.showerror("错误", f"删除客户失败：{e}")
+    
     def show(self):
         """显示客户管理界面"""
         if self.main_frame:
@@ -171,3 +512,293 @@ class ModernCustomerModule:
         # 布局
         self.customer_tree.pack(side="left", fill="both", expand=True, padx=10, pady=10)
         scrollbar.pack(side="right", fill="y", pady=10)
+        
+        # 添加操作按钮
+        self.create_customer_buttons(list_frame)
+
+    def export_customers(self):
+        """导出客户数据"""
+        try:
+            from tkinter import filedialog
+            import datetime
+            
+            # 创建导出选择对话框
+            dialog = tk.Toplevel(self.parent_frame)
+            dialog.title("导出客户数据")
+            dialog.geometry("400x300")
+            dialog.configure(bg=self.colors['background'])
+            dialog.transient(self.parent_frame)
+            dialog.grab_set()
+            
+            # 居中显示
+            dialog.update_idletasks()
+            x = (dialog.winfo_screenwidth() // 2) - (200)
+            y = (dialog.winfo_screenheight() // 2) - (150)
+            dialog.geometry(f"400x300+{x}+{y}")
+            
+            # 标题
+            tk.Label(dialog, text="导出客户数据", font=('Microsoft YaHei UI', 14, 'bold'),
+                    bg=self.colors['background'], fg=self.colors['text']).pack(pady=15)
+            
+            # 导出选项框架
+            options_frame = tk.Frame(dialog, bg=self.colors['background'])
+            options_frame.pack(fill="both", expand=True, padx=20, pady=10)
+            
+            # 导出格式选择
+            tk.Label(options_frame, text="选择导出格式:", font=('Microsoft YaHei UI', 12),
+                    bg=self.colors['background'], fg=self.colors['text']).pack(anchor="w", pady=(0, 10))
+            
+            format_var = tk.StringVar(dialog, value="Excel")
+            format_options = ["Excel", "CSV", "PDF"]
+            
+            format_frame = tk.Frame(options_frame, bg=self.colors['background'])
+            format_frame.pack(anchor="w")
+            
+            for i, fmt in enumerate(format_options):
+                rb = tk.Radiobutton(format_frame, text=fmt, variable=format_var, value=fmt,
+                                  font=('Microsoft YaHei UI', 10), bg=self.colors['background'], 
+                                  fg=self.colors['text'], selectcolor=self.colors['surface'])
+                rb.grid(row=0, column=i, sticky="w", padx=(0, 20))
+            
+            # 客户类型筛选
+            tk.Label(options_frame, text="客户类型:", font=('Microsoft YaHei UI', 12),
+                    bg=self.colors['background'], fg=self.colors['text']).pack(anchor="w", pady=(20, 10))
+            
+            type_var = tk.StringVar(dialog, value="全部")
+            type_options = ["全部", "个人", "企业"]
+            
+            type_combo = ttk.Combobox(options_frame, textvariable=type_var, 
+                                    values=type_options, state="readonly", width=20)
+            type_combo.pack(anchor="w")
+            
+            # 按钮框架
+            btn_frame = tk.Frame(dialog, bg=self.colors['background'])
+            btn_frame.pack(fill="x", padx=20, pady=20)
+            
+            def do_export():
+                try:
+                    file_format = format_var.get()
+                    customer_type = type_var.get()
+                    
+                    # 获取当前时间戳
+                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+                    filename = f"客户数据_{customer_type}_{timestamp}"
+                    
+                    # 选择保存路径
+                    if file_format == "Excel":
+                        file_path = filedialog.asksaveasfilename(
+                            defaultextension=".xlsx",
+                            filetypes=[("Excel文件", "*.xlsx")],
+                            initialname=filename
+                        )
+                        if file_path:
+                            success = self.export_customers_to_excel(file_path, customer_type)
+                    elif file_format == "CSV":
+                        file_path = filedialog.asksaveasfilename(
+                            defaultextension=".csv",
+                            filetypes=[("CSV文件", "*.csv")],
+                            initialname=filename
+                        )
+                        if file_path:
+                            success = self.export_customers_to_csv(file_path, customer_type)
+                    elif file_format == "PDF":
+                        file_path = filedialog.asksaveasfilename(
+                            defaultextension=".pdf",
+                            filetypes=[("PDF文件", "*.pdf")],
+                            initialname=filename
+                        )
+                        if file_path:
+                            success = self.export_customers_to_pdf(file_path, customer_type)
+                    
+                    if success:
+                        messagebox.showinfo("导出成功", f"客户数据已成功导出为 {file_format} 格式", parent=dialog)
+                        dialog.destroy()
+                    else:
+                        messagebox.showerror("导出失败", "导出过程中发生错误", parent=dialog)
+                        
+                except Exception as e:
+                    messagebox.showerror("错误", f"导出失败：{e}", parent=dialog)
+            
+            tk.Button(btn_frame, text="📊 开始导出", command=do_export,
+                     bg=self.colors['primary'], fg='white', bd=0, pady=8, padx=20,
+                     font=('Microsoft YaHei UI', 10)).pack(side="left")
+            tk.Button(btn_frame, text="取消", command=dialog.destroy,
+                     bg=self.colors['text_light'], fg='white', bd=0, pady=8, padx=20,
+                     font=('Microsoft YaHei UI', 10)).pack(side="right")
+                     
+        except Exception as e:
+            messagebox.showerror("错误", f"打开导出对话框失败：{e}")
+    
+    def export_customers_to_excel(self, file_path: str, customer_type: str) -> bool:
+        """导出客户为Excel格式"""
+        try:
+            import openpyxl
+            from openpyxl.styles import Font, Alignment, PatternFill
+            
+            wb = openpyxl.Workbook()
+            ws = wb.active
+            ws.title = "客户数据"
+            
+            # 设置标题
+            title = f"智慧餐饮管理系统 - 客户数据 ({customer_type})"
+            ws['A1'] = title
+            ws['A1'].font = Font(size=16, bold=True)
+            ws.merge_cells('A1:F1')
+            
+            # 设置表头样式
+            header_font = Font(bold=True, color="FFFFFF")
+            header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
+            header_alignment = Alignment(horizontal="center", vertical="center")
+            
+            # 表头
+            headers = ["客户姓名", "联系电话", "客户类型", "地址", "备注", "注册时间"]
+            ws.append(headers)
+            
+            # 设置表头样式
+            for cell in ws[2]:
+                cell.font = header_font
+                cell.fill = header_fill
+                cell.alignment = header_alignment
+            
+            # 获取客户数据
+            customers = self.get_filtered_customers(customer_type)
+            
+            # 添加数据
+            for customer in customers:
+                row = [
+                    customer.get('name', ''),
+                    customer.get('phone', ''),
+                    customer.get('type', ''),
+                    customer.get('address', ''),
+                    customer.get('note', ''),
+                    customer.get('created_at', '')
+                ]
+                ws.append(row)
+            
+            # 调整列宽
+            for column in ws.columns:
+                max_length = 0
+                column_letter = column[0].column_letter
+                for cell in column:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 2, 50)
+                ws.column_dimensions[column_letter].width = adjusted_width
+            
+            wb.save(file_path)
+            return True
+            
+        except ImportError:
+            messagebox.showerror("错误", "请安装openpyxl库：pip install openpyxl")
+            return False
+        except Exception as e:
+            print(f"导出Excel失败: {e}")
+            return False
+    
+    def export_customers_to_csv(self, file_path: str, customer_type: str) -> bool:
+        """导出客户为CSV格式"""
+        try:
+            import csv
+            
+            with open(file_path, 'w', newline='', encoding='utf-8-sig') as csvfile:
+                fieldnames = ["客户姓名", "联系电话", "客户类型", "地址", "备注", "注册时间"]
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                
+                # 获取客户数据
+                customers = self.get_filtered_customers(customer_type)
+                
+                for customer in customers:
+                    writer.writerow({
+                        "客户姓名": customer.get('name', ''),
+                        "联系电话": customer.get('phone', ''),
+                        "客户类型": customer.get('type', ''),
+                        "地址": customer.get('address', ''),
+                        "备注": customer.get('note', ''),
+                        "注册时间": customer.get('created_at', '')
+                    })
+            
+            return True
+            
+        except Exception as e:
+            print(f"导出CSV失败: {e}")
+            return False
+    
+    def export_customers_to_pdf(self, file_path: str, customer_type: str) -> bool:
+        """导出客户为PDF格式"""
+        try:
+            from reportlab.lib.pagesizes import A4
+            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.lib import colors
+            
+            doc = SimpleDocTemplate(file_path, pagesize=A4)
+            story = []
+            
+            # 标题样式
+            styles = getSampleStyleSheet()
+            title_style = ParagraphStyle(
+                'CustomTitle',
+                parent=styles['Heading1'],
+                fontSize=16,
+                spaceAfter=30,
+                alignment=1  # 居中
+            )
+            
+            # 添加标题
+            title = Paragraph(f"智慧餐饮管理系统 - 客户数据 ({customer_type})", title_style)
+            story.append(title)
+            story.append(Spacer(1, 20))
+            
+            # 获取客户数据
+            customers = self.get_filtered_customers(customer_type)
+            
+            # 创建表格数据
+            table_data = [["客户姓名", "联系电话", "客户类型", "地址", "备注", "注册时间"]]
+            
+            for customer in customers:
+                row = [
+                    customer.get('name', ''),
+                    customer.get('phone', ''),
+                    customer.get('type', ''),
+                    customer.get('address', ''),
+                    customer.get('note', ''),
+                    customer.get('created_at', '')
+                ]
+                table_data.append(row)
+            
+            # 创建表格
+            table = Table(table_data)
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('FONTSIZE', (0, 1), (-1, -1), 8),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.beige, colors.white])
+            ]))
+            story.append(table)
+            
+            doc.build(story)
+            return True
+            
+        except ImportError:
+            messagebox.showerror("错误", "请安装reportlab库：pip install reportlab")
+            return False
+        except Exception as e:
+            print(f"导出PDF失败: {e}")
+            return False
+    
+    def get_filtered_customers(self, customer_type: str) -> List[Dict]:
+        """获取筛选后的客户数据"""
+        if customer_type == "全部":
+            return self.customer_data
+        else:
+            return [customer for customer in self.customer_data if customer.get('type') == customer_type]
