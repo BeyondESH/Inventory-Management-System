@@ -182,7 +182,7 @@ class ModernLoginModule:
         """创建右侧登录面板"""
         # 内容容器 - 增加高度以确保所有内容可见
         self.login_container = tk.Frame(parent, bg=self.colors['surface'])
-        self.login_container.place(relx=0.5, rely=0.5, anchor="center", width=380, height=550)
+        self.login_container.place(relx=0.5, rely=0.5, anchor="center", width=380, height=580)
         
         self.create_login_form()
     
@@ -445,19 +445,19 @@ class ModernLoginModule:
         user = self.user_manager.validate_user(username, password)
         if user:
             messagebox.showinfo("成功", f"欢迎 {user.name}！")
-            
-            # 准备用户信息字典
+              # 准备用户信息字典
             user_info = {
                 'username': user.username,
                 'name': user.name,
                 'role': user.role,
                 'email': getattr(user, 'email', ''),
                 'phone': getattr(user, 'phone', ''),
-                'login_time': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                'login_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             }
             
             # 调用登录成功回调
-            if self.on_login_success:                self.on_login_success(user_info)
+            if self.on_login_success:
+                self.on_login_success(user_info, self.root)
             else:
                 # 如果没有回调，直接关闭登录窗口
                 self.root.destroy()
@@ -481,40 +481,66 @@ class ModernLoginModule:
         for widget in self.login_container.winfo_children():
             widget.destroy()
         
-        # 标题
-        title_label = tk.Label(self.login_container, text="创建账户", font=self.fonts['heading'], 
-                              bg=self.colors['surface'], fg=self.colors['text_primary'])
-        title_label.pack(pady=(0, 10))
-        
-        # 副标题
-        subtitle_label = tk.Label(self.login_container, text="请填写注册信息", font=self.fonts['body'], 
-                                 bg=self.colors['surface'], fg=self.colors['text_secondary'])
-        subtitle_label.pack(pady=(0, 20))
-        
-        # 输入字段
-        self.create_input_field(self.login_container, "用户名", self.username_var, "👤")
-        self.create_input_field(self.login_container, "邮箱", self.email_var, "📧")
-        self.create_password_field(self.login_container, "密码", self.password_var)
-        self.create_password_field(self.login_container, "确认密码", self.confirm_password_var)
+        # 固定在底部的按钮容器 - 先创建，确保显示在最底部
+        bottom_frame = tk.Frame(self.login_container, bg=self.colors['surface'], height=70)
+        bottom_frame.pack(side="bottom", fill="x", pady=(10, 0))
+        bottom_frame.pack_propagate(False)
         
         # 并列按钮容器
-        buttons_frame = tk.Frame(self.login_container, bg=self.colors['surface'])
-        buttons_frame.pack(fill="x", pady=(20, 15))
+        buttons_frame = tk.Frame(bottom_frame, bg=self.colors['surface'])
+        buttons_frame.pack(fill="both", expand=True, padx=10, pady=10)
         
         # 返回按钮 - 左侧
         back_btn_frame = tk.Frame(buttons_frame, bg=self.colors['surface'])
-        back_btn_frame.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        back_btn_frame.pack(side="left", fill="both", expand=True, padx=(0, 5))
         self.create_modern_button(back_btn_frame, "返回登录", self.show_login, "secondary", "large")
         
         # 注册按钮 - 右侧
         register_btn_frame = tk.Frame(buttons_frame, bg=self.colors['surface'])
-        register_btn_frame.pack(side="right", fill="x", expand=True, padx=(10, 0))
+        register_btn_frame.pack(side="right", fill="both", expand=True, padx=(5, 0))
         self.create_modern_button(register_btn_frame, "创建账户", self.handle_register, "primary", "large")
-          # 提示文字
-        tip_label = tk.Label(self.login_container, text="注册即表示您同意我们的服务条款",
+        
+        # 内容区域 - 使用剩余空间
+        content_frame = tk.Frame(self.login_container, bg=self.colors['surface'])
+        content_frame.pack(fill="both", expand=True, pady=(0, 10))
+        
+        # 使用Canvas来确保内容可滚动
+        canvas = tk.Canvas(content_frame, bg=self.colors['surface'], highlightthickness=0)
+        scrollbar = ttk.Scrollbar(content_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg=self.colors['surface'])
+        
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # 标题
+        title_label = tk.Label(scrollable_frame, text="创建账户", font=self.fonts['heading'], 
+                              bg=self.colors['surface'], fg=self.colors['text_primary'])
+        title_label.pack(pady=(0, 10))
+        
+        # 副标题
+        subtitle_label = tk.Label(scrollable_frame, text="请填写注册信息", font=self.fonts['body'], 
+                                 bg=self.colors['surface'], fg=self.colors['text_secondary'])
+        subtitle_label.pack(pady=(0, 20))
+        
+        # 输入字段
+        self.create_input_field(scrollable_frame, "用户名", self.username_var, "👤")
+        self.create_input_field(scrollable_frame, "邮箱", self.email_var, "📧")
+        self.create_password_field(scrollable_frame, "密码", self.password_var)
+        self.create_password_field(scrollable_frame, "确认密码", self.confirm_password_var)
+        
+        # 提示文字
+        tip_label = tk.Label(scrollable_frame, text="注册即表示您同意我们的服务条款",
                            font=self.fonts['small'], bg=self.colors['surface'], 
                            fg=self.colors['text_secondary'])
-        tip_label.pack(pady=(10, 0))
+        tip_label.pack(pady=(10, 20))
+          # 布局Canvas和滚动条
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
     
     def create_forgot_password_form(self):
         """创建忘记密码表单"""
@@ -522,43 +548,70 @@ class ModernLoginModule:
         for widget in self.login_container.winfo_children():
             widget.destroy()
         
+        # 固定在底部的按钮容器 - 先创建，确保显示在最底部
+        bottom_frame = tk.Frame(self.login_container, bg=self.colors['surface'], height=70)
+        bottom_frame.pack(side="bottom", fill="x", pady=(10, 0))
+        bottom_frame.pack_propagate(False)
+        
+        # 并列按钮容器
+        buttons_frame = tk.Frame(bottom_frame, bg=self.colors['surface'])
+        buttons_frame.pack(fill="both", expand=True, padx=10, pady=10)
+        
+        # 返回按钮 - 左侧
+        back_btn_frame = tk.Frame(buttons_frame, bg=self.colors['surface'])
+        back_btn_frame.pack(side="left", fill="both", expand=True, padx=(0, 5))
+        self.create_modern_button(back_btn_frame, "返回登录", self.show_login, "secondary", "large")
+        
+        # 重置按钮 - 右侧
+        reset_btn_frame = tk.Frame(buttons_frame, bg=self.colors['surface'])
+        reset_btn_frame.pack(side="right", fill="both", expand=True, padx=(5, 0))
+        self.create_modern_button(reset_btn_frame, "重置密码", self.handle_forgot_password, "primary", "large")
+        
+        # 内容区域 - 使用剩余空间
+        content_frame = tk.Frame(self.login_container, bg=self.colors['surface'])
+        content_frame.pack(fill="both", expand=True, pady=(0, 10))
+        
+        # 使用Canvas来确保内容可滚动
+        canvas = tk.Canvas(content_frame, bg=self.colors['surface'], highlightthickness=0)
+        scrollbar = ttk.Scrollbar(content_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg=self.colors['surface'])
+        
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
         # 标题
-        title_label = tk.Label(self.login_container, text="重置密码", font=self.fonts['heading'], 
+        title_label = tk.Label(scrollable_frame, text="重置密码", font=self.fonts['heading'], 
                               bg=self.colors['surface'], fg=self.colors['text_primary'])
         title_label.pack(pady=(0, 10))
         
         # 副标题
-        subtitle_label = tk.Label(self.login_container, text="请输入邮箱和新密码", font=self.fonts['body'], 
+        subtitle_label = tk.Label(scrollable_frame, text="请输入邮箱和新密码", font=self.fonts['body'], 
                                  bg=self.colors['surface'], fg=self.colors['text_secondary'])
         subtitle_label.pack(pady=(0, 20))
         
         # 邮箱输入
-        self.create_input_field(self.login_container, "邮箱地址", self.email_var, "📧")
+        self.create_input_field(scrollable_frame, "邮箱地址", self.email_var, "📧")
         
         # 新密码输入
-        self.create_password_field(self.login_container, "新密码", self.new_password_var)
+        self.create_password_field(scrollable_frame, "新密码", self.new_password_var)
         
         # 确认新密码输入
-        self.create_password_field(self.login_container, "确认新密码", self.confirm_new_password_var)
-        
-        # 并列按钮容器
-        buttons_frame = tk.Frame(self.login_container, bg=self.colors['surface'])
-        buttons_frame.pack(fill="x", pady=(20, 15))
-        
-        # 返回按钮 - 左侧
-        back_btn_frame = tk.Frame(buttons_frame, bg=self.colors['surface'])
-        back_btn_frame.pack(side="left", fill="x", expand=True, padx=(0, 10))
-        self.create_modern_button(back_btn_frame, "返回登录", self.show_login, "secondary", "large")
-          # 重置按钮 - 右侧
-        reset_btn_frame = tk.Frame(buttons_frame, bg=self.colors['surface'])
-        reset_btn_frame.pack(side="right", fill="x", expand=True, padx=(10, 0))
-        self.create_modern_button(reset_btn_frame, "重置密码", self.handle_forgot_password, "primary", "large")
+        self.create_password_field(scrollable_frame, "确认新密码", self.confirm_new_password_var)
         
         # 提示文字
-        tip_label = tk.Label(self.login_container, text="请确认邮箱地址正确，密码将直接重置",
+        tip_label = tk.Label(scrollable_frame, text="请确认邮箱地址正确，密码将直接重置",
                            font=self.fonts['small'], bg=self.colors['surface'], 
                            fg=self.colors['text_secondary'])
-        tip_label.pack(pady=(10, 0))
+        tip_label.pack(pady=(10, 20))
+        
+        # 布局Canvas和滚动条
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
     
     def show_login(self):
         """显示登录表单"""
@@ -658,10 +711,9 @@ class ModernLoginModule:
             'phone': '',
             'login_time': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         }
-        
-        # 调用登录成功回调
+          # 调用登录成功回调
         if self.on_login_success:
-            self.on_login_success(guest_info)
+            self.on_login_success(guest_info, self.root)
         else:
             # 如果没有回调，直接关闭登录窗口
             self.root.destroy()

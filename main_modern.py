@@ -96,11 +96,13 @@ def main():
         
         # 创建并启动登录应用
         print("正在启动登录界面...")
-        
-        # 定义登录成功回调
-        def on_login_success(user_info):
+          # 定义登录成功回调
+        def on_login_success(user_info, login_window):
             print(f"用户登录成功: {user_info['name']}")
             try:
+                # 关闭登录窗口
+                login_window.destroy()
+                
                 # 导入主界面系统
                 from modern_system.core.modern_ui_system import ModernFoodServiceSystem
                 

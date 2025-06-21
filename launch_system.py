@@ -107,10 +107,16 @@ def main():
           # 导入并启动登录模块
         print("📱 加载登录模块...")
         from modern_system.modules.modern_login_module import ModernLoginModule
-        
-        # 定义登录成功回调
-        def on_login_success(user_info):
+          # 定义登录成功回调
+        def on_login_success(user_info, login_window=None):
             print(f"✅ 用户登录成功: {user_info['name']}")
+            # 如果传递了登录窗口，关闭它
+            if login_window:
+                try:
+                    login_window.destroy()
+                except:
+                    pass
+            
             try:
                 # 导入主界面系统
                 from modern_system.core.modern_ui_system import ModernFoodServiceSystem

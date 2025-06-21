@@ -6,7 +6,9 @@
     "quantity": 46,
     "unit": "kg",
     "price": 8.0,
-    "min_stock": 10
+    "min_stock": 10,
+    "stock": 100,
+    "last_update": "2024-06-21 10:00:00"
   },
   {
     "id": "INV002",
@@ -15,7 +17,9 @@
     "quantity": 16,
     "unit": "kg",
     "price": 68.0,
-    "min_stock": 5
+    "min_stock": 5,
+    "stock": 100,
+    "last_update": "2024-06-21 10:00:00"
   },
   {
     "id": "INV003",
@@ -24,7 +28,9 @@
     "quantity": 96,
     "unit": "包",
     "price": 3.5,
-    "min_stock": 20
+    "min_stock": 20,
+    "stock": 100,
+    "last_update": "2024-06-21 10:00:00"
   },
   {
     "id": "INV004",
@@ -33,6 +39,211 @@
     "quantity": 80,
     "unit": "瓶",
     "price": 5.0,
-    "min_stock": 30
+    "min_stock": 30,
+    "stock": 96,
+    "last_update": "2025-06-21T12:16:42.018841"
+  },
+  {
+    "id": "INV005",
+    "name": "鸡蛋炒饭",
+    "category": "成品",
+    "stock": 50,
+    "min_stock": 10,
+    "max_stock": 200,
+    "unit": "份",
+    "cost_price": 12.0,
+    "last_update": "2024-06-21 10:00:00",
+    "supplier": "厨房制作"
+  },
+  {
+    "id": "INV006",
+    "name": "牛肉汉堡",
+    "category": "成品",
+    "stock": 30,
+    "min_stock": 5,
+    "max_stock": 100,
+    "unit": "个",
+    "cost_price": 18.0,
+    "last_update": "2024-06-21 10:00:00",
+    "supplier": "厨房制作"
+  },
+  {
+    "id": "INV007",
+    "name": "薯条",
+    "category": "成品",
+    "stock": 80,
+    "min_stock": 15,
+    "max_stock": 150,
+    "unit": "份",
+    "cost_price": 6.0,
+    "last_update": "2024-06-21 10:00:00",
+    "supplier": "厨房制作"
+  },
+  {
+    "id": "MEAL001",
+    "name": "番茄牛肉面",
+    "category": "菜品",
+    "stock": 49,
+    "min_stock": 10,
+    "max_stock": 100,
+    "unit": "份",
+    "cost_price": 15.0,
+    "last_update": "2025-06-21T12:16:42.018837",
+    "supplier": "厨房制作",
+    "price": 25.0
+  },
+  {
+    "id": "MEAL004",
+    "name": "薯条",
+    "category": "菜品",
+    "stock": 40,
+    "min_stock": 5,
+    "max_stock": 60,
+    "unit": "份",
+    "cost_price": 25.0,
+    "last_update": "2024-06-21 10:00:00",
+    "supplier": "厨房制作",
+    "price": 12.0
+  },
+  {
+    "id": "MEAL006",
+    "name": "咖啡",
+    "category": "饮料",
+    "stock": 60,
+    "min_stock": 20,
+    "max_stock": 150,
+    "unit": "杯",
+    "cost_price": 2.0,
+    "last_update": "2024-06-21 10:00:00",
+    "supplier": "厨房制作",
+    "price": 15.0
+  },
+  {
+    "id": "MEAL002",
+    "name": "鸡蛋炒饭",
+    "category": "菜品",
+    "stock": 30,
+    "unit": "份",
+    "price": 18.0
+  },
+  {
+    "id": "MEAL003",
+    "name": "牛肉汉堡",
+    "category": "菜品",
+    "stock": 25,
+    "unit": "个",
+    "price": 32.0
+  },
+  {
+    "id": "MEAL005",
+    "name": "可乐",
+    "category": "饮料",
+    "stock": 100,
+    "unit": "瓶",
+    "price": 8.0
+  },
+  {
+    "id": "MEAL007",
+    "name": "红烧肉",
+    "category": "菜品",
+    "stock": 20,
+    "unit": "份",
+    "price": 35.0
+  },
+  {
+    "id": "MEAL008",
+    "name": "米饭",
+    "category": "主食",
+    "stock": 80,
+    "unit": "碗",
+    "price": 3.0
+  },
+  {
+    "id": "INV050",
+    "name": "鸡蛋",
+    "category": "肉类",
+    "quantity": 200,
+    "unit": "个",
+    "price": 1.2,
+    "min_stock": 50,
+    "stock": 200,
+    "last_update": "2025-06-21 15:00:00"
+  },
+  {
+    "id": "INV051",
+    "name": "大米",
+    "category": "主食",
+    "quantity": 80,
+    "unit": "kg",
+    "price": 4.5,
+    "min_stock": 20,
+    "stock": 80,
+    "last_update": "2025-06-21 15:00:00"
+  },
+  {
+    "id": "INV052",
+    "name": "面包",
+    "category": "主食",
+    "quantity": 60,
+    "unit": "个",
+    "price": 8.0,
+    "min_stock": 20,
+    "stock": 60,
+    "last_update": "2025-06-21 15:00:00"
+  },
+  {
+    "id": "INV053",
+    "name": "生菜",
+    "category": "蔬菜",
+    "quantity": 25,
+    "unit": "kg",
+    "price": 10.0,
+    "min_stock": 5,
+    "stock": 25,
+    "last_update": "2025-06-21 15:00:00"
+  },
+  {
+    "id": "INV054",
+    "name": "猪肉",
+    "category": "肉类",
+    "quantity": 30,
+    "unit": "kg",
+    "price": 28.0,
+    "min_stock": 8,
+    "stock": 30,
+    "last_update": "2025-06-21 15:00:00"
+  },
+  {
+    "id": "INV055",
+    "name": "生抽",
+    "category": "调料",
+    "quantity": 10,
+    "unit": "kg",
+    "price": 12.0,
+    "min_stock": 2,
+    "stock": 10,
+    "last_update": "2025-06-21 15:00:00"
+  },
+  {
+    "id": "INV056",
+    "name": "糖",
+    "category": "调料",
+    "quantity": 15,
+    "unit": "kg",
+    "price": 8.0,
+    "min_stock": 3,
+    "stock": 15,
+    "last_update": "2025-06-21 15:00:00"
+  },
+  {
+    "id": "INV057",
+    "name": "可乐原料",
+    "category": "调料",
+    "quantity": 50,
+    "unit": "L",
+    "price": 15.0,
+    "min_stock": 10,
+    "stock": 50,
+    "last_update": "2025-06-21 15:00:00"
   }
 ]

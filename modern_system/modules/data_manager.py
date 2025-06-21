@@ -102,6 +102,10 @@ class DataManager:
             else:
                 raise ValueError("库存不足，无法创建订单")
     
+    def create_order(self, order_data: Dict) -> str:
+        """创建新订单（add_order的别名）"""
+        return self.add_order(order_data)
+    
     def update_order_status(self, order_id: str, new_status: str) -> bool:
         """更新订单状态"""
         with self.data_lock:
@@ -335,17 +339,88 @@ class DataManager:
         """获取默认订单数据"""
         return [
             {
-                'id': 'ORD20240101001',
+                'id': 'ORD20240615001',
                 'customer_name': '张三',
-                'customer_phone': '13800138001',
+                'customer_phone': '138****1234',
+                'delivery_address': '北京市朝阳区xxx街道1号',
                 'items': [
-                    {'product_id': '宫保鸡丁', 'quantity': 2, 'price': 28.0},
-                    {'product_id': '麻婆豆腐', 'quantity': 1, 'price': 18.0}
+                    {'product_id': '番茄牛肉面', 'name': '番茄牛肉面', 'quantity': 2, 'price': 25.0},
+                    {'product_id': '可乐', 'name': '可乐', 'quantity': 1, 'price': 5.0}
                 ],
-                'total_amount': 74.0,
+                'total_amount': 55.0,
                 'status': '已完成',
-                'create_time': '2024-01-01T12:00:00',
-                'update_time': '2024-01-01T12:30:00'
+                'order_type': '外卖',
+                'payment_method': '微信支付',
+                'note': '少放辣椒',
+                'create_time': '2024-06-15T12:30:00',
+                'update_time': '2024-06-15T12:45:00'
+            },
+            {
+                'id': 'ORD20240615002',
+                'customer_name': '李四',
+                'customer_phone': '139****5678',
+                'delivery_address': '北京市海淀区xxx路88号',
+                'items': [
+                    {'product_id': '鸡蛋炒饭', 'name': '鸡蛋炒饭', 'quantity': 1, 'price': 18.0}
+                ],
+                'total_amount': 18.0,
+                'status': '制作中',
+                'order_type': '外卖',
+                'payment_method': '支付宝',
+                'note': '',
+                'create_time': '2024-06-15T12:45:00',
+                'update_time': '2024-06-15T12:45:00'
+            },
+            {
+                'id': 'ORD20240615003',
+                'customer_name': '王五',
+                'customer_phone': '136****9012',
+                'delivery_address': '北京市西城区xxx胡同66号',
+                'items': [
+                    {'product_id': '牛肉汉堡', 'name': '牛肉汉堡', 'quantity': 3, 'price': 32.0},
+                    {'product_id': '薯条', 'name': '薯条', 'quantity': 2, 'price': 12.0}
+                ],
+                'total_amount': 120.0,
+                'status': '待接单',
+                'order_type': '外卖',
+                'payment_method': '现金',
+                'note': '汉堡不要洋葱',
+                'create_time': '2024-06-15T11:20:00',
+                'update_time': '2024-06-15T11:20:00'
+            },
+            {
+                'id': 'ORD20240615004',
+                'customer_name': '赵六',
+                'customer_phone': '137****3456',
+                'delivery_address': '堂食',
+                'items': [
+                    {'product_id': '红烧肉', 'name': '红烧肉', 'quantity': 1, 'price': 35.0},
+                    {'product_id': '米饭', 'name': '米饭', 'quantity': 2, 'price': 3.0}
+                ],
+                'total_amount': 41.0,
+                'status': '配送中',
+                'order_type': '堂食',
+                'payment_method': '微信支付',
+                'note': '',
+                'create_time': '2024-06-15T13:15:00',
+                'update_time': '2024-06-15T13:15:00'
+            },
+            {
+                'id': 'ORD20240615005',
+                'customer_name': '钱七',
+                'customer_phone': '135****7890',
+                'delivery_address': '上海市浦东新区xxx路99号',
+                'items': [
+                    {'product_id': '宫保鸡丁', 'name': '宫保鸡丁', 'quantity': 1, 'price': 28.0},
+                    {'product_id': '白米饭', 'name': '白米饭', 'quantity': 1, 'price': 3.0}
+                ],
+                'total_amount': 31.0,
+                'status': '已完成',
+                'order_type': '外卖',
+                'payment_method': '现金',
+                'note': '不要太辣',
+                'create_time': '2024-06-15T14:20:00',
+                'update_time': '2024-06-15T14:50:00'
             }
         ]
     

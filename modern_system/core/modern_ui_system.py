@@ -97,14 +97,15 @@ class ModernFoodServiceSystem:
             'sidebar': '#2D3436',      # 侧边栏背景
             'nav_hover': '#636E72'     # 导航悬停
         }
-        
-        # 字体配置
+          # 字体配置
         self.fonts = {
             'title': ('Microsoft YaHei UI', 18, 'bold'),
             'heading': ('Microsoft YaHei UI', 14, 'bold'),
             'body': ('Microsoft YaHei UI', 12),
             'small': ('Microsoft YaHei UI', 10),
-            'nav': ('Microsoft YaHei UI', 13, 'bold')        }
+            'nav': ('Microsoft YaHei UI', 13, 'bold'),
+            'breadcrumb': ('Microsoft YaHei UI', 11)
+        }
         
         # 当前模块
         self.current_module = "sales"
@@ -275,33 +276,14 @@ class ModernFoodServiceSystem:
         
         # 更新面包屑
         self.update_breadcrumb()
-        
-        # 更新内容区域
+          # 更新内容区域
         self.update_content_area()
         
     def update_breadcrumb(self):
         """更新面包屑导航"""
-        if self.current_module in self.modules:
-            module_info = self.modules[self.current_module]
-            breadcrumb_text = f"首页 / {module_info['text']}"
-            
-            # 查找并更新面包屑标签
-            try:
-                for widget in self.content_header.winfo_children():
-                    if isinstance(widget, tk.Frame):
-                        for child in widget.winfo_children():
-                            if isinstance(child, tk.Label) and hasattr(child, 'cget'):
-                                try:
-                                    current_text = child.cget("text")
-                                    if "首页" in current_text:
-                                        child.configure(text=breadcrumb_text)
-                                        break
-                                except tk.TclError:
-                                    # Widget已被销毁，跳过
-                                    continue
-            except tk.TclError:
-                # 如果widget已被销毁，忽略错误
-                pass
+        # 在update_content_area中已经处理了面包屑更新
+        # 这里不需要额外处理
+        pass
         
     def init_modules(self):
         """初始化各个模块"""
@@ -339,6 +321,26 @@ class ModernFoodServiceSystem:
         # 清空当前内容
         for widget in self.main_content_frame.winfo_children():
             widget.pack_forget()
+        
+        # 清空并重新创建内容头部，确保标题正确显示
+        for widget in self.content_header.winfo_children():
+            widget.destroy()
+        
+        # 重新创建面包屑导航
+        breadcrumb_frame = tk.Frame(self.content_header, bg=self.colors['surface'])
+        breadcrumb_frame.pack(side="left", fill="y", padx=20, pady=20)
+        
+        if self.current_module in self.modules:
+            module_info = self.modules[self.current_module]
+            breadcrumb_text = f"首页 / {module_info['text']}"
+        else:
+            breadcrumb_text = "首页 / 销售管理"
+        
+        breadcrumb_label = tk.Label(breadcrumb_frame, text=breadcrumb_text,
+                                   font=self.fonts['breadcrumb'],
+                                   bg=self.colors['surface'], 
+                                   fg=self.colors['text_secondary'])
+        breadcrumb_label.pack(side="left")
         
         # 根据选中模块显示相应内容
         try:

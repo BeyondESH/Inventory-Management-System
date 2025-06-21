@@ -87,20 +87,37 @@ class ModernOrderModule:
             # 转换数据格式以适配现有界面
             formatted_orders = []
             for order in orders:
+                # 处理菜品数据
+                meals = []
+                items = order.get('items', [])
+                for item in items:
+                    meal = {
+                        "name": item.get('name', item.get('product_id', '未知菜品')),
+                        "price": item.get('price', 0),
+                        "quantity": item.get('quantity', 1)
+                    }
+                    meals.append(meal)
+                
                 formatted_order = {
                     "id": order.get('id', ''),
-                    "customer": order.get('customer_name', '未知客户'),
-                    "phone": order.get('customer_phone', ''),
-                    "address": order.get('delivery_address', '堂食'),
-                    "meals": order.get('items', []),
-                    "total": order.get('total_amount', 0),
-                    "create_time": order.get('create_time', ''),
+                    "customer": order.get('customer_name', order.get('table_number', '未知客户')),
+                    "phone": order.get('customer_phone', order.get('phone', '')),
+                    "address": order.get('delivery_address', order.get('address', '堂食')),
+                    "meals": meals,
+                    "total": order.get('total_amount', order.get('total', 0)),
+                    "create_time": order.get('create_time', '').replace('T', ' ')[:16] if 'T' in order.get('create_time', '') else order.get('create_time', ''),
                     "status": order.get('status', '待处理'),
-                    "type": order.get('order_type', '外卖'),
-                    "payment": order.get('payment_method', '现金'),
+                    "type": order.get('order_type', order.get('type', '外卖')),
+                    "payment": order.get('payment_method', order.get('payment', '现金')),
                     "note": order.get('note', '')
                 }
                 formatted_orders.append(formatted_order)
+            
+            # 如果没有数据或数据太少，使用默认示例数据
+            if len(formatted_orders) < 3:
+                print("订单数据较少，添加示例数据...")
+                formatted_orders.extend(self.get_default_order_data())
+            
             return formatted_orders
         except Exception as e:
             print(f"加载订单数据失败: {e}")
@@ -426,8 +443,7 @@ class ModernOrderModule:
             
             tk.Label(note_frame, text=order['note'], font=('Microsoft YaHei UI', 10),
                     bg=self.colors['card'], fg=self.colors['text'], wraplength=400).pack(anchor='w', pady=(10, 0))
-        
-        # 关闭按钮
+          # 关闭按钮
         tk.Button(content_frame, text="关闭", font=('Microsoft YaHei UI', 10),
                  bg=self.colors['text_light'], fg=self.colors['white'],
                  bd=0, padx=30, pady=8, cursor='hand2',
@@ -437,39 +453,6 @@ class ModernOrderModule:
         """筛选订单"""
         self.current_filter = status
         self.refresh_order_list()
-    
-    def refresh_order_list(self):
-        """刷新订单列表"""
-        # 清空列表
-        for widget in self.orders_container.winfo_children():
-            widget.destroy()
-        
-        # 从数据管理中心获取订单数据
-        try:
-            all_orders = data_manager.get_orders()
-            self.order_data = all_orders
-        except:
-            # 如果获取失败，使用默认数据
-            pass
-        
-        # 筛选和搜索订单
-        filtered_orders = self.order_data
-        
-        # 应用状态筛选
-        if self.current_filter != "全部":
-            filtered_orders = [order for order in self.order_data if order['status'] == self.current_filter]        # 应用搜索
-        if hasattr(self, 'search_keyword') and self.search_keyword:
-            filtered_orders = [order for order in filtered_orders 
-                              if self.search_keyword.lower() in order.get('customer', '').lower() 
-                              or self.search_keyword in str(order['id'])
-                              or self.search_keyword.lower() in order.get('phone', '').lower()]
-        
-        # 创建订单卡片
-        for order in filtered_orders:
-            self.create_order_card(self.orders_container, order)
-        
-        # 更新统计信息
-        self.update_statistics()
     
     def refresh_data(self):
         """刷新数据（由数据管理中心调用）"""
@@ -527,7 +510,7 @@ class ModernOrderModule:
         name_frame.pack(fill='x', pady=5)
         tk.Label(name_frame, text="客户姓名:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(side='left')
-        customer_name_var = tk.StringVar()
+        customer_name_var = tk.StringVar(order_window)
         name_entry = tk.Entry(name_frame, textvariable=customer_name_var, font=('Microsoft YaHei UI', 10))
         name_entry.pack(side='right', fill='x', expand=True, padx=(10, 0))
         
@@ -536,7 +519,7 @@ class ModernOrderModule:
         phone_frame.pack(fill='x', pady=5)
         tk.Label(phone_frame, text="联系电话:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(side='left')
-        customer_phone_var = tk.StringVar()
+        customer_phone_var = tk.StringVar(order_window)
         phone_entry = tk.Entry(phone_frame, textvariable=customer_phone_var, font=('Microsoft YaHei UI', 10))
         phone_entry.pack(side='right', fill='x', expand=True, padx=(10, 0))
         
@@ -545,7 +528,7 @@ class ModernOrderModule:
         address_frame.pack(fill='x', pady=5)
         tk.Label(address_frame, text="配送地址:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(side='left')
-        customer_address_var = tk.StringVar()
+        customer_address_var = tk.StringVar(order_window)
         address_entry = tk.Entry(address_frame, textvariable=customer_address_var, font=('Microsoft YaHei UI', 10))
         address_entry.pack(side='right', fill='x', expand=True, padx=(10, 0))
         
@@ -574,7 +557,7 @@ class ModernOrderModule:
         note_frame.pack(fill='x', pady=5)
         tk.Label(note_frame, text="订单备注:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w')
-        note_var = tk.StringVar()
+        note_var = tk.StringVar(order_window)
         note_entry = tk.Entry(note_frame, textvariable=note_var, font=('Microsoft YaHei UI', 10))
         note_entry.pack(fill='x', pady=(5, 0))
         
@@ -648,28 +631,48 @@ class ModernOrderModule:
                 messagebox.showerror("错误", "请至少选择一个菜品")
                 return
             
-            # 生成新订单ID
-            new_id = max([order['id'] for order in self.order_data]) + 1
-            
-            # 创建新订单
-            new_order = {
-                "id": new_id,
-                "customer": customer_name_var.get(),
-                "phone": customer_phone_var.get(),
-                "address": customer_address_var.get() if customer_address_var.get() else "堂食",
-                "meals": order_meals,
-                "total": total_amount,
-                "create_time": datetime.datetime.now().strftime("%Y-%m-%d %H:%M"),
-                "status": "待接单",
-                "type": order_type_var.get(),
-                "payment": payment_var.get(),
-                "note": note_var.get()
-            }
-            
-            self.order_data.append(new_order)
-            messagebox.showinfo("成功", f"订单 #{new_id} 创建成功！")
-            order_window.destroy()
-            self.refresh_order_list()
+            try:
+                # 准备订单数据用于库存检查
+                order_items = []
+                for meal in order_meals:
+                    order_items.append({
+                        'product_id': meal['name'],  # 使用菜品名称作为产品ID
+                        'quantity': meal['quantity']
+                    })
+                
+                # 创建订单数据
+                order_data = {
+                    "customer_name": customer_name_var.get(),
+                    "phone": customer_phone_var.get(),
+                    "address": customer_address_var.get() if customer_address_var.get() else "堂食",
+                    "items": order_items,
+                    "meals": order_meals,  # 保留原有的meals格式用于显示
+                    "total_amount": total_amount,
+                    "type": order_type_var.get(),
+                    "payment": payment_var.get(),
+                    "note": note_var.get(),
+                    "status": "待接单"
+                }
+                
+                # 使用数据管理器创建订单（包含库存检查）
+                try:
+                    order_id = data_manager.create_order(order_data)
+                    messagebox.showinfo("成功", f"订单 #{order_id} 创建成功！")
+                    order_window.destroy()
+                    self.refresh_order_list()
+                except ValueError as e:
+                    if "库存不足" in str(e):
+                        messagebox.showerror("库存不足", "当前库存不足，无法创建订单。\n请检查菜品库存后重试。")
+                    else:
+                        messagebox.showerror("错误", f"创建订单失败：{e}")
+                    return
+                except Exception as e:
+                    messagebox.showerror("错误", f"创建订单失败：{e}")
+                    return
+                    
+            except Exception as e:
+                messagebox.showerror("错误", f"订单处理失败：{e}")
+                return
         
         save_btn = tk.Button(button_frame, text="保存订单", 
                            font=('Microsoft YaHei UI', 10, 'bold'),
@@ -695,10 +698,36 @@ class ModernOrderModule:
                 self.refresh_order_list()
     
     def refresh_order_list(self):
-        """刷新订单列表显示"""
-        if hasattr(self, 'order_list_frame') and self.order_list_frame.winfo_exists():
-            self.update_order_list()
-            self.update_status_cards()
+        """刷新订单列表"""
+        # 重新加载订单数据
+        self.order_data = self.load_order_data()
+        
+        # 清空容器（如果存在）
+        if hasattr(self, 'orders_container') and self.orders_container:
+            for widget in self.orders_container.winfo_children():
+                widget.destroy()
+        
+        # 筛选和搜索订单
+        filtered_orders = self.order_data
+        
+        # 应用状态筛选
+        if self.current_filter != "全部":
+            filtered_orders = [order for order in self.order_data if order['status'] == self.current_filter]
+        
+        # 应用搜索
+        if hasattr(self, 'search_keyword') and self.search_keyword:
+            filtered_orders = [order for order in filtered_orders 
+                              if self.search_keyword.lower() in order.get('customer', '').lower() 
+                              or self.search_keyword in str(order['id'])
+                              or self.search_keyword.lower() in order.get('phone', '').lower()]
+        
+        # 创建订单卡片
+        if hasattr(self, 'orders_container') and self.orders_container:
+            for order in filtered_orders:
+                self.create_order_card(self.orders_container, order)
+        
+        # 更新统计信息
+        self.update_statistics()
     
     def update_title_frame(self):
         """更新标题框架，但保留面包屑导航"""

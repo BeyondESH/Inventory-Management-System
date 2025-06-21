@@ -94,13 +94,42 @@ class ModernInventoryModule:
             
             return formatted_data
         except Exception as e:
-            print(f"加载库存数据失败: {e}")
-            # 返回默认示例数据
+            print(f"加载库存数据失败: {e}")            # 返回丰富的默认示例数据
             return [
+                # 蔬菜类
                 {"id": "INV001", "name": "番茄", "category": "蔬菜", "current_stock": 50, "min_stock": 10, "max_stock": 100, "unit": "kg", "price": 8.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
-                {"id": "INV002", "name": "牛肉", "category": "肉类", "current_stock": 20, "min_stock": 5, "max_stock": 50, "unit": "kg", "price": 68.0, "supplier": "优质肉类供应商", "last_updated": "2025-06-21"},
-                {"id": "INV003", "name": "面条", "category": "主食", "current_stock": 100, "min_stock": 20, "max_stock": 200, "unit": "包", "price": 3.5, "supplier": "优质粮食供应商", "last_updated": "2025-06-21"},
-                {"id": "INV004", "name": "可乐", "category": "饮料", "current_stock": 80, "min_stock": 30, "max_stock": 150, "unit": "瓶", "price": 5.0, "supplier": "饮料供应商", "last_updated": "2025-06-21"}            ]
+                {"id": "INV002", "name": "洋葱", "category": "蔬菜", "current_stock": 30, "min_stock": 8, "max_stock": 80, "unit": "kg", "price": 6.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
+                {"id": "INV003", "name": "青椒", "category": "蔬菜", "current_stock": 25, "min_stock": 5, "max_stock": 60, "unit": "kg", "price": 12.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
+                {"id": "INV004", "name": "生菜", "category": "蔬菜", "current_stock": 40, "min_stock": 10, "max_stock": 80, "unit": "kg", "price": 10.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
+                {"id": "INV005", "name": "胡萝卜", "category": "蔬菜", "current_stock": 35, "min_stock": 8, "max_stock": 70, "unit": "kg", "price": 7.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
+                
+                # 肉类
+                {"id": "INV010", "name": "牛肉", "category": "肉类", "current_stock": 20, "min_stock": 5, "max_stock": 50, "unit": "kg", "price": 68.0, "supplier": "优质肉类供应商", "last_updated": "2025-06-21"},
+                {"id": "INV011", "name": "猪肉", "category": "肉类", "current_stock": 25, "min_stock": 5, "max_stock": 60, "unit": "kg", "price": 28.0, "supplier": "优质肉类供应商", "last_updated": "2025-06-21"},
+                {"id": "INV012", "name": "鸡胸肉", "category": "肉类", "current_stock": 15, "min_stock": 3, "max_stock": 40, "unit": "kg", "price": 22.0, "supplier": "优质肉类供应商", "last_updated": "2025-06-21"},
+                {"id": "INV013", "name": "鸡蛋", "category": "肉类", "current_stock": 200, "min_stock": 50, "max_stock": 300, "unit": "个", "price": 1.2, "supplier": "优质肉类供应商", "last_updated": "2025-06-21"},
+                
+                # 主食类
+                {"id": "INV020", "name": "面条", "category": "主食", "current_stock": 100, "min_stock": 20, "max_stock": 200, "unit": "包", "price": 3.5, "supplier": "优质粮食供应商", "last_updated": "2025-06-21"},
+                {"id": "INV021", "name": "大米", "category": "主食", "current_stock": 80, "min_stock": 15, "max_stock": 150, "unit": "kg", "price": 4.5, "supplier": "优质粮食供应商", "last_updated": "2025-06-21"},
+                {"id": "INV022", "name": "面包", "category": "主食", "current_stock": 60, "min_stock": 20, "max_stock": 120, "unit": "个", "price": 8.0, "supplier": "优质粮食供应商", "last_updated": "2025-06-21"},
+                {"id": "INV023", "name": "土豆", "category": "主食", "current_stock": 45, "min_stock": 10, "max_stock": 90, "unit": "kg", "price": 5.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
+                
+                # 饮料类
+                {"id": "INV030", "name": "可乐", "category": "饮料", "current_stock": 80, "min_stock": 30, "max_stock": 150, "unit": "瓶", "price": 5.0, "supplier": "饮料供应商", "last_updated": "2025-06-21"},
+                {"id": "INV031", "name": "雪碧", "category": "饮料", "current_stock": 75, "min_stock": 25, "max_stock": 120, "unit": "瓶", "price": 5.0, "supplier": "饮料供应商", "last_updated": "2025-06-21"},
+                {"id": "INV032", "name": "橙汁", "category": "饮料", "current_stock": 50, "min_stock": 20, "max_stock": 100, "unit": "瓶", "price": 8.0, "supplier": "饮料供应商", "last_updated": "2025-06-21"},
+                {"id": "INV033", "name": "咖啡豆", "category": "饮料", "current_stock": 5, "min_stock": 2, "max_stock": 20, "unit": "kg", "price": 180.0, "supplier": "咖啡供应商", "last_updated": "2025-06-21"},
+                {"id": "INV034", "name": "牛奶", "category": "饮料", "current_stock": 40, "min_stock": 15, "max_stock": 80, "unit": "瓶", "price": 6.0, "supplier": "乳制品供应商", "last_updated": "2025-06-21"},
+                
+                # 调料类
+                {"id": "INV040", "name": "食用油", "category": "调料", "current_stock": 10, "min_stock": 3, "max_stock": 25, "unit": "瓶", "price": 25.0, "supplier": "调料供应商", "last_updated": "2025-06-21"},
+                {"id": "INV041", "name": "生抽", "category": "调料", "current_stock": 8, "min_stock": 2, "max_stock": 20, "unit": "瓶", "price": 12.0, "supplier": "调料供应商", "last_updated": "2025-06-21"},
+                {"id": "INV042", "name": "老抽", "category": "调料", "current_stock": 6, "min_stock": 2, "max_stock": 15, "unit": "瓶", "price": 15.0, "supplier": "调料供应商", "last_updated": "2025-06-21"},
+                {"id": "INV043", "name": "盐", "category": "调料", "current_stock": 20, "min_stock": 5, "max_stock": 50, "unit": "包", "price": 3.0, "supplier": "调料供应商", "last_updated": "2025-06-21"},
+                {"id": "INV044", "name": "糖", "category": "调料", "current_stock": 15, "min_stock": 3, "max_stock": 30, "unit": "包", "price": 8.0, "supplier": "调料供应商", "last_updated": "2025-06-21"},
+                {"id": "INV045", "name": "辣椒粉", "category": "调料", "current_stock": 12, "min_stock": 3, "max_stock": 25, "unit": "包", "price": 18.0, "supplier": "调料供应商", "last_updated": "2025-06-21"}
+            ]
     
     def show(self):
         """显示库存管理模块"""
@@ -109,12 +138,11 @@ class ModernInventoryModule:
         
         # 重新加载最新数据
         self.inventory_data = self.load_inventory_data()
-        
-        # 初始化界面变量（如果还没有初始化）
+          # 初始化界面变量（如果还没有初始化）
         if self.search_var is None:
-            self.search_var = tk.StringVar()
-            self.category_filter_var = tk.StringVar(value="全部")
-            self.stock_filter_var = tk.StringVar(value="全部")
+            self.search_var = tk.StringVar(self.parent_frame)
+            self.category_filter_var = tk.StringVar(self.parent_frame, value="全部")
+            self.stock_filter_var = tk.StringVar(self.parent_frame, value="全部")
         
         self.clear_frames()
         self.update_title()
@@ -184,9 +212,11 @@ class ModernInventoryModule:
         # 主容器
         main_container = tk.Frame(self.parent_frame, bg=self.colors['background'])
         main_container.pack(fill="both", expand=True, padx=20, pady=20)
-        
-        # 顶部统计卡片
+          # 顶部统计卡片
         self.create_stats_cards(main_container)
+        
+        # 可制作菜品展示区域
+        self.create_possible_meals_section(main_container)
         
         # 中间筛选和搜索区域
         self.create_filter_section(main_container)
@@ -307,14 +337,19 @@ class ModernInventoryModule:
         """创建库存列表"""
         list_frame = tk.Frame(parent, bg=self.colors['surface'])
         list_frame.pack(fill="both", expand=True)
-        
-        # 标题
+          # 标题
         title_frame = tk.Frame(list_frame, bg=self.colors['surface'])
         title_frame.pack(fill="x", padx=20, pady=(20, 10))
         
-        title_label = tk.Label(title_frame, text="📋 库存清单", font=self.fonts['heading'],
+        title_label = tk.Label(title_frame, text="🥬 食材库存清单", font=self.fonts['heading'],
                               bg=self.colors['surface'], fg=self.colors['text_primary'])
         title_label.pack(side="left")
+        
+        # 提示信息
+        tip_label = tk.Label(title_frame, text="（仅显示原材料，不含成品菜品）", 
+                            font=self.fonts['small'],
+                            bg=self.colors['surface'], fg=self.colors['text_secondary'])
+        tip_label.pack(side="left", padx=(10, 0))
         
         # 创建表格
         table_frame = tk.Frame(list_frame, bg=self.colors['surface'])
@@ -459,8 +494,63 @@ class ModernInventoryModule:
             elif stock_filter == "缺货":
                 filtered_data = [item for item in filtered_data if item['current_stock'] == 0]
         
-        return filtered_data
+        # 过滤只显示食材（原料），不显示成品菜品
+        finished_product_keywords = [
+            '炒饭', '面条', '汉堡', '红烧肉', '可乐', '米饭', '牛肉面', '炒面',
+            '汤', '粥', '饮料', '咖啡', '奶茶', '果汁', '沙拉'
+        ]
         
+        ingredient_categories = [
+            '蔬菜', '肉类', '主食', '调料', '海鲜', '豆制品', '干货', '冷冻食品'
+        ]
+        
+        final_filtered_data = []
+        for item in filtered_data:
+            item_name = item['name']
+            item_category = item['category']
+            
+            # 检查是否为成品菜品
+            is_finished_product = any(keyword in item_name for keyword in finished_product_keywords)
+            
+            # 检查分类是否为食材分类
+            is_ingredient_category = item_category in ingredient_categories
+            
+            # 只有既不是成品菜品，又属于食材分类的商品才显示
+            if not is_finished_product and is_ingredient_category:
+                final_filtered_data.append(item)
+        
+        return final_filtered_data
+    
+    def filter_ingredients_only(self):
+        """过滤只显示食材（原料），不显示成品菜品"""
+        # 定义成品菜品的关键词，这些不应该出现在食材库存中
+        finished_product_keywords = [
+            '炒饭', '面条', '汉堡', '红烧肉', '可乐', '米饭', '牛肉面', '炒面',
+            '汤', '粥', '饮料', '咖啡', '奶茶', '果汁', '沙拉'
+        ]
+        
+        # 定义食材分类，只显示这些分类的商品
+        ingredient_categories = [
+            '蔬菜', '肉类', '主食', '调料', '海鲜', '豆制品', '干货', '冷冻食品'
+        ]
+        
+        filtered_data = []
+        for item in self.inventory_data:
+            item_name = item['name']
+            item_category = item['category']
+            
+            # 检查是否为成品菜品
+            is_finished_product = any(keyword in item_name for keyword in finished_product_keywords)
+            
+            # 检查分类是否为食材分类
+            is_ingredient_category = item_category in ingredient_categories
+            
+            # 只有既不是成品菜品，又属于食材分类的商品才显示
+            if not is_finished_product and is_ingredient_category:
+                filtered_data.append(item)
+        
+        return filtered_data
+
     def update_stats_cards(self):
         """更新统计卡片"""
         filtered_data = self.get_filtered_data()
@@ -492,12 +582,18 @@ class ModernInventoryModule:
         """添加库存商品"""
         dialog = InventoryItemDialog(self.parent_frame, "添加商品")
         if dialog.result:
-            # 生成新ID
-            new_id = max([item['id'] for item in self.inventory_data], default=0) + 1
+            # 生成新ID - 找到最大编号并+1
+            existing_ids = [item['id'] for item in self.inventory_data if item['id'].startswith('INV')]
+            if existing_ids:
+                # 提取数字部分，找到最大值
+                max_num = max([int(id_str[3:]) for id_str in existing_ids])
+                new_id = f"INV{max_num + 1:03d}"  # 格式化为INV001这样的格式
+            else:
+                new_id = "INV001"
+            
             dialog.result['id'] = new_id
             dialog.result['last_updated'] = datetime.datetime.now().strftime("%Y-%m-%d")
-            
-            # 添加到数据
+              # 添加到数据
             self.inventory_data.append(dialog.result)
             self.refresh_inventory_list()
             messagebox.showinfo("成功", "商品添加成功！")
@@ -513,13 +609,12 @@ class ModernInventoryModule:
             messagebox.showwarning("提示", "请选择要编辑的商品")
             return
             
-        item_id = int(self.inventory_tree.item(selected[0])['values'][0])
+        item_id = self.inventory_tree.item(selected[0])['values'][0]  # 直接获取字符串ID，不转换为int
         item_data = next((item for item in self.inventory_data if item['id'] == item_id), None)
         
         if item_data:
             dialog = InventoryItemDialog(self.parent_frame, "编辑商品", item_data)
-            if dialog.result:
-                # 更新数据
+            if dialog.result:                # 更新数据
                 item_data.update(dialog.result)
                 item_data['last_updated'] = datetime.datetime.now().strftime("%Y-%m-%d")
                 self.refresh_inventory_list()
@@ -534,7 +629,7 @@ class ModernInventoryModule:
             
         item_name = self.inventory_tree.item(selected[0])['values'][1]
         if messagebox.askyesno("确认删除", f"确定要删除商品 '{item_name}' 吗？"):
-            item_id = int(self.inventory_tree.item(selected[0])['values'][0])
+            item_id = self.inventory_tree.item(selected[0])['values'][0]  # 直接获取字符串ID
             self.inventory_data = [item for item in self.inventory_data if item['id'] != item_id]
             self.refresh_inventory_list()
             messagebox.showinfo("成功", "商品删除成功！")
@@ -546,7 +641,7 @@ class ModernInventoryModule:
             messagebox.showwarning("提示", "请选择要补货的商品")
             return
             
-        item_id = int(self.inventory_tree.item(selected[0])['values'][0])
+        item_id = self.inventory_tree.item(selected[0])['values'][0]  # 直接获取字符串ID
         item_data = next((item for item in self.inventory_data if item['id'] == item_id), None)
         
         if item_data:
@@ -564,7 +659,7 @@ class ModernInventoryModule:
             messagebox.showwarning("提示", "请选择要调整库存的商品")
             return
             
-        item_id = int(self.inventory_tree.item(selected[0])['values'][0])
+        item_id = self.inventory_tree.item(selected[0])['values'][0]  # 直接获取字符串ID
         item_data = next((item for item in self.inventory_data if item['id'] == item_id), None)
         
         if item_data:
@@ -580,6 +675,319 @@ class ModernInventoryModule:
     def export_report(self):
         """导出报表"""
         messagebox.showinfo("导出报表", "报表导出功能开发中...")
+        
+    def load_recipe_data(self):
+        """加载配方数据"""
+        try:
+            recipes_file = os.path.join(os.path.dirname(__file__), '..', 'data', 'recipes.json')
+            if os.path.exists(recipes_file):
+                with open(recipes_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            else:
+                print("配方文件不存在，使用默认配方")
+                return self.get_default_recipes()
+        except Exception as e:
+            print(f"加载配方数据失败: {e}")
+            return self.get_default_recipes()
+    
+    def get_default_recipes(self):
+        """获取默认配方数据"""
+        return [
+            {
+                "meal_id": "MEAL001",
+                "meal_name": "番茄牛肉面",
+                "ingredients": [
+                    {"ingredient_name": "番茄", "quantity_per_serving": 0.2, "unit": "kg"},
+                    {"ingredient_name": "牛肉", "quantity_per_serving": 0.15, "unit": "kg"},
+                    {"ingredient_name": "面条", "quantity_per_serving": 0.25, "unit": "包"}
+                ]
+            },
+            {
+                "meal_id": "MEAL002",
+                "meal_name": "鸡蛋炒饭",
+                "ingredients": [
+                    {"ingredient_name": "鸡蛋", "quantity_per_serving": 2, "unit": "个"},
+                    {"ingredient_name": "大米", "quantity_per_serving": 0.3, "unit": "kg"}
+                ]
+            }
+        ]
+    
+    def calculate_possible_meals(self):
+        """计算当前库存可制作的菜品数量"""
+        recipes = self.load_recipe_data()
+        inventory_dict = {item['name']: item['current_stock'] for item in self.inventory_data}
+        
+        possible_meals = {}
+        
+        for recipe in recipes:
+            meal_name = recipe['meal_name']
+            min_possible = float('inf')
+            
+            for ingredient in recipe['ingredients']:
+                ingredient_name = ingredient['ingredient_name']
+                required_quantity = ingredient['quantity_per_serving']
+                
+                if ingredient_name in inventory_dict:
+                    current_stock = inventory_dict[ingredient_name]
+                    possible_servings = int(current_stock / required_quantity)
+                    min_possible = min(min_possible, possible_servings)
+                else:
+                    min_possible = 0
+                    break
+            
+            if min_possible == float('inf'):
+                min_possible = 0
+                
+            possible_meals[meal_name] = {
+                'possible_servings': min_possible,
+                'recipe': recipe
+            }
+        
+        return possible_meals
+
+    def create_possible_meals_section(self, parent):
+        """创建可制作菜品展示区域"""
+        section_frame = tk.Frame(parent, bg=self.colors['background'])
+        section_frame.pack(fill="x", pady=(0, 20))
+        
+        # 标题
+        title_frame = tk.Frame(section_frame, bg=self.colors['background'])
+        title_frame.pack(fill="x", pady=(0, 15))
+        
+        title_label = tk.Label(title_frame, text="🍽️ 可制作菜品数量", 
+                              font=self.fonts['heading'],
+                              bg=self.colors['background'], 
+                              fg=self.colors['text_primary'])
+        title_label.pack(side="left")
+        
+        # 刷新按钮
+        refresh_btn = tk.Button(title_frame, text="🔄 刷新", 
+                               font=self.fonts['body'],
+                               bg=self.colors['primary'], fg="white",
+                               bd=0, relief="flat", cursor="hand2",
+                               command=self.refresh_possible_meals,
+                               padx=15, pady=5)
+        refresh_btn.pack(side="right")
+        
+        # 可制作菜品卡片容器
+        self.meals_container = tk.Frame(section_frame, bg=self.colors['background'])
+        self.meals_container.pack(fill="x")
+        
+        # 初始加载可制作菜品
+        self.refresh_possible_meals()
+    
+    def refresh_possible_meals(self):
+        """刷新可制作菜品显示"""
+        # 清空现有显示
+        for widget in self.meals_container.winfo_children():
+            widget.destroy()
+        
+        # 计算可制作菜品
+        possible_meals = self.calculate_possible_meals()
+        
+        if not possible_meals:
+            no_data_label = tk.Label(self.meals_container, 
+                                   text="暂无配方数据",
+                                   font=self.fonts['body'],
+                                   bg=self.colors['background'],
+                                   fg=self.colors['text_secondary'])
+            no_data_label.pack(pady=20)
+            return
+        
+        # 创建卡片网格
+        row = 0
+        col = 0
+        max_cols = 4
+        
+        for meal_name, meal_info in possible_meals.items():
+            self.create_meal_card(self.meals_container, meal_name, meal_info, row, col)
+            
+            col += 1
+            if col >= max_cols:
+                col = 0
+                row += 1
+        
+        # 配置网格权重
+        for i in range(max_cols):
+            self.meals_container.grid_columnconfigure(i, weight=1)
+    
+    def create_meal_card(self, parent, meal_name, meal_info, row, col):
+        """创建菜品卡片"""
+        possible_servings = meal_info['possible_servings']
+        recipe = meal_info['recipe']
+        
+        # 根据可制作数量确定颜色
+        if possible_servings == 0:
+            card_color = self.colors['error']
+            text_color = "white"
+            status_text = "缺料"
+        elif possible_servings < 5:
+            card_color = self.colors['warning']
+            text_color = "white"
+            status_text = "库存低"
+        else:
+            card_color = self.colors['success']
+            text_color = "white"
+            status_text = "充足"
+        
+        # 卡片框架
+        card_frame = tk.Frame(parent, bg=card_color, relief="flat", bd=1)
+        card_frame.grid(row=row, column=col, padx=8, pady=8, sticky="ew")
+        
+        # 卡片内容
+        content_frame = tk.Frame(card_frame, bg=card_color)
+        content_frame.pack(fill="both", expand=True, padx=15, pady=12)
+        
+        # 菜品名称
+        name_label = tk.Label(content_frame, text=meal_name,
+                             font=self.fonts['subheading'],
+                             bg=card_color, fg=text_color)
+        name_label.pack(anchor="w")
+        
+        # 可制作数量
+        count_label = tk.Label(content_frame, text=f"可制作: {possible_servings} 份",
+                              font=self.fonts['body'],
+                              bg=card_color, fg=text_color)
+        count_label.pack(anchor="w", pady=(2, 0))
+        
+        # 状态标签
+        status_label = tk.Label(content_frame, text=status_text,
+                               font=self.fonts['small'],
+                               bg=card_color, fg=text_color)
+        status_label.pack(anchor="w", pady=(2, 0))
+        
+        # 点击查看详情
+        def show_recipe_detail():
+            self.show_recipe_detail_dialog(meal_name, recipe, possible_servings)
+        
+        card_frame.bind("<Button-1>", lambda e: show_recipe_detail())
+        content_frame.bind("<Button-1>", lambda e: show_recipe_detail())
+        name_label.bind("<Button-1>", lambda e: show_recipe_detail())
+        count_label.bind("<Button-1>", lambda e: show_recipe_detail())
+        status_label.bind("<Button-1>", lambda e: show_recipe_detail())
+        
+        # 悬停效果
+        def on_enter(event):
+            card_frame.configure(relief="raised", bd=2)
+        
+        def on_leave(event):
+            card_frame.configure(relief="flat", bd=1)
+        
+        card_frame.bind("<Enter>", on_enter)
+        card_frame.bind("<Leave>", on_leave)
+    
+    def show_recipe_detail_dialog(self, meal_name, recipe, possible_servings):
+        """显示配方详情对话框"""
+        dialog = tk.Toplevel()
+        dialog.title(f"配方详情 - {meal_name}")
+        dialog.geometry("500x400")
+        dialog.configure(bg=self.colors['background'])
+        dialog.resizable(False, False)
+        
+        # 居中显示
+        dialog.transient(self.parent_frame.winfo_toplevel())
+        dialog.grab_set()
+        
+        # 标题
+        title_frame = tk.Frame(dialog, bg=self.colors['primary'], height=60)
+        title_frame.pack(fill="x")
+        title_frame.pack_propagate(False)
+        
+        title_label = tk.Label(title_frame, text=f"🍽️ {meal_name}",
+                              font=self.fonts['heading'],
+                              bg=self.colors['primary'], fg="white")
+        title_label.pack(expand=True)
+        
+        # 内容区域
+        content_frame = tk.Frame(dialog, bg=self.colors['background'])
+        content_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # 可制作数量信息
+        count_frame = tk.Frame(content_frame, bg=self.colors['surface'], padx=15, pady=10)
+        count_frame.pack(fill="x", pady=(0, 15))
+        
+        tk.Label(count_frame, text=f"当前可制作: {possible_servings} 份",
+                font=self.fonts['subheading'],
+                bg=self.colors['surface'], fg=self.colors['primary']).pack()
+        
+        # 配方表
+        recipe_frame = tk.Frame(content_frame, bg=self.colors['surface'])
+        recipe_frame.pack(fill="both", expand=True)
+        
+        # 表头
+        header_frame = tk.Frame(recipe_frame, bg=self.colors['primary'])
+        header_frame.pack(fill="x")
+        
+        tk.Label(header_frame, text="食材名称", font=self.fonts['body'],
+                bg=self.colors['primary'], fg="white", width=15).pack(side="left", padx=5, pady=8)
+        tk.Label(header_frame, text="单份用量", font=self.fonts['body'],
+                bg=self.colors['primary'], fg="white", width=12).pack(side="left", padx=5, pady=8)
+        tk.Label(header_frame, text="当前库存", font=self.fonts['body'],
+                bg=self.colors['primary'], fg="white", width=12).pack(side="left", padx=5, pady=8)
+        tk.Label(header_frame, text="状态", font=self.fonts['body'],
+                bg=self.colors['primary'], fg="white", width=8).pack(side="left", padx=5, pady=8)
+        
+        # 滚动区域
+        canvas = tk.Canvas(recipe_frame, bg=self.colors['surface'])
+        scrollbar = ttk.Scrollbar(recipe_frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg=self.colors['surface'])
+        
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # 食材列表
+        inventory_dict = {item['name']: item for item in self.inventory_data}
+        
+        for i, ingredient in enumerate(recipe['ingredients']):
+            ingredient_name = ingredient['ingredient_name']
+            required_qty = ingredient['quantity_per_serving']
+            unit = ingredient['unit']
+            
+            # 获取当前库存
+            current_stock = 0
+            if ingredient_name in inventory_dict:
+                current_stock = inventory_dict[ingredient_name]['current_stock']
+            
+            # 判断状态
+            if current_stock >= required_qty:
+                status = "✅ 充足"
+                status_color = self.colors['success']
+            elif current_stock > 0:
+                status = "⚠️ 不足"
+                status_color = self.colors['warning']
+            else:
+                status = "❌ 缺料"
+                status_color = self.colors['error']
+            
+            # 行背景色
+            row_bg = self.colors['background'] if i % 2 == 0 else self.colors['surface']
+            
+            row_frame = tk.Frame(scrollable_frame, bg=row_bg)
+            row_frame.pack(fill="x", pady=1)
+            
+            tk.Label(row_frame, text=ingredient_name, font=self.fonts['body'],
+                    bg=row_bg, fg=self.colors['text_primary'], width=15).pack(side="left", padx=5, pady=5)
+            tk.Label(row_frame, text=f"{required_qty} {unit}", font=self.fonts['body'],
+                    bg=row_bg, fg=self.colors['text_primary'], width=12).pack(side="left", padx=5, pady=5)
+            tk.Label(row_frame, text=f"{current_stock} {unit}", font=self.fonts['body'],
+                    bg=row_bg, fg=self.colors['text_primary'], width=12).pack(side="left", padx=5, pady=5)
+            tk.Label(row_frame, text=status, font=self.fonts['small'],
+                    bg=row_bg, fg=status_color, width=8).pack(side="left", padx=5, pady=5)
+        
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # 关闭按钮
+        close_btn = tk.Button(content_frame, text="关闭", font=self.fonts['body'],
+                             bg=self.colors['text_secondary'], fg="white",
+                             bd=0, relief="flat", cursor="hand2",
+                             command=dialog.destroy, padx=20, pady=8)
+        close_btn.pack(pady=15)
 
 class InventoryItemDialog:
     """库存商品对话框"""

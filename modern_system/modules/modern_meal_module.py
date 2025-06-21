@@ -181,12 +181,11 @@ class ModernMealModule:
         
         # 重新加载最新数据
         self.meal_data = self.load_meal_data()
-        
-        # 初始化界面变量（如果还没有初始化）
+          # 初始化界面变量（如果还没有初始化）
         if self.search_var is None:
-            self.search_var = tk.StringVar()
-            self.category_filter_var = tk.StringVar(value="全部")
-            self.status_filter_var = tk.StringVar(value="全部")
+            self.search_var = tk.StringVar(self.parent_frame)
+            self.category_filter_var = tk.StringVar(self.parent_frame, value="全部")
+            self.status_filter_var = tk.StringVar(self.parent_frame, value="全部")
         
         self.clear_frames()
         self.update_title()
@@ -871,7 +870,7 @@ class MealDialog:
         add_ingredient_frame = tk.Frame(section_frame, bg=self.colors['surface'])
         add_ingredient_frame.pack(fill="x")
         
-        self.ingredient_var = tk.StringVar()
+        self.ingredient_var = tk.StringVar(self.dialog)
         ingredient_entry = tk.Entry(add_ingredient_frame, textvariable=self.ingredient_var,
                                    font=self.fonts['body'], width=30)
         ingredient_entry.pack(side="left", padx=(0, 10), ipady=5)

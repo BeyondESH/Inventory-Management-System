@@ -1,0 +1,103 @@
+[
+    {
+        "meal_id": "MEAL001",
+        "meal_name": "番茄牛肉面",
+        "ingredients": [
+            {
+                "ingredient_name": "番茄",
+                "quantity_per_serving": 0.2,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "牛肉",
+                "quantity_per_serving": 0.15,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "面条",
+                "quantity_per_serving": 0.25,
+                "unit": "包"
+            }
+        ]
+    },
+    {
+        "meal_id": "MEAL002",
+        "meal_name": "鸡蛋炒饭",
+        "ingredients": [
+            {
+                "ingredient_name": "鸡蛋",
+                "quantity_per_serving": 2,
+                "unit": "个"
+            },
+            {
+                "ingredient_name": "大米",
+                "quantity_per_serving": 0.3,
+                "unit": "kg"
+            }
+        ]
+    },
+    {
+        "meal_id": "MEAL003",
+        "meal_name": "牛肉汉堡",
+        "ingredients": [
+            {
+                "ingredient_name": "牛肉",
+                "quantity_per_serving": 0.2,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "面包",
+                "quantity_per_serving": 1,
+                "unit": "个"
+            },
+            {
+                "ingredient_name": "生菜",
+                "quantity_per_serving": 0.05,
+                "unit": "kg"
+            }
+        ]
+    },
+    {
+        "meal_id": "MEAL004",
+        "meal_name": "红烧肉",
+        "ingredients": [
+            {
+                "ingredient_name": "猪肉",
+                "quantity_per_serving": 0.25,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "生抽",
+                "quantity_per_serving": 0.02,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "糖",
+                "quantity_per_serving": 0.01,
+                "unit": "kg"
+            }
+        ]
+    },
+    {
+        "meal_id": "MEAL005",
+        "meal_name": "可乐",
+        "ingredients": [
+            {
+                "ingredient_name": "可乐原料",
+                "quantity_per_serving": 0.35,
+                "unit": "L"
+            }
+        ]
+    },
+    {
+        "meal_id": "MEAL006",
+        "meal_name": "米饭",
+        "ingredients": [
+            {
+                "ingredient_name": "大米",
+                "quantity_per_serving": 0.15,
+                "unit": "kg"
+            }
+        ]
+    }
+]

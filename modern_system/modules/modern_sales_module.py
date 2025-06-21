@@ -150,7 +150,7 @@ class ModernSalesModule:
                               fg=self.colors['text_secondary'])
         table_label.pack(side="left")
         
-        self.table_var = tk.StringVar(value=self.current_table)
+        self.table_var = tk.StringVar(left_frame, value=self.current_table)
         table_combo = ttk.Combobox(table_frame, textvariable=self.table_var, 
                                   values=[f"桌号{i}" for i in range(1, 21)], 
                                   width=10, state="readonly")
@@ -565,7 +565,8 @@ class ModernSalesModule:
     def clear_cart(self):
         """清空购物车"""
         if self.cart_items:
-            result = messagebox.askyesno("确认清空", "确定要清空购物车吗？")
+            root = self.main_frame.winfo_toplevel()
+            result = messagebox.askyesno("确认清空", "确定要清空购物车吗？", parent=root)
             if result:
                 self.cart_items.clear()
                 self.update_cart_display()
@@ -577,10 +578,10 @@ class ModernSalesModule:
     def checkout(self):
         """结账处理"""
         if not self.cart_items:
-            messagebox.showwarning("提示", "购物车是空的！")
+            root = self.main_frame.winfo_toplevel()
+            messagebox.showwarning("提示", "购物车是空的！", parent=root)
             return
-        
-        # 创建结账对话框
+          # 创建结账对话框
         self.show_checkout_dialog()
     
     def show_checkout_dialog(self):
@@ -589,27 +590,49 @@ class ModernSalesModule:
         root = self.main_frame.winfo_toplevel()
         dialog = tk.Toplevel(root)
         dialog.title("结账")
-        dialog.geometry("400x500")
         dialog.configure(bg=self.colors['background'])
         dialog.transient(root)
         dialog.grab_set()
-        
-        # 居中显示
+        dialog.resizable(False, False)  # 禁止调整大小
+          # 设置对话框大小和位置，调整尺寸确保按钮可见
+        dialog_width = 450
+        dialog_height = 650  # 增加高度
         dialog.update_idletasks()
-        x = (dialog.winfo_screenwidth() // 2) - (400 // 2)
-        y = (dialog.winfo_screenheight() // 2) - (500 // 2)
-        dialog.geometry(f"400x500+{x}+{y}")
+        x = (dialog.winfo_screenwidth() // 2) - (dialog_width // 2)
+        y = (dialog.winfo_screenheight() // 2) - (dialog_height // 2)
+        dialog.geometry(f"{dialog_width}x{dialog_height}+{x}+{y}")
+        
+        # 创建主容器 - 分为内容区和按钮区
+        main_container = tk.Frame(dialog, bg=self.colors['background'])
+        main_container.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # 内容区域（可滚动）- 限制高度确保按钮区域可见
+        content_container = tk.Frame(main_container, bg=self.colors['background'])
+        content_container.pack(fill="both", expand=True, pady=(0, 15))
+        
+        content_canvas = tk.Canvas(content_container, bg=self.colors['background'], 
+                                  highlightthickness=0, height=450)  # 限制画布高度
+        content_scrollbar = ttk.Scrollbar(content_container, orient="vertical", command=content_canvas.yview)
+        content_frame = tk.Frame(content_canvas, bg=self.colors['background'])
+        
+        content_frame.bind(
+            "<Configure>",
+            lambda e: content_canvas.configure(scrollregion=content_canvas.bbox("all"))
+        )
+        
+        content_canvas.create_window((0, 0), window=content_frame, anchor="nw")
+        content_canvas.configure(yscrollcommand=content_scrollbar.set)
         
         # 标题
-        title_label = tk.Label(dialog, text="💳 订单结账", 
+        title_label = tk.Label(content_frame, text="💳 订单结账", 
                               font=self.fonts['title'],
                               bg=self.colors['background'], 
                               fg=self.colors['text_primary'])
-        title_label.pack(pady=20)
+        title_label.pack(pady=(0, 20))
         
         # 订单信息
-        info_frame = tk.Frame(dialog, bg=self.colors['surface'], relief="flat", bd=1)
-        info_frame.pack(fill="x", padx=20, pady=(0, 20))
+        info_frame = tk.Frame(content_frame, bg=self.colors['surface'], relief="flat", bd=1)
+        info_frame.pack(fill="x", pady=(0, 15))
         
         tk.Label(info_frame, text=f"桌号: {self.current_table}", 
                 font=self.fonts['body'],
@@ -622,8 +645,8 @@ class ModernSalesModule:
                 fg=self.colors['text_primary']).pack(anchor="w", padx=15, pady=5)
         
         # 商品列表
-        items_frame = tk.Frame(dialog, bg=self.colors['surface'], relief="flat", bd=1)
-        items_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        items_frame = tk.Frame(content_frame, bg=self.colors['surface'], relief="flat", bd=1)
+        items_frame.pack(fill="x", pady=(0, 15))
         
         tk.Label(items_frame, text="订单明细:", 
                 font=self.fonts['heading'],
@@ -638,13 +661,17 @@ class ModernSalesModule:
                     fg=self.colors['text_secondary']).pack(anchor="w", padx=30, pady=2)
         
         # 总计
-        tk.Label(items_frame, text=f"总计: ￥{self.total_amount:.2f}", 
+        total_frame = tk.Frame(content_frame, bg=self.colors['surface'], relief="flat", bd=1)
+        total_frame.pack(fill="x", pady=(0, 15))
+        
+        tk.Label(total_frame, text=f"总计: ￥{self.total_amount:.2f}", 
                 font=self.fonts['price'],
-                bg=self.colors['surface'],                fg=self.colors['primary']).pack(anchor="w", padx=15, pady=(10, 15))
+                bg=self.colors['surface'],
+                fg=self.colors['primary']).pack(anchor="w", padx=15, pady=10)
         
         # 支付方式
-        payment_frame = tk.Frame(dialog, bg=self.colors['background'])
-        payment_frame.pack(fill="x", padx=20, pady=(0, 20))
+        payment_frame = tk.Frame(content_frame, bg=self.colors['background'])
+        payment_frame.pack(fill="x", pady=(0, 20))
         
         tk.Label(payment_frame, text="选择支付方式:", 
                 font=self.fonts['heading'],
@@ -664,69 +691,118 @@ class ModernSalesModule:
                                font=self.fonts['body'], bg=self.colors['background'],
                                fg=self.colors['text_primary'])
             rb.pack(anchor="w", pady=2)
+          # 布局内容区域
+        content_canvas.pack(side="left", fill="both", expand=True)
+        content_scrollbar.pack(side="right", fill="y")
         
-        # 按钮
-        btn_frame = tk.Frame(dialog, bg=self.colors['background'])
-        btn_frame.pack(fill="x", padx=20, pady=20)
+        # 固定在底部的按钮容器 - 确保始终可见
+        button_container = tk.Frame(main_container, bg=self.colors['background'], height=70)
+        button_container.pack(side="bottom", fill="x")
+        button_container.pack_propagate(False)
+        
+        # 按钮框架
+        btn_frame = tk.Frame(button_container, bg=self.colors['background'])
+        btn_frame.pack(fill="both", expand=True, pady=10)
         
         confirm_btn = tk.Button(btn_frame, text="✅ 确认支付",
                                font=self.fonts['heading'],
                                bg=self.colors['success'], fg='white',
-                               bd=0, pady=10, cursor="hand2",
+                               bd=0, pady=12, cursor="hand2",
                                command=lambda: self.process_payment(dialog, payment_var.get()))
-        confirm_btn.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        confirm_btn.pack(side="left", fill="both", expand=True, padx=(0, 10))
         
         cancel_btn = tk.Button(btn_frame, text="❌ 取消",
                               font=self.fonts['body'],
                               bg=self.colors['text_secondary'], fg='white',
-                              bd=0, pady=10, cursor="hand2",
+                              bd=0, pady=12, cursor="hand2",
                               command=dialog.destroy)
-        cancel_btn.pack(side="right", fill="x", expand=True)
+        cancel_btn.pack(side="right", fill="both", expand=True)
         
     def process_payment(self, dialog, payment_method):
         """处理支付"""
         try:
+            # 准备订单项目用于库存检查
+            order_items = []
+            meals_data = []
+            
+            for item in self.cart_items:
+                # 为库存检查准备数据（使用菜品名称作为product_id）
+                order_items.append({
+                    'product_id': item['name'],  # 使用菜品名称作为库存中的产品ID
+                    'quantity': item['quantity']
+                })
+                
+                # 为订单记录准备菜品数据
+                meals_data.append({
+                    'name': item['name'],
+                    'price': item['price'],
+                    'quantity': item['quantity'],
+                    'subtotal': item['price'] * item['quantity']
+                })
+            
             # 创建订单数据
             order_data = {
-                'table_number': self.current_table,
-                'customer_name': f"{self.current_table}客户",
+                'customer_name': f"桌号{self.current_table}",
                 'phone': '',
                 'address': '堂食',
-                'items': [
-                    {
-                        'name': item['name'],
-                        'quantity': item['quantity'],
-                        'price': item['price'],
-                        'subtotal': item['price'] * item['quantity']
-                    }
-                    for item in self.cart_items
-                ],
+                'items': order_items,  # 用于库存检查
+                'meals': meals_data,   # 用于订单显示
                 'total_amount': self.total_amount,
-                'payment_method': payment_method,
-                'order_type': '堂食',
-                'status': '已完成',
-                'create_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                'payment': payment_method,
+                'type': '堂食',
+                'note': f"桌号: {self.current_table}"
             }
             
-            # 保存订单
-            order_id = data_manager.add_order(order_data)
-            
-            # 关闭对话框
-            dialog.destroy()
-            
-            # 显示成功消息
-            messagebox.showinfo("支付成功", 
-                              f"订单已完成！\n"
-                              f"订单号: {order_id}\n"
-                              f"支付方式: {payment_method}\n"
-                              f"金额: ￥{self.total_amount:.2f}")
-            
-            # 清空购物车
-            self.cart_items.clear()
-            self.update_cart_display()
-            
+            # 使用数据管理器创建订单（包含库存检查）
+            try:
+                order_id = data_manager.create_order(order_data)
+                
+                # 关闭对话框
+                dialog.destroy()
+                
+                # 显示成功消息
+                root = self.main_frame.winfo_toplevel()
+                messagebox.showinfo("支付成功", 
+                                   f"订单 {order_id} 支付成功！\n桌号: {self.current_table}\n支付方式: {payment_method}\n总金额: ￥{self.total_amount:.2f}", 
+                                   parent=root)
+                
+                # 清空购物车
+                self.clear_cart()
+                
+                # 通知其他模块刷新数据
+                self.notify_order_created(order_id)
+                
+            except ValueError as e:
+                if "库存不足" in str(e):
+                    messagebox.showerror("库存不足", 
+                                        "部分商品库存不足，无法完成订单。\n请联系工作人员或选择其他商品。",
+                                        parent=dialog)
+                else:
+                    messagebox.showerror("订单创建失败", f"创建订单失败：{e}", parent=dialog)
+            except Exception as e:                messagebox.showerror("系统错误", f"处理订单时发生错误：{e}", parent=dialog)
+                
         except Exception as e:
-            messagebox.showerror("支付失败", f"处理支付时发生错误：{e}")
+            messagebox.showerror("支付失败", f"支付处理失败：{e}", parent=dialog)
+    
+    def notify_order_created(self, order_id):
+        """通知其他模块订单已创建"""
+        try:
+            # 通知订单模块刷新
+            if self.order_module and hasattr(self.order_module, 'refresh_order_list'):
+                self.order_module.refresh_order_list()
+            
+            # 通知库存模块刷新
+            if self.inventory_module and hasattr(self.inventory_module, 'refresh_inventory'):
+                self.inventory_module.refresh_inventory()
+                
+            print(f"✅ 订单 {order_id} 创建成功，已通知相关模块刷新")
+        except Exception as e:
+            print(f"⚠️ 通知模块刷新时发生错误：{e}")
+    
+    def clear_cart(self):
+        """清空购物车"""
+        self.cart_items.clear()
+        self.update_cart_display()
     
     def show_add_success_feedback(self, meal_name):
         """显示添加成功的非阻塞反馈"""
@@ -743,23 +819,14 @@ class ModernSalesModule:
         self.main_frame.after(2000, feedback_label.destroy)
         
     def refresh_meals_data(self):
-        """刷新菜品数据（当菜品管理模块有更新时调用）"""
+        """刷新菜品数据（由菜品管理模块调用）"""
         try:
             # 重新加载菜品数据
             self.meals_data = self.load_meals_data()
-            
-            # 重新生成分类列表
+            # 更新分类
             self.categories = list(set(meal.get('category', '其他') for meal in self.meals_data))
-            
-            # 如果界面已显示，刷新菜品展示
-            if self.main_frame and self.main_frame.winfo_exists():
-                # 重新创建分类导航
-                if hasattr(self, 'category_buttons'):
-                    self.create_category_nav(self.menu_frame)
-                
-                # 重新显示菜品
+            # 如果当前页面已显示，刷新显示
+            if hasattr(self, 'main_frame') and self.main_frame:
                 self.display_meals()
-                
-            print("销售管理模块：菜品数据已刷新")
         except Exception as e:
             print(f"刷新菜品数据失败: {e}")
