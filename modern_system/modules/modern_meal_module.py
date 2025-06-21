@@ -675,11 +675,10 @@ class MealDialog:
     """菜品对话框"""
     def __init__(self, parent, title, meal_data=None):
         self.result = None
-        
-        # 创建对话框窗口
+          # 创建对话框窗口
         self.dialog = tk.Toplevel(parent)
         self.dialog.title(title)
-        self.dialog.geometry("600x700")
+        self.dialog.geometry("600x800")  # 增加高度从700到800
         self.dialog.configure(bg="#f8f9fa")
         self.dialog.resizable(False, False)
         self.dialog.grab_set()

@@ -208,18 +208,17 @@ class ModernInventoryModule:
         return btn
         
     def create_inventory_interface(self):
-        """创建库存管理界面"""
-        # 主容器
+        """创建库存管理界面"""        # 主容器
         main_container = tk.Frame(self.parent_frame, bg=self.colors['background'])
         main_container.pack(fill="both", expand=True, padx=20, pady=20)
-          # 顶部统计卡片
-        self.create_stats_cards(main_container)
         
-        # 可制作菜品展示区域
+        # 顶部统计卡片 - 已隐藏
+        # self.create_stats_cards(main_container)
+          # 可制作菜品展示区域
         self.create_possible_meals_section(main_container)
         
-        # 中间筛选和搜索区域
-        self.create_filter_section(main_container)
+        # 中间筛选和搜索区域 - 已隐藏
+        # self.create_filter_section(main_container)
         
         # 底部库存列表
         self.create_inventory_list(main_container)
@@ -453,8 +452,7 @@ class ModernInventoryModule:
                 f"¥{item['price']:.2f}",
                 status,
                 item['supplier'],
-                item['last_updated']
-            ))
+                item['last_updated']            ))
             
             # 根据状态设置行颜色
             if status == "缺货":
@@ -464,35 +462,17 @@ class ModernInventoryModule:
             else:
                 self.inventory_tree.set(item_id, "状态", "✅ 正常")
         
-        # 更新统计卡片
-        self.update_stats_cards()
-        
+        # 更新统计卡片 - 已隐藏统计卡片
+        # self.update_stats_cards()
+    
     def get_filtered_data(self):
         """获取筛选后的数据"""
         filtered_data = self.inventory_data.copy()
         
-        # 按搜索关键词筛选
-        search_term = self.search_var.get().strip().lower()
-        if search_term:
-            filtered_data = [item for item in filtered_data 
-                           if search_term in item['name'].lower() or 
-                              search_term in item['category'].lower() or
-                              search_term in item['supplier'].lower()]
-        
-        # 按分类筛选
-        category_filter = self.category_filter_var.get()
-        if category_filter != "全部":
-            filtered_data = [item for item in filtered_data if item['category'] == category_filter]
-        
-        # 按库存状态筛选
-        stock_filter = self.stock_filter_var.get()
-        if stock_filter != "全部":
-            if stock_filter == "正常":
-                filtered_data = [item for item in filtered_data if item['current_stock'] > item['min_stock']]
-            elif stock_filter == "不足":
-                filtered_data = [item for item in filtered_data if 0 < item['current_stock'] <= item['min_stock']]
-            elif stock_filter == "缺货":
-                filtered_data = [item for item in filtered_data if item['current_stock'] == 0]
+        # 移除搜索和筛选功能，仅保留食材过滤
+        # 按搜索关键词筛选 - 已移除
+        # 按分类筛选 - 已移除  
+        # 按库存状态筛选 - 已移除
         
         # 过滤只显示食材（原料），不显示成品菜品
         finished_product_keywords = [
@@ -880,7 +860,7 @@ class ModernInventoryModule:
         """显示配方详情对话框"""
         dialog = tk.Toplevel()
         dialog.title(f"配方详情 - {meal_name}")
-        dialog.geometry("500x400")
+        dialog.geometry("500x900")
         dialog.configure(bg=self.colors['background'])
         dialog.resizable(False, False)
         
@@ -993,11 +973,10 @@ class InventoryItemDialog:
     """库存商品对话框"""
     def __init__(self, parent, title, item_data=None):
         self.result = None
-        
-        # 创建对话框窗口
+          # 创建对话框窗口
         self.dialog = tk.Toplevel(parent)
         self.dialog.title(title)
-        self.dialog.geometry("500x600")
+        self.dialog.geometry("500x900")  # 增加高度从600到700
         self.dialog.configure(bg="#f8f9fa")
         self.dialog.resizable(False, False)
         self.dialog.grab_set()

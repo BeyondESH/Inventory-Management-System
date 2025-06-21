@@ -480,7 +480,7 @@ class ModernOrderModule:
         # 创建新订单窗口
         order_window = tk.Toplevel()
         order_window.title("新建订单")
-        order_window.geometry("600x700")
+        order_window.geometry("600x800")  # 增加高度从700到800
         order_window.configure(bg=self.colors['background'])
         order_window.resizable(False, False)
         

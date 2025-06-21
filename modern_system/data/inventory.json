@@ -47,24 +47,24 @@
     "id": "INV005",
     "name": "鸡蛋炒饭",
     "category": "成品",
-    "stock": 50,
+    "stock": 49,
     "min_stock": 10,
     "max_stock": 200,
     "unit": "份",
     "cost_price": 12.0,
-    "last_update": "2024-06-21 10:00:00",
+    "last_update": "2025-06-21T12:43:57.840890",
     "supplier": "厨房制作"
   },
   {
     "id": "INV006",
     "name": "牛肉汉堡",
     "category": "成品",
-    "stock": 30,
+    "stock": 29,
     "min_stock": 5,
     "max_stock": 100,
     "unit": "个",
     "cost_price": 18.0,
-    "last_update": "2024-06-21 10:00:00",
+    "last_update": "2025-06-21T12:47:47.156199",
     "supplier": "厨房制作"
   },
   {

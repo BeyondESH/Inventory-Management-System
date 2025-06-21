@@ -199,5 +199,57 @@
     "id": "ORD20250621121642",
     "create_time": "2025-06-21T12:16:42.018818",
     "status": "待处理"
+  },
+  {
+    "customer_name": "桌号桌号1",
+    "phone": "",
+    "address": "堂食",
+    "items": [
+      {
+        "product_id": "鸡蛋炒饭",
+        "quantity": 1
+      }
+    ],
+    "meals": [
+      {
+        "name": "鸡蛋炒饭",
+        "price": 18.0,
+        "quantity": 1,
+        "subtotal": 18.0
+      }
+    ],
+    "total_amount": 18.0,
+    "payment": "现金",
+    "type": "堂食",
+    "note": "桌号: 桌号1",
+    "id": "ORD20250621124357",
+    "create_time": "2025-06-21T12:43:57.840864",
+    "status": "待处理"
+  },
+  {
+    "customer_name": "桌号桌号1",
+    "phone": "",
+    "address": "堂食",
+    "items": [
+      {
+        "product_id": "牛肉汉堡",
+        "quantity": 1
+      }
+    ],
+    "meals": [
+      {
+        "name": "牛肉汉堡",
+        "price": 32.0,
+        "quantity": 1,
+        "subtotal": 32.0
+      }
+    ],
+    "total_amount": 32.0,
+    "payment": "现金",
+    "type": "堂食",
+    "note": "桌号: 桌号1",
+    "id": "ORD20250621124747",
+    "create_time": "2025-06-21T12:47:47.156183",
+    "status": "待处理"
   }
 ]

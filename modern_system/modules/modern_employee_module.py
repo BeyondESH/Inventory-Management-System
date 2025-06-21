@@ -503,7 +503,7 @@ class ModernEmployeeModule:
         """编辑员工信息"""
         edit_window = tk.Toplevel()
         edit_window.title(f"编辑员工 - {employee['name']}")
-        edit_window.geometry("550x700")
+        edit_window.geometry("550x800")  # 增加高度从700到800
         edit_window.configure(bg=self.colors['background'])
         edit_window.resizable(False, False)
         
@@ -741,7 +741,7 @@ class ModernEmployeeModule:
         """添加新员工"""
         add_window = tk.Toplevel()
         add_window.title("添加新员工")
-        add_window.geometry("550x700")
+        add_window.geometry("550x800")  # 增加高度从700到800
         add_window.configure(bg=self.colors['background'])
         add_window.resizable(False, False)
         
