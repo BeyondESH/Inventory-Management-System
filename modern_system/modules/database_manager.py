@@ -404,7 +404,7 @@ class DatabaseManager:
                 order_price_id,
                 order_data.get('payment_method_id', 1),
                 order_data.get('delivery_date'),
-                order_data.get('order_status', '已接收'),
+                order_data.get('order_status', 'Received'),
                 order_data.get('note', ''),
                 order_data.get('quantity', 1)
             ))

@@ -725,7 +725,7 @@ class ModernSalesModule:
                     "items": self.cart_items,
                     "total_amount": self.total_amount,
                     "payment_method": payment_method,
-                    "status": "Completed"
+                    "status": "Received"
                 }
                 # Use data_manager to add the order
                 order_id = data_manager.add_order(order_data)

@@ -159,7 +159,7 @@ class DataManager:
                         'employee_id': order_data.get('employee_id', 1),
                         'payment_method_id': order_data.get('payment_method_id', 1),
                         'delivery_date': order_data.get('delivery_date'),
-                        'order_status': order_data.get('order_status', '已接收'),
+                        'order_status': order_data.get('order_status', 'Received'),
                         'note': order_data.get('note', ''),
                         'quantity': item.get('quantity', 1),
                         'total_amount': item.get('price', 0) * item.get('quantity', 1)
@@ -179,7 +179,7 @@ class DataManager:
             order_id = f"ORD{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
             order_data['id'] = order_id
             order_data['create_time'] = datetime.datetime.now().isoformat()
-            order_data['status'] = '待处理'
+            order_data['status'] = 'Received'
             if self.check_and_reduce_inventory(order_data.get('items', [])):
                 self.orders.append(order_data)
                 self.save_orders()
@@ -219,7 +219,7 @@ class DataManager:
                     order['update_time'] = datetime.datetime.now().isoformat()
                     
                     # 如果订单被取消，恢复库存
-                    if new_status == '已取消' and old_status != '已取消':
+                    if new_status == 'Cancelled' and old_status != 'Cancelled':
                         self.restore_inventory(order.get('items', []))
                         # 添加退款记录
                         self.add_financial_record({
