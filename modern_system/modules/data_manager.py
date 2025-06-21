@@ -130,71 +130,25 @@ class DataManager:
         except Exception as e:
             print(f"保存订单数据失败: {e}")
     
-    def add_order(self, order_data: Dict) -> str:
-        """添加新订单并处理库存扣减"""
-        if self.use_database:
-            # 数据库模式
-            try:
-                cart_items = order_data.get('items', [])
-                if not cart_items:
-                    raise ValueError("购物车为空，无法创建订单")
-                order_ids = []
-                for item in cart_items:
-                    # 优先用id（meal_id）
-                    meal_id = item.get('id') or item.get('meal_id')
-                    if not meal_id:
-                        # 兜底用name查找
-                        meal_name = item.get('name', '')
-                        meals = database_manager.get_meals()
-                        for meal in meals:
-                            if meal.get('name') == meal_name:
-                                meal_id = meal.get('meal_id')
-                                break
-                    if not meal_id:
-                        print(f"⚠️ 未找到餐食: {item.get('name','')}")
-                        continue
-                    db_order_data = {
-                        'meal_id': meal_id,
-                        'customer_id': order_data.get('customer_id', 1),
-                        'employee_id': order_data.get('employee_id', 1),
-                        'payment_method_id': order_data.get('payment_method_id', 1),
-                        'delivery_date': order_data.get('delivery_date'),
-                        'order_status': order_data.get('order_status', '已接收'),
-                        'note': order_data.get('note', ''),
-                        'quantity': item.get('quantity', 1),
-                        'total_amount': item.get('price', 0) * item.get('quantity', 1)
-                    }
-                    order_id = database_manager.create_order(db_order_data)
-                    order_ids.append(str(order_id))
-                if not order_ids:
-                    raise ValueError("没有有效的餐食，无法创建订单")
-                self.notify_modules('order_added', order_data)
-                return order_ids[0]
-            except Exception as e:
-                print(f"❌ 数据库创建订单失败: {e}")
-                raise
-        # JSON文件模式
-        with self.data_lock:
-            # 生成订单ID
-            order_id = f"ORD{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
-            order_data['id'] = order_id
-            order_data['create_time'] = datetime.datetime.now().isoformat()
-            order_data['status'] = '待处理'
-            if self.check_and_reduce_inventory(order_data.get('items', [])):
-                self.orders.append(order_data)
-                self.save_orders()
-                self.add_financial_record({
-                    'type': 'income',
-                    'category': '销售收入',
-                    'amount': order_data.get('total_amount', 0),
-                    'description': f"订单收入 - {order_id}",
-                    'order_id': order_id
-                })
-                self.update_dashboard_stats()
-                self.notify_modules('order_added', order_data)
-                return order_id
-            else:
-                raise ValueError("库存不足，无法创建订单")
+    def add_order(self, order_data: Dict) -> int:
+        """添加新订单并处理库存扣减 (数据库模式)"""
+        if not self.use_database:
+            # 此处可以保留或移除JSON模式的逻辑
+            raise NotImplementedError("JSON模式下的订单创建已废弃")
+
+        try:
+            # 直接将订单数据传递给database_manager
+            # database_manager现在负责事务、库存检查和扣减
+            order_id = database_manager.create_order(order_data)
+            
+            # 通知模块（如果需要）
+            self.notify_modules('order_added', {'order_id': order_id})
+            
+            return order_id
+        except Exception as e:
+            # 将数据库层的异常继续向上抛出，以便UI层可以捕获并显示给用户
+            print(f"❌ DataManager创建订单失败: {e}")
+            raise e
     
     def create_order(self, order_data: Dict) -> str:
         """创建新订单（add_order的别名）"""
@@ -421,10 +375,10 @@ class DataManager:
         
         return record_id
     
-    def get_financial_records(self, record_type: Optional[str] = None) -> List[Dict]:
+    def get_financial_records(self, time_range: str = '全部', record_type: str = '全部') -> List[Dict]:
         """获取财务记录"""
         if self.use_database:
-            return database_manager.get_financial_records(record_type)
+            return database_manager.get_financial_records(time_range, record_type)
         
         if record_type:
             return [record for record in self.financial_records if record.get('type') == record_type]
@@ -488,58 +442,25 @@ class DataManager:
         """获取客户列表"""
         if self.use_database:
             return database_manager.get_customers()
-        return self.customers.copy()
+        return self.load_data('customers')
     
-    def add_customer(self, customer_data: Dict) -> int:
+    def add_customer(self, data: Dict) -> int:
         """添加新客户"""
         if self.use_database:
-            return database_manager.create_customer(customer_data)
-        
-        # JSON文件模式
-        with self.data_lock:
-            customer_id = f"CUST{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
-            customer_data['id'] = customer_id
-            customer_data['created_at'] = datetime.datetime.now().isoformat()
-            self.customers.append(customer_data)
-            self.save_customers()
-            return customer_id
+            return database_manager.add_customer(data)
+        raise NotImplementedError("JSON模式下不支持此操作")
     
-    def update_customer(self, customer_id: str, customer_data: Dict) -> bool:
+    def update_customer(self, customer_id: int, data: Dict):
         """更新客户信息"""
         if self.use_database:
-            try:
-                return database_manager.update_customer(int(customer_id), customer_data)
-            except Exception as e:
-                print(f"❌ 数据库更新客户失败: {e}")
-                return False
-        
-        # JSON文件模式
-        with self.data_lock:
-            for customer in self.customers:
-                if customer['id'] == customer_id:
-                    customer.update(customer_data)
-                    customer['updated_at'] = datetime.datetime.now().isoformat()
-                    self.save_customers()
-                    return True
-            return False
+            return database_manager.update_customer(customer_id, data)
+        raise NotImplementedError("JSON模式下不支持此操作")
     
-    def delete_customer(self, customer_id: str) -> bool:
+    def delete_customer(self, customer_id: int):
         """删除客户"""
         if self.use_database:
-            try:
-                return database_manager.delete_customer(int(customer_id))
-            except Exception as e:
-                print(f"❌ 数据库删除客户失败: {e}")
-                return False
-        
-        # JSON文件模式
-        with self.data_lock:
-            for i, customer in enumerate(self.customers):
-                if customer['id'] == customer_id:
-                    del self.customers[i]
-                    self.save_customers()
-                    return True
-            return False
+            return database_manager.delete_customer(customer_id)
+        raise NotImplementedError("JSON模式下不支持此操作")
     
     def save_customers(self):
         """保存客户数据（JSON模式）"""
@@ -582,6 +503,27 @@ class DataManager:
         except Exception as e:
             print(f"加载员工数据失败: {e}")
         return self.get_default_employees()
+    
+    def get_employees(self) -> List[Dict]:
+        if self.use_database:
+            return database_manager.get_employees()
+        return []
+
+    def add_employee(self, data: Dict):
+        if self.use_database:
+            return database_manager.add_employee(data)
+        raise NotImplementedError("JSON模式下不支持此操作")
+
+    def update_employee(self, employee_id: int, data: Dict):
+        if self.use_database:
+            return database_manager.update_employee(employee_id, data)
+        raise NotImplementedError("JSON模式下不支持此操作")
+
+    def delete_employee(self, employee_id: int):
+        """逻辑删除"""
+        if self.use_database:
+            return database_manager.delete_employee(employee_id)
+        raise NotImplementedError("JSON模式下不支持此操作")
     
     # ==================== 模块通知 ====================
     def notify_modules(self, event_type: str, data: Any):
@@ -635,6 +577,92 @@ class DataManager:
     def get_default_employees(self) -> List[Dict]:
         """获取默认员工数据"""
         return []
+
+    def get_inventory(self) -> List[Dict]:
+        """获取库存列表"""
+        if self.use_database:
+            return database_manager.get_inventory()
+        # JSON模式的逻辑可以保留或删除
+        return self.load_inventory()
+
+    def add_ingredient(self, data: Dict) -> int:
+        """添加新的库存原材料"""
+        if self.use_database:
+            return database_manager.add_ingredient(data)
+        raise NotImplementedError("JSON模式下不支持此操作")
+
+    def update_ingredient(self, ingredient_id: int, data: Dict):
+        """更新库存原材料"""
+        if self.use_database:
+            return database_manager.update_ingredient(ingredient_id, data)
+        raise NotImplementedError("JSON模式下不支持此操作")
+
+    def delete_ingredient(self, ingredient_id: int):
+        """删除库存原材料"""
+        if self.use_database:
+            return database_manager.delete_ingredient(ingredient_id)
+        raise NotImplementedError("JSON模式下不支持此操作")
+
+    def get_recipes(self) -> List[Dict]:
+        """获取所有菜品的配方"""
+        if self.use_database:
+            return database_manager.get_recipes()
+        raise NotImplementedError("JSON模式下不支持此操作")
+
+    def get_meals(self, active_only=False) -> List[Dict]:
+        """获取菜品列表"""
+        if self.use_database:
+            return database_manager.get_meals(active_only)
+        return self.load_data('meals') # 保留JSON模式的兼容
+
+    def add_meal(self, data: Dict) -> int:
+        """添加新菜品"""
+        if self.use_database:
+            return database_manager.add_meal(data)
+        raise NotImplementedError("JSON模式下不支持此操作")
+
+    def update_meal(self, meal_id: int, data: Dict):
+        """更新菜品信息"""
+        if self.use_database:
+            return database_manager.update_meal(meal_id, data)
+        raise NotImplementedError("JSON模式下不支持此操作")
+
+    def delete_meal(self, meal_id: int):
+        """删除菜品"""
+        if self.use_database:
+            return database_manager.delete_meal(meal_id)
+        raise NotImplementedError("JSON模式下不支持此操作")
+        
+    def update_meal_recipe(self, meal_id: int, ingredients: List[Dict]):
+        """更新菜品配方"""
+        if self.use_database:
+            return database_manager.update_meal_recipe(meal_id, ingredients)
+        raise NotImplementedError("JSON模式下不支持此操作")
+
+    def get_fixed_costs(self) -> List[Dict]:
+        if self.use_database:
+            return database_manager.get_fixed_costs()
+        return self.load_data('fixed_costs') # 假设JSON模式
+
+    def add_fixed_cost(self, data: Dict):
+        if self.use_database:
+            return database_manager.add_fixed_cost(data)
+        raise NotImplementedError("JSON模式下不支持此操作")
+
+    def update_fixed_cost(self, cost_id: int, data: Dict):
+        if self.use_database:
+            return database_manager.update_fixed_cost(cost_id, data)
+        raise NotImplementedError("JSON模式下不支持此操作")
+
+    def delete_fixed_cost(self, cost_id: int):
+        if self.use_database:
+            return database_manager.delete_fixed_cost(cost_id)
+        raise NotImplementedError("JSON模式下不支持此操作")
+        
+    def get_finance_summary(self) -> Dict:
+        if self.use_database:
+            return database_manager.get_finance_summary()
+        return {} # JSON模式未实现
 
 # 创建全局数据管理器实例
 data_manager = DataManager()

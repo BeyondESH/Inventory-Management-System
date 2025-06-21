@@ -95,73 +95,57 @@ class ModernSalesModule:
     def load_meals_data(self):
         """加载菜品数据 - 只显示上架的菜品"""
         try:
-            meals = data_manager.load_data('meals')
-            # 过滤只显示上架的菜品
-            available_meals = []
-            for meal in meals:
-                # 检查菜品是否上架
-                is_available = meal.get('is_available', True)  # 默认为True
-                if isinstance(is_available, str):
-                    is_available = is_available.lower() in ['true', '1', 'yes', '上架']
-                elif isinstance(is_available, int):
-                    is_available = is_available == 1
-                
-                if is_available:
-                    # 为数据库中的餐食添加默认图标和描述，并兼容所有UI字段
-                    # name字段
-                    if 'name' not in meal:
-                        meal['name'] = meal.get('meal_name', '')
-                    # price字段
-                    if 'price' not in meal:
-                        meal['price'] = meal.get('meal_price', 0)
-                    # id字段
-                    if 'id' not in meal:
-                        meal['id'] = meal.get('meal_id', meal.get('id', ''))
-                    # category字段
-                    if 'category' not in meal:
-                        meal['category'] = meal.get('meal_category', '其他')
-                    # image字段
-                    if 'image' not in meal:
-                        meal_name = meal['name'].lower()
-                        if '面' in meal_name or '饭' in meal_name:
-                            meal['image'] = '🍜'
-                        elif '汉堡' in meal_name:
-                            meal['image'] = '🍔'
-                        elif '薯条' in meal_name:
-                            meal['image'] = '🍟'
-                        elif '可乐' in meal_name:
-                            meal['image'] = '🥤'
-                        elif '咖啡' in meal_name:
-                            meal['image'] = '☕'
-                        elif '鸡' in meal_name:
-                            meal['image'] = '🍗'
-                        elif '鱼' in meal_name:
-                            meal['image'] = '🐟'
-                        elif '豆腐' in meal_name:
-                            meal['image'] = '🥘'
-                        else:
-                            meal['image'] = '🍽️'
-                    # description字段
-                    if 'description' not in meal:
-                        meal['description'] = meal.get('meal_details', f"美味的{meal['name']}")
-                    
-                    available_meals.append(meal)
+            # 1. 改为调用 get_meals 从数据库获取数据
+            meals_from_db = data_manager.get_meals(active_only=True)
             
-            print(f"✅ 销售模块加载了 {len(available_meals)} 个上架菜品")
+            available_meals = []
+            for meal in meals_from_db:
+                # 2. 数据库返回的是字典，直接使用，不再需要检查 is_available
+                
+                # 3. 统一ID字段，全部使用 meal_id
+                meal_dict = dict(meal) # 将数据库行对象转为字典
+                meal_dict['id'] = meal_dict.get('meal_id')
+                
+                # 为数据库中的餐食添加默认图标和描述，并兼容所有UI字段
+                if 'image' not in meal_dict or not meal_dict['image']:
+                    meal_name = meal_dict.get('meal_name', '').lower()
+                    if '面' in meal_name or '饭' in meal_name:
+                        meal_dict['image'] = '🍜'
+                    elif '汉堡' in meal_name:
+                        meal_dict['image'] = '🍔'
+                    elif '薯条' in meal_name:
+                        meal_dict['image'] = '🍟'
+                    elif '可乐' in meal_name:
+                        meal_dict['image'] = '🥤'
+                    elif '咖啡' in meal_name:
+                        meal_dict['image'] = '☕'
+                    elif '鸡' in meal_name:
+                        meal_dict['image'] = '🍗'
+                    elif '鱼' in meal_name:
+                        meal_dict['image'] = '🐟'
+                    elif '豆腐' in meal_name:
+                        meal_dict['image'] = '🥘'
+                    else:
+                        meal_dict['image'] = '🍽️'
+                
+                if 'description' not in meal_dict or not meal_dict['description']:
+                    meal_dict['description'] = meal_dict.get('meal_details', f"美味的{meal_dict.get('meal_name', '')}")
+                
+                # 兼容旧的 category 字段，用于UI分类
+                if 'category' not in meal_dict or not meal_dict['category']:
+                    meal_dict['category'] = meal_dict.get('meal_category', '其他')
+
+                available_meals.append(meal_dict)
+            
+            print(f"✅ 销售模块从数据库加载了 {len(available_meals)} 个上架菜品")
             return available_meals
             
         except Exception as e:
-            print(f"加载餐食数据异常: {e}")
-            # 默认菜品数据（只包含上架的）
+            print(f"❌ 加载数据库餐食数据异常: {e}")
+            # 保留备用静态数据以防数据库连接失败
             return [
-                {"id": "MEAL001", "name": "番茄牛肉面", "category": "面食", "price": 25.0, "image": "🍜", "description": "经典番茄牛肉面，汤鲜味美", "is_available": True},
-                {"id": "MEAL002", "name": "鸡蛋炒饭", "category": "炒饭", "price": 18.0, "image": "🍚", "description": "香喷喷的鸡蛋炒饭", "is_available": True},
-                {"id": "MEAL003", "name": "牛肉汉堡", "category": "西餐", "price": 32.0, "image": "🍔", "description": "美味牛肉汉堡套餐", "is_available": True},
-                {"id": "MEAL004", "name": "薯条", "category": "小食", "price": 12.0, "image": "🍟", "description": "酥脆金黄薯条", "is_available": True},
-                {"id": "MEAL005", "name": "可乐", "category": "饮料", "price": 8.0, "image": "🥤", "description": "冰爽可乐", "is_available": True},
-                {"id": "MEAL006", "name": "咖啡", "category": "饮料", "price": 15.0, "image": "☕", "description": "香浓咖啡", "is_available": True},
-                {"id": "MEAL007", "name": "宫保鸡丁", "category": "川菜", "price": 28.0, "image": "🍗", "description": "经典川菜宫保鸡丁", "is_available": True},
-                {"id": "MEAL008", "name": "麻婆豆腐", "category": "川菜", "price": 22.0, "image": "🥘", "description": "麻辣鲜香麻婆豆腐", "is_available": True}
+                {"id": "MEAL001", "name": "番茄牛肉面", "category": "面食", "price": 25.0, "image": "🍜", "description": "经典番茄牛肉面", "isActive": True},
+                {"id": "MEAL002", "name": "鸡蛋炒饭", "category": "炒饭", "price": 18.0, "image": "🍚", "description": "香喷喷的鸡蛋炒饭", "isActive": True}
             ]
         
     def show(self):
@@ -781,46 +765,35 @@ class ModernSalesModule:
         def _do_payment():
             try:
                 print("📦 准备订单数据...")
-                # 准备订单项目用于库存检查
+                # 准备订单项目
                 order_items = []
-                meals_data = []
                 for item in self.cart_items:
                     order_items.append({
-                        'product_id': item.get('id', item.get('meal_id', item['name'])),
-                        'quantity': item['quantity'],
-                        'name': item['name'],
-                        'id': item.get('id', item.get('meal_id', '')),
-                        'price': item.get('price', 0)
+                        'id': item.get('id'), # meal_id
+                        'name': item.get('name'), # 用于显示错误信息
+                        'quantity': item.get('quantity'),
+                        'price': item.get('price')
                     })
-                    meals_data.append({
-                        'name': item['name'],
-                        'price': item['price'],
-                        'quantity': item['quantity'],
-                        'subtotal': item['price'] * item['quantity']
-                    })
-                # 创建订单数据 - 适配数据库字段
+
+                # 创建订单数据
                 order_data = {
                     'items': order_items,
-                    'meals': meals_data,
-                    'customer_id': 1,  # 默认客户ID，实际应从登录用户获取
-                    'employee_id': 1,  # 默认员工ID
-                    'payment_method_id': 1,  # 默认支付方式ID
-                    'delivery_date': datetime.datetime.now().strftime('%Y-%m-%d'),
-                    'order_status': '已接收',
+                    'customer_id': 1,  # TODO: 应从当前登录用户获取
+                    'employee_id': 1,  # TODO: 应从当前登录用户获取
+                    'payment_method': payment_method, # 支付方式文本
                     'note': f"桌号: {self.current_table}",
-                    'quantity': sum(item['quantity'] for item in self.cart_items),
-                    'total_amount': self.total_amount,
-                    'customer_name': f"桌号{self.current_table}",
-                    'phone': '',
-                    'address': '堂食',
-                    'payment_method': payment_method,
-                    'order_type': '堂食'
+                    'total_amount': self.total_amount
                 }
+                
                 print(f"💰 订单总金额: ￥{self.total_amount:.2f}")
-                print("🏪 创建订单...")
+                print("🏪 正在创建订单并扣减库存...")
+                
+                # 调用重构后的 create_order
                 order_id = data_manager.create_order(order_data)
+                
                 print(f"✅ 订单创建成功: {order_id}")
                 dialog.after(0, lambda: self._handle_payment_success(dialog, order_id, payment_method))
+                
             except Exception as e:
                 print(f"❌ 支付处理失败: {e}")
                 dialog.after(0, lambda e=e: self._handle_payment_error(dialog, e))
