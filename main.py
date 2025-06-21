@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-现代化智慧餐饮管理系统启动文件
-直接启动现代化登录界面
+Modern Smart Restaurant Management System startup file
+Directly starts the modern login interface
 """
 
 import sys
@@ -21,38 +21,38 @@ sys.path.insert(0, os.path.join(modern_system_dir, 'modules'))
 sys.path.insert(0, os.path.join(modern_system_dir, 'core'))
 
 def show_startup_splash():
-    """显示启动画面"""
+    """Display startup splash screen"""
     splash = tk.Tk()
-    splash.title("智慧餐饮管理系统")
+    splash.title("Smart Restaurant Management System")
     splash.geometry("400x300")
     splash.configure(bg="#FF6B35")
     splash.resizable(False, False)
     
-    # 居中显示
+    # Center the window
     splash.eval('tk::PlaceWindow . center')
     
-    # 图标和标题
+    # Icon and title
     title_frame = tk.Frame(splash, bg="#FF6B35")
     title_frame.pack(expand=True, fill="both")
     
-    # 系统图标
+    # System icon
     icon_label = tk.Label(title_frame, text="🍽️", font=('Segoe UI Emoji', 48), 
                          bg="#FF6B35", fg="white")
     icon_label.pack(pady=(60, 20))
     
-    # 系统标题
-    title_label = tk.Label(title_frame, text="智慧餐饮管理系统", 
-                          font=('Microsoft YaHei UI', 20, 'bold'),
+    # System title
+    title_label = tk.Label(title_frame, text="Smart Restaurant System", 
+                          font=('Segoe UI', 20, 'bold'),
                           bg="#FF6B35", fg="white")
     title_label.pack(pady=(0, 10))
     
-    # 版本信息
-    version_label = tk.Label(title_frame, text="现代化版本 v2.0", 
-                            font=('Microsoft YaHei UI', 12),
+    # Version info
+    version_label = tk.Label(title_frame, text="Modern Version v2.0", 
+                            font=('Segoe UI', 12),
                             bg="#FF6B35", fg="white")
     version_label.pack(pady=(0, 30))
     
-    # 进度条
+    # Progress bar
     progress_frame = tk.Frame(title_frame, bg="#FF6B35")
     progress_frame.pack(fill="x", padx=50)
     
@@ -60,119 +60,119 @@ def show_startup_splash():
     progress.pack()
     progress.start()
     
-    # 状态标签
-    status_label = tk.Label(title_frame, text="正在加载系统组件...", 
-                           font=('Microsoft YaHei UI', 10),
+    # Status label
+    status_label = tk.Label(title_frame, text="Loading system components...", 
+                           font=('Segoe UI', 10),
                            bg="#FF6B35", fg="white")
     status_label.pack(pady=(20, 0))
     
-    # 自动关闭
+    # Auto-close
     splash.after(3000, splash.destroy)
     splash.mainloop()
 
 def main():
-    """主启动函数"""
+    """Main startup function"""
     try:
         print("=" * 50)
-        print("智慧餐饮管理系统启动中...")
+        print("Starting Smart Restaurant Management System...")
         print("=" * 50)
         
-        # 定义登录成功回调
+        # Define login success callback
         def on_login_success(user_info, login_window):
-            print(f"用户登录成功: {user_info['name']}")
+            print(f"User login successful: {user_info['name']}")
             try:
-                # 关闭登录窗口（如果存在）
+                # Close login window if it exists
                 if login_window:
                     login_window.destroy()
                 
-                # 导入主界面系统
+                # Import main UI system
                 try:
                     from modern_system.core.modern_ui_system import ModernFoodServiceSystem
-                    print("✓ 成功导入主系统")
+                    print("✓ Main system imported successfully")
                 except ImportError as e:
-                    print(f"✗ 主系统导入失败: {e}")
+                    print(f"✗ Failed to import main system: {e}")
                     try:
-                        # 备用导入
+                        # Fallback import
                         sys.path.append(os.path.join(modern_system_dir, 'core'))
                         from modern_ui_system import ModernFoodServiceSystem
-                        print("✓ 使用备用方式导入主系统")
+                        print("✓ Imported main system using fallback path")
                     except ImportError as e2:
-                        print(f"✗ 备用导入主系统也失败: {e2}")
-                        messagebox.showerror("导入错误", f"无法导入主系统: {e2}")
+                        print(f"✗ Fallback import of main system also failed: {e2}")
+                        messagebox.showerror("Import Error", f"Cannot import main system: {e2}")
                         return
                 
-                # 创建并启动主系统
+                # Create and run the main system
                 main_app = ModernFoodServiceSystem()
-                print("✓ 主系统创建成功，正在启动...")
+                print("✓ Main system created, starting...")
                 main_app.run()
             except Exception as e:
-                print(f"✗ 主系统启动失败: {e}")
-                messagebox.showerror("启动错误", f"主系统启动失败: {e}")
+                print(f"✗ Failed to start main system: {e}")
+                messagebox.showerror("Startup Error", f"Failed to start main system: {e}")
         
-        # 显示简化登录界面
+        # Show simplified login interface
         def show_simple_login():
             login_root = tk.Tk()
-            login_root.title("智慧餐饮管理系统 - 登录")
+            login_root.title("Smart Restaurant System - Login")
             login_root.geometry("500x400")
             login_root.configure(bg="#FF6B35")
             login_root.resizable(False, False)
             
-            # 居中显示
+            # Center the window
             login_root.eval('tk::PlaceWindow . center')
             
-            # 标题区域
+            # Title area
             title_frame = tk.Frame(login_root, bg="#FF6B35")
             title_frame.pack(expand=True, fill="both", padx=40, pady=40)
             
-            # 系统图标
+            # System icon
             tk.Label(title_frame, text="🍽️", font=('Segoe UI Emoji', 64), 
                     bg="#FF6B35", fg="white").pack(pady=(20, 10))
             
-            # 系统标题
-            tk.Label(title_frame, text="智慧餐饮管理系统", 
-                    font=('Microsoft YaHei UI', 24, 'bold'),
+            # System title
+            tk.Label(title_frame, text="Smart Restaurant System", 
+                    font=('Segoe UI', 24, 'bold'),
                     bg="#FF6B35", fg="white").pack(pady=(0, 10))
             
-            # 版本信息
-            tk.Label(title_frame, text="现代化版本 v2.0", 
-                    font=('Microsoft YaHei UI', 14),
+            # Version info
+            tk.Label(title_frame, text="Modern Version v2.0", 
+                    font=('Segoe UI', 14),
                     bg="#FF6B35", fg="white").pack(pady=(0, 30))
             
-            # 登录按钮
+            # Login button
             def guest_login():
                 login_root.destroy()
-                on_login_success({'name': '游客用户', 'type': 'guest'}, None)
+                on_login_success({'name': 'Guest User', 'type': 'guest'}, None)
             
-            login_btn = tk.Button(title_frame, text="🚀 开始使用系统", 
-                                font=('Microsoft YaHei UI', 16, 'bold'),
+            login_btn = tk.Button(title_frame, text="🚀 Launch System", 
+                                font=('Segoe UI', 16, 'bold'),
                                 bg="white", fg="#FF6B35",
                                 padx=30, pady=15, bd=0,
                                 cursor="hand2",
                                 command=guest_login)
             login_btn.pack(pady=20)
             
-            # 说明文字
-            tk.Label(title_frame, text="点击上方按钮进入系统主界面", 
-                    font=('Microsoft YaHei UI', 12),
+            # Explanatory text
+            tk.Label(title_frame, text="Click the button above to enter the main interface", 
+                    font=('Segoe UI', 12),
                     bg="#FF6B35", fg="white").pack(pady=(10, 0))
             
             login_root.mainloop()
         
-        # 尝试导入并使用完整登录模块
-        print("正在加载登录模块...")
+        # Try to import and use the full login module
+        print("Loading login module...")
         try:
             from modern_system.modules.modern_login_module import ModernLoginModule
-            print("✓ 成功导入登录模块")
+            print("✓ Login module imported successfully")
             app = ModernLoginModule(on_login_success)
             app.run()
         except Exception as e:
-            print(f"⚠️ 完整登录模块不可用，使用简化登录界面: {e}")
+            print(f"⚠️ Full login module unavailable, using simplified login: {e}")
             show_simple_login()
         
     except Exception as e:
-        error_msg = f"启动系统时发生错误: {e}"
+        error_msg = f"An error occurred during system startup: {e}"
         print(f"✗ {error_msg}")
-        messagebox.showerror("系统错误", error_msg)
+        messagebox.showerror("System Error", error_msg)
 
 if __name__ == "__main__":
     main()

@@ -1,27 +1,27 @@
 [
   {
     "id": "EMP001",
-    "name": "管理员",
-    "position": "经理",
-    "department": "管理部",
+    "name": "Administrator",
+    "position": "Manager",
+    "department": "Management",
     "phone": "188****0001",
     "salary": 8000,
     "hire_date": "2023-01-01"
   },
   {
     "id": "EMP002",
-    "name": "小王",
-    "position": "厨师",
-    "department": "厨房",
+    "name": "Chef Wang",
+    "position": "Chef",
+    "department": "Kitchen",
     "phone": "188****0002",
     "salary": 6000,
     "hire_date": "2023-03-15"
   },
   {
     "id": "EMP003",
-    "name": "小李",
-    "position": "服务员",
-    "department": "前厅",
+    "name": "Server Li",
+    "position": "Waiter",
+    "department": "Front Desk",
     "phone": "188****0003",
     "salary": 4500,
     "hire_date": "2023-06-01"

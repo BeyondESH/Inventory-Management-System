@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-数据管理中心 - 负责各模块间的数据同步和联动
-实现订单、库存、财务等模块的数据交互
+Data Management Center - Responsible for data synchronization and linkage between modules
+Implements data interaction between orders, inventory, finance and other modules
 """
 
 import json
@@ -13,7 +13,7 @@ from threading import Lock
 import uuid
 
 class DataManager:
-    """数据管理中心单例类"""
+    """Data Management Center Singleton Class"""
     
     _instance = None
     _lock = Lock()
@@ -32,10 +32,10 @@ class DataManager:
         self._initialized = True
         self.data_dir = self._get_data_dir()
         self.modules = {}
-        self.registered_modules = {}  # 存储注册的模块实例
+        self.registered_modules = {}  # Store registered module instances
         self.event_listeners = {}
         
-        # 初始化数据文件
+        # Initialize data files
         self.data_files = {
             'orders': 'orders.json',
             'inventory': 'inventory.json',
@@ -46,11 +46,11 @@ class DataManager:
             'sales': 'sales.json'
         }
         
-        # 确保数据文件存在
+        # Ensure data files exist
         self._init_data_files()
     
     def _get_data_dir(self):
-        """获取数据目录"""
+        """Get data directory"""
         current_dir = os.path.dirname(os.path.abspath(__file__))
         project_root = os.path.dirname(os.path.dirname(current_dir))
         data_dir = os.path.join(project_root, 'modern_system', 'data')
@@ -61,30 +61,30 @@ class DataManager:
         return data_dir
     
     def _init_data_files(self):
-        """初始化数据文件"""
+        """Initialize data files"""
         default_data = {
             'orders': [],
             'inventory': [
-                {"id": "INV001", "name": "番茄", "category": "蔬菜", "quantity": 50, "unit": "kg", "price": 8.0, "min_stock": 10},
-                {"id": "INV002", "name": "牛肉", "category": "肉类", "quantity": 20, "unit": "kg", "price": 68.0, "min_stock": 5},
-                {"id": "INV003", "name": "面条", "category": "主食", "quantity": 100, "unit": "包", "price": 3.5, "min_stock": 20},
-                {"id": "INV004", "name": "可乐", "category": "饮料", "quantity": 80, "unit": "瓶", "price": 5.0, "min_stock": 30}
+                {"id": "INV001", "name": "Tomato", "category": "Vegetables", "quantity": 50, "unit": "kg", "price": 8.0, "min_stock": 10},
+                {"id": "INV002", "name": "Beef", "category": "Meat", "quantity": 20, "unit": "kg", "price": 68.0, "min_stock": 5},
+                {"id": "INV003", "name": "Noodles", "category": "Staple Food", "quantity": 100, "unit": "pack", "price": 3.5, "min_stock": 20},
+                {"id": "INV004", "name": "Cola", "category": "Beverages", "quantity": 80, "unit": "bottle", "price": 5.0, "min_stock": 30}
             ],
             'meals': [
-                {"id": "MEAL001", "name": "番茄牛肉面", "category": "面食", "price": 25.0, "cost": 15.0, "ingredients": ["番茄", "牛肉", "面条"]},
-                {"id": "MEAL002", "name": "鸡蛋炒饭", "category": "炒饭", "price": 18.0, "cost": 10.0, "ingredients": ["鸡蛋", "米饭"]},
-                {"id": "MEAL003", "name": "牛肉汉堡", "category": "西餐", "price": 32.0, "cost": 20.0, "ingredients": ["牛肉", "面包", "生菜"]},
-                {"id": "MEAL004", "name": "薯条", "category": "小食", "price": 12.0, "cost": 6.0, "ingredients": ["土豆"]}
+                {"id": "MEAL001", "name": "Tomato Beef Noodles", "category": "Noodles", "price": 25.0, "cost": 15.0, "ingredients": ["Tomato", "Beef", "Noodles"]},
+                {"id": "MEAL002", "name": "Egg Fried Rice", "category": "Fried Rice", "price": 18.0, "cost": 10.0, "ingredients": ["Egg", "Rice"]},
+                {"id": "MEAL003", "name": "Beef Burger", "category": "Western", "price": 32.0, "cost": 20.0, "ingredients": ["Beef", "Bread", "Lettuce"]},
+                {"id": "MEAL004", "name": "French Fries", "category": "Snacks", "price": 12.0, "cost": 6.0, "ingredients": ["Potato"]}
             ],
             'customers': [
-                {"id": "CUST001", "name": "张三", "phone": "138****1234", "address": "北京市朝阳区xxx街道1号", "total_orders": 15, "total_amount": 1580.0},
-                {"id": "CUST002", "name": "李四", "phone": "139****5678", "address": "北京市海淀区xxx路88号", "total_orders": 8, "total_amount": 890.0},
-                {"id": "CUST003", "name": "王五", "phone": "136****9012", "address": "北京市西城区xxx胡同66号", "total_orders": 12, "total_amount": 1250.0}
+                {"id": "CUST001", "name": "Zhang San", "phone": "138****1234", "address": "No.1 Street, Chaoyang District, Beijing", "total_orders": 15, "total_amount": 1580.0},
+                {"id": "CUST002", "name": "Li Si", "phone": "139****5678", "address": "No.88 Road, Haidian District, Beijing", "total_orders": 8, "total_amount": 890.0},
+                {"id": "CUST003", "name": "Wang Wu", "phone": "136****9012", "address": "No.66 Alley, Xicheng District, Beijing", "total_orders": 12, "total_amount": 1250.0}
             ],
             'employees': [
-                {"id": "EMP001", "name": "管理员", "position": "经理", "department": "管理部", "phone": "188****0001", "salary": 8000, "hire_date": "2023-01-01"},
-                {"id": "EMP002", "name": "小王", "position": "厨师", "department": "厨房", "phone": "188****0002", "salary": 6000, "hire_date": "2023-03-15"},
-                {"id": "EMP003", "name": "小李", "position": "服务员", "department": "前厅", "phone": "188****0003", "salary": 4500, "hire_date": "2023-06-01"}
+                {"id": "EMP001", "name": "Administrator", "position": "Manager", "department": "Management", "phone": "188****0001", "salary": 8000, "hire_date": "2023-01-01"},
+                {"id": "EMP002", "name": "Chef Wang", "position": "Chef", "department": "Kitchen", "phone": "188****0002", "salary": 6000, "hire_date": "2023-03-15"},
+                {"id": "EMP003", "name": "Server Li", "position": "Waiter", "department": "Front Desk", "phone": "188****0003", "salary": 4500, "hire_date": "2023-06-01"}
             ],
             'finance': [],
             'sales': []
@@ -96,42 +96,42 @@ class DataManager:
                 with open(file_path, 'w', encoding='utf-8') as f:
                     json.dump(default_data[data_type], f, ensure_ascii=False, indent=2)
     def register_module(self, module_type: str, instance):
-        """注册模块"""
+        """Register module"""
         self.modules[module_type] = instance
-        # 同时保存到registered_modules
+        # Also save to registered_modules
         if not hasattr(self, 'registered_modules'):
             self.registered_modules = {}
         self.registered_modules[module_type] = instance
-        print(f"注册模块: {module_type}")
+        print(f"Registered module: {module_type}")
     
     def notify_modules(self, event_type: str):
-        """通知已注册的模块"""
+        """Notify registered modules"""
         if hasattr(self, 'registered_modules'):
             for module_type, module_instance in self.registered_modules.items():
                 if event_type == 'meals_updated' and hasattr(module_instance, 'refresh_meals_data'):
                     try:
                         module_instance.refresh_meals_data()
-                        print(f"已通知 {module_type} 模块刷新菜品数据")
+                        print(f"Notified {module_type} module to refresh meal data")
                     except Exception as e:
-                        print(f"通知 {module_type} 模块失败: {e}")
+                        print(f"Failed to notify {module_type} module: {e}")
     
     def subscribe_event(self, event_type: str, callback):
-        """订阅事件"""
+        """Subscribe to event"""
         if event_type not in self.event_listeners:
             self.event_listeners[event_type] = []
         self.event_listeners[event_type].append(callback)
     
     def emit_event(self, event_type: str, data: Any):
-        """触发事件"""
+        """Emit event"""
         if event_type in self.event_listeners:
             for callback in self.event_listeners[event_type]:
                 try:
                     callback(data)
                 except Exception as e:
-                    print(f"事件处理错误 {event_type}: {e}")
+                    print(f"Event handling error {event_type}: {e}")
     
     def load_data(self, data_type: str) -> List[Dict]:
-        """加载数据"""
+        """Load data"""
         if data_type not in self.data_files:
             return []
         
@@ -140,11 +140,11 @@ class DataManager:
             with open(file_path, 'r', encoding='utf-8') as f:
                 return json.load(f)
         except Exception as e:
-            print(f"加载数据失败 {data_type}: {e}")
+            print(f"Failed to load data {data_type}: {e}")
             return []
     
     def save_data(self, data_type: str, data: List[Dict]):
-        """保存数据"""
+        """Save data"""
         if data_type not in self.data_files:
             return False
         
@@ -154,22 +154,22 @@ class DataManager:
                 json.dump(data, f, ensure_ascii=False, indent=2)
             return True
         except Exception as e:
-            print(f"保存数据失败 {data_type}: {e}")
+            print(f"Failed to save data {data_type}: {e}")
             return False
     
-    # 订单相关方法
+    # Order related methods
     def get_orders(self, status_filter: Optional[str] = None) -> List[Dict]:
-        """获取订单列表"""
+        """Get order list"""
         orders = self.load_data('orders')
         if status_filter:
             orders = [order for order in orders if order.get('status') == status_filter]
         return orders
     
     def add_order(self, order_data: Dict) -> str:
-        """添加订单"""
+        """Add order"""
         orders = self.load_data('orders')
         
-        # 生成订单ID
+        # Generate order ID
         order_id = f"ORD{datetime.datetime.now().strftime('%Y%m%d')}{len(orders)+1:04d}"
         order_data['id'] = order_id
         order_data['create_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
@@ -177,22 +177,22 @@ class DataManager:
         orders.append(order_data)
         self.save_data('orders', orders)
         
-        # 扣减库存
+        # Deduct inventory
         self._deduct_inventory(order_data.get('items', []))
         
-        # 记录销售数据
+        # Record sales data
         self._record_sale(order_data)
         
-        # 记录财务数据
+        # Record finance data
         self._record_finance(order_data)
         
-        # 触发事件
+        # Emit event
         self.emit_event('order_added', order_data)
         
         return order_id
     
     def update_order_status(self, order_id: str, new_status: str) -> bool:
-        """更新订单状态"""
+        """Update order status"""
         orders = self.load_data('orders')
         
         for order in orders:
@@ -203,7 +203,7 @@ class DataManager:
                 
                 self.save_data('orders', orders)
                 
-                # 触发事件
+                # Emit event
                 self.emit_event('order_status_changed', {
                     'order_id': order_id,
                     'old_status': old_status,
@@ -216,11 +216,11 @@ class DataManager:
         return False
     
     def _deduct_inventory(self, order_items: List[Dict]):
-        """扣减库存"""
+        """Deduct inventory"""
         inventory = self.load_data('inventory')
         meals = self.load_data('meals')
         
-        # 创建库存查找字典
+        # Create inventory lookup dictionary
         inventory_dict = {item['name']: item for item in inventory}
         meals_dict = {meal['name']: meal for meal in meals}
         
@@ -232,128 +232,171 @@ class DataManager:
                 meal = meals_dict[meal_name]
                 ingredients = meal.get('ingredients', [])
                 
-                # 扣减原料库存
+                # Deduct ingredient inventory
                 for ingredient in ingredients:
                     if ingredient in inventory_dict:
                         inventory_dict[ingredient]['quantity'] -= quantity
                         if inventory_dict[ingredient]['quantity'] < 0:
                             inventory_dict[ingredient]['quantity'] = 0
         
-        # 保存更新后的库存
+        # Save updated inventory
         updated_inventory = list(inventory_dict.values())
         self.save_data('inventory', updated_inventory)
         
-        # 触发库存更新事件
+        # Emit inventory update event
         self.emit_event('inventory_updated', updated_inventory)
     
     def _record_sale(self, order_data: Dict):
-        """记录销售数据"""
+        """Record sales data"""
         sales = self.load_data('sales')
         
         sale_record = {
-            'id': f"SALE{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}",
             'order_id': order_data.get('id'),
-            'customer_name': order_data.get('customer_name'),
-            'total_amount': order_data.get('total_amount', 0),
-            'items': order_data.get('items', []),
-            'sale_time': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-            'payment_method': order_data.get('payment_method', '现金')
+            'sale_time': order_data.get('create_time'),
+            'total_amount': order_data.get('total_amount'),
+            'items': order_data.get('items')
         }
         
         sales.append(sale_record)
         self.save_data('sales', sales)
-        
-        # 触发事件
-        self.emit_event('sale_recorded', sale_record)
     
     def _record_finance(self, order_data: Dict):
-        """记录财务数据"""
+        """Record financial data"""
         finance = self.load_data('finance')
         
         finance_record = {
-            'id': f"FIN{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}",
-            'type': 'income',
-            'order_id': order_data.get('id'),
-            'amount': order_data.get('total_amount', 0),
-            'description': f"订单收入 - {order_data.get('customer_name', '未知客户')}",
+            'id': f"FIN-{order_data.get('id')}",
             'date': datetime.datetime.now().strftime('%Y-%m-%d'),
-            'time': datetime.datetime.now().strftime('%H:%M:%S'),
-            'payment_method': order_data.get('payment_method', '现金')
+            'type': 'Income',
+            'amount': order_data.get('total_amount', 0),
+            'category': 'Sales',
+            'description': f"Order {order_data.get('id')}",
+            'recorded_by': 'System'
         }
         
         finance.append(finance_record)
         self.save_data('finance', finance)
-        
-        # 触发事件
-        self.emit_event('finance_recorded', finance_record)
     
-    # 库存相关方法
+    # Inventory related methods
     def get_inventory(self) -> List[Dict]:
-        """获取库存列表"""
+        """Get full inventory list"""
         return self.load_data('inventory')
     
-    def update_inventory(self, item_id: str, quantity: int) -> bool:
-        """更新库存数量"""
+    def update_inventory(self, item_id: str, new_data: Dict) -> bool:
+        """Update a specific inventory item"""
         inventory = self.load_data('inventory')
-        
         for item in inventory:
             if item.get('id') == item_id:
-                item['quantity'] = quantity
+                item.update(new_data)
                 item['update_time'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-                
-                self.save_data('inventory', inventory)
-                self.emit_event('inventory_updated', inventory)
-                
-                return True
-        
+                return self.save_data('inventory', inventory)
         return False
     
+    def add_inventory_item(self, item_data: Dict) -> bool:
+        """Add a new item to inventory"""
+        inventory = self.load_data('inventory')
+        item_data['id'] = f"INV{int(datetime.datetime.now().timestamp())}"
+        inventory.append(item_data)
+        return self.save_data('inventory', inventory)
+    
+    def delete_inventory_item(self, item_id: str) -> bool:
+        """Delete an item from inventory"""
+        inventory = self.load_data('inventory')
+        original_length = len(inventory)
+        inventory = [item for item in inventory if item.get('id') != item_id]
+        if len(inventory) < original_length:
+            return self.save_data('inventory', inventory)
+        return False
+    
+    # Customer related methods
+    def get_customers(self) -> List[Dict]:
+        """Get customer list"""
+        return self.load_data('customers')
+    
+    def add_customer(self, customer_data: Dict) -> bool:
+        """Add a new customer"""
+        customers = self.load_data('customers')
+        customer_data['id'] = f"CUST{int(datetime.datetime.now().timestamp())}"
+        customers.append(customer_data)
+        return self.save_data('customers', customers)
+    
+    def update_customer(self, customer_id: str, customer_data: Dict) -> bool:
+        """Update customer information"""
+        customers = self.load_data('customers')
+        for customer in customers:
+            if customer.get('id') == customer_id:
+                customer.update(customer_data)
+                return self.save_data('customers', customers)
+        return False
+    
+    def delete_customer(self, customer_id: str) -> bool:
+        """Delete a customer"""
+        customers = self.load_data('customers')
+        original_length = len(customers)
+        customers = [c for c in customers if c.get('id') != customer_id]
+        if len(customers) < original_length:
+            return self.save_data('customers', customers)
+        return False
+    
+    # Finance related methods
+    def get_finance_records(self) -> List[Dict]:
+        """Get all finance records"""
+        return self.load_data('finance')
+    
+    def add_finance_record(self, record_data: Dict) -> bool:
+        """Add a new finance record"""
+        finance_records = self.load_data('finance')
+        record_data['id'] = f"FIN{int(datetime.datetime.now().timestamp())}"
+        finance_records.append(record_data)
+        return self.save_data('finance', finance_records)
+    
+    def update_finance_record(self, record_id: str, record_data: Dict) -> bool:
+        """Update a finance record"""
+        finance_records = self.load_data('finance')
+        for record in finance_records:
+            if record.get('id') == record_id:
+                record.update(record_data)
+                return self.save_data('finance', finance_records)
+        return False
+    
+    def delete_finance_record(self, record_id: str) -> bool:
+        """Delete a finance record"""
+        finance_records = self.load_data('finance')
+        original_length = len(finance_records)
+        finance_records = [r for r in finance_records if r.get('id') != record_id]
+        if len(finance_records) < original_length:
+            return self.save_data('finance', finance_records)
+        return False
+    
+    # Statistics related methods
     def get_low_stock_items(self) -> List[Dict]:
-        """获取低库存物品"""
+        """Get items with low stock"""
         inventory = self.load_data('inventory')
         return [item for item in inventory if item.get('quantity', 0) <= item.get('min_stock', 0)]
     
-    # 财务相关方法
-    def get_finance_records(self, date_filter: Optional[str] = None) -> List[Dict]:
-        """获取财务记录"""
-        finance = self.load_data('finance')
-        if date_filter:
-            finance = [record for record in finance if record.get('date') == date_filter]
-        return finance
-    
     def get_daily_revenue(self, date: str = None) -> float:
-        """获取日营收"""
-        if not date:
+        """Get daily revenue"""
+        if date is None:
             date = datetime.datetime.now().strftime('%Y-%m-%d')
         
-        finance = self.get_finance_records(date)
-        revenue = sum(record.get('amount', 0) for record in finance if record.get('type') == 'income')
-        return revenue
+        orders = self.load_data('orders')
+        total = sum(o.get('total_amount', 0) for o in orders if o.get('create_time', '').startswith(date))
+        return total
     
-    # 统计相关方法
     def get_dashboard_stats(self) -> Dict:
-        """获取仪表盘统计数据"""
-        today = datetime.datetime.now().strftime('%Y-%m-%d')
+        """Get key statistics for the dashboard"""
+        orders = self.load_data('orders')
+        today_str = datetime.datetime.now().strftime('%Y-%m-%d')
         
-        # 今日销售额
-        today_revenue = self.get_daily_revenue(today)
+        today_orders = [o for o in orders if o.get('create_time', '').startswith(today_str)]
         
-        # 今日订单数
-        orders = self.get_orders()
-        today_orders = [order for order in orders if order.get('create_time', '').startswith(today)]
-        
-        # 库存预警
-        low_stock_items = self.get_low_stock_items()
-        
-        # 客户总数
-        customers = self.load_data('customers')
-        
-        return {
-            'today_revenue': today_revenue,
-            'today_orders': len(today_orders),
-            'low_stock_count': len(low_stock_items),
-            'total_customers': len(customers)
+        stats = {
+            "today_revenue": sum(o.get('total_amount', 0) for o in today_orders),
+            "today_orders": len(today_orders),
+            "total_customers": len(self.load_data('customers')),
+            "low_stock_items": len(self.get_low_stock_items())
         }
+        return stats
 
-# 创建全局单例实例
+# Create global singleton instance
 data_manager = DataManager()

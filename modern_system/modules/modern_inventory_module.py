@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-现代化库存管理模块
-采用现代化设计风格的库存管理界面
+Modern Inventory Management Module
+An inventory management interface with a modern design style
 """
 
 import tkinter as tk
@@ -12,14 +12,14 @@ import datetime
 import json
 import os
 
-# 导入数据管理器
+# Import data manager
 try:
     from ..utils.data_manager import data_manager
 except ImportError:
     try:
         from data_manager import data_manager
     except ImportError:
-        # 创建模拟数据管理器
+        # Create a mock data manager
         class MockDataManager:
             def get_inventory(self):
                 return []
@@ -34,50 +34,52 @@ class ModernInventoryModule:
         self.parent_frame = parent_frame
         self.title_frame = title_frame
         
-        # 现代化颜色主题
+        # Modern color theme
         self.colors = {
-            'primary': '#FF6B35',      # 主色调
-            'secondary': '#F7931E',    # 次色调
-            'accent': '#FFD23F',       # 强调色
-            'background': '#F8F9FA',   # 背景色
-            'surface': '#FFFFFF',      # 卡片背景
-            'text_primary': '#2D3436', # 主文字
-            'text_secondary': '#636E72', # 次文字
-            'border': '#E0E0E0',       # 边框
-            'success': '#00B894',      # 成功色
-            'warning': '#FDCB6E',      # 警告色
-            'error': '#E84393',        # 错误色
-            'card_shadow': '#F0F0F0',  # 卡片阴影
-            'white': '#FFFFFF',        # 白色
-            'info': '#3498DB'          # 信息色
+            'primary': '#FF6B35',      # Main color
+            'secondary': '#F7931E',    # Secondary color
+            'accent': '#FFD23F',       # Accent color
+            'background': '#F8F9FA',   # Background color
+            'surface': '#FFFFFF',      # Card background
+            'text_primary': '#2D3436', # Primary text
+            'text_secondary': '#636E72', # Secondary text
+            'border': '#E0E0E0',       # Border
+            'success': '#00B894',      # Success color
+            'warning': '#FDCB6E',      # Warning color
+            'error': '#E84393',        # Error color
+            'card_shadow': '#F0F0F0',  # Card shadow
+            'white': '#FFFFFF',        # White
+            'info': '#3498DB'          # Info color
         }
         
-        # 字体配置
+        # Font configuration
         self.fonts = {
-            'title': ('Microsoft YaHei UI', 20, 'bold'),
-            'heading': ('Microsoft YaHei UI', 16, 'bold'),
-            'subheading': ('Microsoft YaHei UI', 14, 'bold'),
-            'body': ('Microsoft YaHei UI', 12),
-            'small': ('Microsoft YaHei UI', 10),
-            'button': ('Microsoft YaHei UI', 11, 'bold')
+            'title': ('Segoe UI', 20, 'bold'),
+            'heading': ('Segoe UI', 16, 'bold'),
+            'subheading': ('Segoe UI', 14, 'bold'),
+            'body': ('Segoe UI', 12),
+            'small': ('Segoe UI', 10),
+            'button': ('Segoe UI', 11, 'bold')
         }
         
-        # 库存数据
-        self.inventory_data = self.load_inventory_data()        # 界面变量 (延迟初始化)
+        # Inventory data
+        self.inventory_data = self.load_inventory_data()        # UI variables (lazy initialization)
         self.search_var = None
         self.category_filter_var = None
         self.stock_filter_var = None
-          # UI组件引用
+          # UI component references
         self.inventory_tree = None
         self.stats_labels = {}
+        self.recipes = []
+        self.possible_meals_frame = None
     
     def load_inventory_data(self):
-        """从数据管理中心加载库存数据"""
+        """Load inventory data from the data management center"""
         try:
-            # 从数据管理器获取库存数据
+            # Get inventory data from the data manager
             inventory_data = data_manager.get_inventory()
             
-            # 转换数据格式以适配现有界面
+            # Convert data format to match the existing UI
             formatted_data = []
             for item in inventory_data:
                 formatted_item = {
@@ -87,79 +89,80 @@ class ModernInventoryModule:
                     "current_stock": item.get('quantity', 0),
                     "min_stock": item.get('min_stock', 0),
                     "max_stock": item.get('max_stock', 100),
-                    "unit": item.get('unit', '个'),
+                    "unit": item.get('unit', 'unit'),
                     "price": item.get('price', 0.0),
-                    "supplier": item.get('supplier', '未知供应商'),
+                    "supplier": item.get('supplier', 'Unknown Supplier'),
                     "last_updated": item.get('update_time', datetime.datetime.now().strftime('%Y-%m-%d'))
                 }
                 formatted_data.append(formatted_item)
             
             return formatted_data
         except Exception as e:
-            print(f"加载库存数据失败: {e}")            # 返回丰富的默认示例数据
+            print(f"Failed to load inventory data: {e}")
+            # Return rich default sample data
             return [
-                # 蔬菜类
-                {"id": "INV001", "name": "番茄", "category": "蔬菜", "current_stock": 50, "min_stock": 10, "max_stock": 100, "unit": "kg", "price": 8.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
-                {"id": "INV002", "name": "洋葱", "category": "蔬菜", "current_stock": 30, "min_stock": 8, "max_stock": 80, "unit": "kg", "price": 6.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
-                {"id": "INV003", "name": "青椒", "category": "蔬菜", "current_stock": 25, "min_stock": 5, "max_stock": 60, "unit": "kg", "price": 12.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
-                {"id": "INV004", "name": "生菜", "category": "蔬菜", "current_stock": 40, "min_stock": 10, "max_stock": 80, "unit": "kg", "price": 10.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
-                {"id": "INV005", "name": "胡萝卜", "category": "蔬菜", "current_stock": 35, "min_stock": 8, "max_stock": 70, "unit": "kg", "price": 7.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
+                # Vegetables
+                {"id": "INV001", "name": "Tomato", "category": "Vegetable", "current_stock": 50, "min_stock": 10, "max_stock": 100, "unit": "kg", "price": 8.0, "supplier": "Quality Veggie Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV002", "name": "Onion", "category": "Vegetable", "current_stock": 30, "min_stock": 8, "max_stock": 80, "unit": "kg", "price": 6.0, "supplier": "Quality Veggie Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV003", "name": "Green Pepper", "category": "Vegetable", "current_stock": 25, "min_stock": 5, "max_stock": 60, "unit": "kg", "price": 12.0, "supplier": "Quality Veggie Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV004", "name": "Lettuce", "category": "Vegetable", "current_stock": 40, "min_stock": 10, "max_stock": 80, "unit": "kg", "price": 10.0, "supplier": "Quality Veggie Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV005", "name": "Carrot", "category": "Vegetable", "current_stock": 35, "min_stock": 8, "max_stock": 70, "unit": "kg", "price": 7.0, "supplier": "Quality Veggie Supplier", "last_updated": "2025-06-21"},
                 
-                # 肉类
-                {"id": "INV010", "name": "牛肉", "category": "肉类", "current_stock": 20, "min_stock": 5, "max_stock": 50, "unit": "kg", "price": 68.0, "supplier": "优质肉类供应商", "last_updated": "2025-06-21"},
-                {"id": "INV011", "name": "猪肉", "category": "肉类", "current_stock": 25, "min_stock": 5, "max_stock": 60, "unit": "kg", "price": 28.0, "supplier": "优质肉类供应商", "last_updated": "2025-06-21"},
-                {"id": "INV012", "name": "鸡胸肉", "category": "肉类", "current_stock": 15, "min_stock": 3, "max_stock": 40, "unit": "kg", "price": 22.0, "supplier": "优质肉类供应商", "last_updated": "2025-06-21"},
-                {"id": "INV013", "name": "鸡蛋", "category": "肉类", "current_stock": 200, "min_stock": 50, "max_stock": 300, "unit": "个", "price": 1.2, "supplier": "优质肉类供应商", "last_updated": "2025-06-21"},
+                # Meats
+                {"id": "INV010", "name": "Beef", "category": "Meat", "current_stock": 20, "min_stock": 5, "max_stock": 50, "unit": "kg", "price": 68.0, "supplier": "Quality Meat Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV011", "name": "Pork", "category": "Meat", "current_stock": 25, "min_stock": 5, "max_stock": 60, "unit": "kg", "price": 28.0, "supplier": "Quality Meat Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV012", "name": "Chicken Breast", "category": "Meat", "current_stock": 15, "min_stock": 3, "max_stock": 40, "unit": "kg", "price": 22.0, "supplier": "Quality Meat Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV013", "name": "Eggs", "category": "Meat", "current_stock": 200, "min_stock": 50, "max_stock": 300, "unit": "pcs", "price": 1.2, "supplier": "Quality Meat Supplier", "last_updated": "2025-06-21"},
                 
-                # 主食类
-                {"id": "INV020", "name": "面条", "category": "主食", "current_stock": 100, "min_stock": 20, "max_stock": 200, "unit": "包", "price": 3.5, "supplier": "优质粮食供应商", "last_updated": "2025-06-21"},
-                {"id": "INV021", "name": "大米", "category": "主食", "current_stock": 80, "min_stock": 15, "max_stock": 150, "unit": "kg", "price": 4.5, "supplier": "优质粮食供应商", "last_updated": "2025-06-21"},
-                {"id": "INV022", "name": "面包", "category": "主食", "current_stock": 60, "min_stock": 20, "max_stock": 120, "unit": "个", "price": 8.0, "supplier": "优质粮食供应商", "last_updated": "2025-06-21"},
-                {"id": "INV023", "name": "土豆", "category": "主食", "current_stock": 45, "min_stock": 10, "max_stock": 90, "unit": "kg", "price": 5.0, "supplier": "优质蔬菜供应商", "last_updated": "2025-06-21"},
+                # Staples
+                {"id": "INV020", "name": "Noodles", "category": "Staple", "current_stock": 100, "min_stock": 20, "max_stock": 200, "unit": "pack", "price": 3.5, "supplier": "Quality Grain Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV021", "name": "Rice", "category": "Staple", "current_stock": 80, "min_stock": 15, "max_stock": 150, "unit": "kg", "price": 4.5, "supplier": "Quality Grain Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV022", "name": "Bread", "category": "Staple", "current_stock": 60, "min_stock": 20, "max_stock": 120, "unit": "pcs", "price": 8.0, "supplier": "Quality Grain Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV023", "name": "Potato", "category": "Staple", "current_stock": 45, "min_stock": 10, "max_stock": 90, "unit": "kg", "price": 5.0, "supplier": "Quality Veggie Supplier", "last_updated": "2025-06-21"},
                 
-                # 饮料类
-                {"id": "INV030", "name": "可乐", "category": "饮料", "current_stock": 80, "min_stock": 30, "max_stock": 150, "unit": "瓶", "price": 5.0, "supplier": "饮料供应商", "last_updated": "2025-06-21"},
-                {"id": "INV031", "name": "雪碧", "category": "饮料", "current_stock": 75, "min_stock": 25, "max_stock": 120, "unit": "瓶", "price": 5.0, "supplier": "饮料供应商", "last_updated": "2025-06-21"},
-                {"id": "INV032", "name": "橙汁", "category": "饮料", "current_stock": 50, "min_stock": 20, "max_stock": 100, "unit": "瓶", "price": 8.0, "supplier": "饮料供应商", "last_updated": "2025-06-21"},
-                {"id": "INV033", "name": "咖啡豆", "category": "饮料", "current_stock": 5, "min_stock": 2, "max_stock": 20, "unit": "kg", "price": 180.0, "supplier": "咖啡供应商", "last_updated": "2025-06-21"},
-                {"id": "INV034", "name": "牛奶", "category": "饮料", "current_stock": 40, "min_stock": 15, "max_stock": 80, "unit": "瓶", "price": 6.0, "supplier": "乳制品供应商", "last_updated": "2025-06-21"},
+                # Beverages
+                {"id": "INV030", "name": "Coke", "category": "Beverage", "current_stock": 80, "min_stock": 30, "max_stock": 150, "unit": "bottle", "price": 5.0, "supplier": "Beverage Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV031", "name": "Sprite", "category": "Beverage", "current_stock": 75, "min_stock": 25, "max_stock": 120, "unit": "bottle", "price": 5.0, "supplier": "Beverage Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV032", "name": "Orange Juice", "category": "Beverage", "current_stock": 50, "min_stock": 20, "max_stock": 100, "unit": "bottle", "price": 8.0, "supplier": "Beverage Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV033", "name": "Coffee Beans", "category": "Beverage", "current_stock": 5, "min_stock": 2, "max_stock": 20, "unit": "kg", "price": 180.0, "supplier": "Coffee Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV034", "name": "Milk", "category": "Beverage", "current_stock": 40, "min_stock": 15, "max_stock": 80, "unit": "bottle", "price": 6.0, "supplier": "Dairy Supplier", "last_updated": "2025-06-21"},
                 
-                # 调料类
-                {"id": "INV040", "name": "食用油", "category": "调料", "current_stock": 10, "min_stock": 3, "max_stock": 25, "unit": "瓶", "price": 25.0, "supplier": "调料供应商", "last_updated": "2025-06-21"},
-                {"id": "INV041", "name": "生抽", "category": "调料", "current_stock": 8, "min_stock": 2, "max_stock": 20, "unit": "瓶", "price": 12.0, "supplier": "调料供应商", "last_updated": "2025-06-21"},
-                {"id": "INV042", "name": "老抽", "category": "调料", "current_stock": 6, "min_stock": 2, "max_stock": 15, "unit": "瓶", "price": 15.0, "supplier": "调料供应商", "last_updated": "2025-06-21"},
-                {"id": "INV043", "name": "盐", "category": "调料", "current_stock": 20, "min_stock": 5, "max_stock": 50, "unit": "包", "price": 3.0, "supplier": "调料供应商", "last_updated": "2025-06-21"},
-                {"id": "INV044", "name": "糖", "category": "调料", "current_stock": 15, "min_stock": 3, "max_stock": 30, "unit": "包", "price": 8.0, "supplier": "调料供应商", "last_updated": "2025-06-21"},
-                {"id": "INV045", "name": "辣椒粉", "category": "调料", "current_stock": 12, "min_stock": 3, "max_stock": 25, "unit": "包", "price": 18.0, "supplier": "调料供应商", "last_updated": "2025-06-21"}
+                # Seasonings
+                {"id": "INV040", "name": "Cooking Oil", "category": "Seasoning", "current_stock": 10, "min_stock": 3, "max_stock": 25, "unit": "bottle", "price": 25.0, "supplier": "Seasoning Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV041", "name": "Soy Sauce", "category": "Seasoning", "current_stock": 8, "min_stock": 2, "max_stock": 20, "unit": "bottle", "price": 12.0, "supplier": "Seasoning Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV042", "name": "Dark Soy Sauce", "category": "Seasoning", "current_stock": 6, "min_stock": 2, "max_stock": 15, "unit": "bottle", "price": 15.0, "supplier": "Seasoning Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV043", "name": "Salt", "category": "Seasoning", "current_stock": 20, "min_stock": 5, "max_stock": 50, "unit": "pack", "price": 3.0, "supplier": "Seasoning Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV044", "name": "Sugar", "category": "Seasoning", "current_stock": 15, "min_stock": 3, "max_stock": 30, "unit": "pack", "price": 8.0, "supplier": "Seasoning Supplier", "last_updated": "2025-06-21"},
+                {"id": "INV045", "name": "Chili Powder", "category": "Seasoning", "current_stock": 12, "min_stock": 3, "max_stock": 25, "unit": "pack", "price": 18.0, "supplier": "Seasoning Supplier", "last_updated": "2025-06-21"}
             ]
     
     def show(self):
-        """显示库存管理模块"""
-        # 注册到数据管理器
+        """Show the inventory management module"""
+        # Register with the data manager
         data_manager.register_module('inventory', self)
         
-        # 重新加载最新数据
+        # Reload the latest data
         self.inventory_data = self.load_inventory_data()
-          # 初始化界面变量（如果还没有初始化）
+        # Initialize UI variables (if not already initialized)
         if self.search_var is None:
             self.search_var = tk.StringVar(self.parent_frame)
-            self.category_filter_var = tk.StringVar(self.parent_frame, value="全部")
-            self.stock_filter_var = tk.StringVar(self.parent_frame, value="全部")
+            self.category_filter_var = tk.StringVar(self.parent_frame, value="All")
+            self.stock_filter_var = tk.StringVar(self.parent_frame, value="All")
         
         self.clear_frames()
         self.update_title()
         self.create_inventory_interface()
         
     def clear_frames(self):
-        """清空框架"""
+        """Clear the frames"""
         for widget in self.parent_frame.winfo_children():
             widget.destroy()
         for widget in self.title_frame.winfo_children():
             widget.destroy()
             
     def update_title(self):
-        """更新标题"""
-        # 左侧标题
+        """Update the title"""
+        # Left title
         title_frame = tk.Frame(self.title_frame, bg=self.colors['surface'])
         title_frame.pack(side="left", fill="y")
         
@@ -167,45 +170,44 @@ class ModernInventoryModule:
                              bg=self.colors['surface'], fg=self.colors['primary'])
         icon_label.pack(side="left", padx=(30, 10), pady=20)
         
-        title_label = tk.Label(title_frame, text="库存管理", font=self.fonts['title'],
+        title_label = tk.Label(title_frame, text="Inventory Management", font=self.fonts['title'],
                               bg=self.colors['surface'], fg=self.colors['text_primary'])
         title_label.pack(side="left", pady=20)
         
-        # 右侧操作按钮
+        # Right action buttons
         action_frame = tk.Frame(self.title_frame, bg=self.colors['surface'])
         action_frame.pack(side="right", padx=30, pady=20)
         
-        # 刷新按钮
-        refresh_btn = tk.Button(action_frame, text="🔄 刷新", 
-                               font=('Microsoft YaHei UI', 10),
+        # Refresh button
+        refresh_btn = tk.Button(action_frame, text="Refresh", 
+                               font=self.fonts['button'],
                                bg=self.colors['primary'], fg=self.colors['white'],
                                bd=0, padx=20, pady=8, cursor='hand2',
                                command=self.refresh_inventory)
         refresh_btn.pack(side='right', padx=5)
         
-        # 导出按钮
-        export_btn = tk.Button(action_frame, text="📊 导出", 
-                              font=('Microsoft YaHei UI', 10),
+        # Export button
+        export_btn = tk.Button(action_frame, text="📊 Export", 
+                              font=self.fonts['button'],
                               bg=self.colors['success'], fg=self.colors['white'],
                               bd=0, padx=20, pady=8, cursor='hand2',
                               command=self.export_inventory)
         export_btn.pack(side='right', padx=5)
         
     def create_inventory_interface(self):
-        """创建库存管理界面"""        # 主容器
+        """Create the inventory management interface"""
         main_container = tk.Frame(self.parent_frame, bg=self.colors['background'])
         main_container.pack(fill="both", expand=True, padx=20, pady=20)
         
-        # 顶部统计卡片 - 已隐藏
-        # self.create_stats_cards(main_container)
-          # 可制作菜品展示区域
-        self.create_possible_meals_section(main_container)
+        top_container = tk.Frame(main_container, bg=self.colors['background'])
+        top_container.pack(fill="x", expand=False)
+
+        self.create_possible_meals_section(top_container)
         
-        # 中间筛选和搜索区域 - 已隐藏
-        # self.create_filter_section(main_container)
-        
-        # 底部库存列表
-        self.create_inventory_list(main_container)
+        bottom_container = tk.Frame(main_container, bg=self.colors['background'])
+        bottom_container.pack(fill="both", expand=True, pady=(10, 0))
+
+        self.create_inventory_list(bottom_container)
         
     def create_stats_cards(self, parent):
         """创建统计卡片"""
@@ -219,10 +221,10 @@ class ModernInventoryModule:
         out_of_stock = len([item for item in self.inventory_data if item['current_stock'] == 0])
         
         cards_data = [
-            {"title": "商品总数", "value": f"{total_items}", "icon": "📦", "color": self.colors['primary']},
-            {"title": "库存不足", "value": f"{low_stock_items}", "icon": "⚠️", "color": self.colors['warning']},
-            {"title": "库存总值", "value": f"¥{total_value:,.0f}", "icon": "💰", "color": self.colors['success']},
-            {"title": "缺货商品", "value": f"{out_of_stock}", "icon": "🚫", "color": self.colors['error']}
+            {"title": "Total Items", "value": f"{total_items}", "icon": "📦", "color": self.colors['primary']},
+            {"title": "Low Stock", "value": f"{low_stock_items}", "icon": "⚠️", "color": self.colors['warning']},
+            {"title": "Total Value", "value": f"¥{total_value:,.0f}", "icon": "💰", "color": self.colors['success']},
+            {"title": "Out of Stock", "value": f"{out_of_stock}", "icon": "🚫", "color": self.colors['error']}
         ]
         
         for i, card_data in enumerate(cards_data):
@@ -250,10 +252,10 @@ class ModernInventoryModule:
         
         title_label = tk.Label(header_frame, text=data["title"], font=self.fonts['body'],
                               bg=self.colors['surface'], fg=self.colors['text_secondary'])
-        title_label.pack(side="right")
+        title_label.pack(side="left", padx=10)
         
         # 数值
-        value_label = tk.Label(content_frame, text=data["value"], font=self.fonts['title'],
+        value_label = tk.Label(content_frame, text=data["value"], font=self.fonts['heading'],
                               bg=self.colors['surface'], fg=self.colors['text_primary'])
         value_label.pack(anchor="w")
         
@@ -273,1189 +275,906 @@ class ModernInventoryModule:
         search_frame = tk.Frame(content_frame, bg=self.colors['surface'])
         search_frame.pack(side="left", fill="y")
         
-        search_label = tk.Label(search_frame, text="🔍 搜索商品", font=self.fonts['subheading'],
-                               bg=self.colors['surface'], fg=self.colors['text_primary'])
+        search_label = tk.Label(search_frame, text="🔎", font=self.fonts['body'], bg=self.colors['surface'])
         search_label.pack(side="left")
         
-        search_entry = tk.Entry(search_frame, textvariable=self.search_var, font=self.fonts['body'],
-                               bg=self.colors['background'], fg=self.colors['text_primary'],
-                               bd=1, relief="solid", width=25)
-        search_entry.pack(side="left", padx=(20, 10), ipady=8)
-        
-        search_btn = tk.Button(search_frame, text="搜索", font=self.fonts['body'],
-                              bg=self.colors['primary'], fg="white", bd=0,
-                              cursor="hand2", command=self.search_inventory, padx=15)
-        search_btn.pack(side="left")
-        
-        # 筛选器
-        filter_controls = tk.Frame(content_frame, bg=self.colors['surface'])
-        filter_controls.pack(side="right", fill="y")
+        search_entry = ttk.Entry(search_frame, textvariable=self.search_var, font=self.fonts['body'], width=30)
+        search_entry.pack(side="left", padx=5)
+        search_entry.bind("<KeyRelease>", self.search_inventory)
         
         # 分类筛选
-        category_label = tk.Label(filter_controls, text="分类:", font=self.fonts['body'],
-                                 bg=self.colors['surface'], fg=self.colors['text_secondary'])
-        category_label.pack(side="left", padx=(0, 5))
+        category_label = tk.Label(filter_frame, text="Category:", font=self.fonts['body'], bg=self.colors['surface'])
+        category_label.pack(side="left", padx=(20, 5))
         
-        categories = ["全部", "肉类", "蔬菜", "主食", "禽蛋", "调料"]
-        category_combo = ttk.Combobox(filter_controls, textvariable=self.category_filter_var,
-                                     values=categories, state="readonly", width=10)
-        category_combo.pack(side="left", padx=(0, 20))
-        category_combo.bind('<<ComboboxSelected>>', lambda e: self.filter_inventory())
+        categories = ["All"] + sorted(list(set(item['category'] for item in self.inventory_data)))
+        category_menu = ttk.OptionMenu(filter_frame, self.category_filter_var, "All", *categories, command=self.filter_inventory)
+        category_menu.pack(side="left")
         
         # 库存状态筛选
-        stock_label = tk.Label(filter_controls, text="库存状态:", font=self.fonts['body'],
-                              bg=self.colors['surface'], fg=self.colors['text_secondary'])
-        stock_label.pack(side="left", padx=(0, 5))
+        stock_label = tk.Label(filter_frame, text="Stock Status:", font=self.fonts['body'], bg=self.colors['surface'])
+        stock_label.pack(side="left", padx=(20, 5))
         
-        stock_status = ["全部", "正常", "不足", "缺货"]
-        stock_combo = ttk.Combobox(filter_controls, textvariable=self.stock_filter_var,
-                                  values=stock_status, state="readonly", width=10)
-        stock_combo.pack(side="left")
-        stock_combo.bind('<<ComboboxSelected>>', lambda e: self.filter_inventory())
-        
-        # 绑定回车键搜索
-        search_entry.bind('<Return>', lambda e: self.search_inventory())
+        stock_options = ["All", "Low Stock", "Out of Stock"]
+        stock_menu = ttk.OptionMenu(filter_frame, self.stock_filter_var, "All", *stock_options, command=self.filter_inventory)
+        stock_menu.pack(side="left")
         
     def create_inventory_list(self, parent):
-        """创建库存列表"""
-        list_frame = tk.Frame(parent, bg=self.colors['surface'])
-        list_frame.pack(fill="both", expand=True)
-          # 标题
-        title_frame = tk.Frame(list_frame, bg=self.colors['surface'])
-        title_frame.pack(fill="x", padx=20, pady=(20, 10))
+        """Create the inventory list"""
+        list_container = tk.Frame(parent, bg=self.colors['surface'], relief="flat", bd=1)
+        list_container.pack(fill="both", expand=True, pady=(20,0))
         
-        title_label = tk.Label(title_frame, text="🥬 食材库存清单", font=self.fonts['heading'],
+        # List title
+        title_frame = tk.Frame(list_container, bg=self.colors['surface'])
+        title_frame.pack(fill="x", padx=20, pady=(10, 5))
+        
+        title_label = tk.Label(title_frame, text="📦 Ingredient Inventory List", font=self.fonts['subheading'],
                               bg=self.colors['surface'], fg=self.colors['text_primary'])
         title_label.pack(side="left")
+
+        subtitle_label = tk.Label(title_frame, text="(Displays raw ingredients, not finished dishes)", font=self.fonts['small'],
+                                 bg=self.colors['surface'], fg=self.colors['text_secondary'])
+        subtitle_label.pack(side="left", padx=10)
         
-        # 提示信息
-        tip_label = tk.Label(title_frame, text="（仅显示原材料，不含成品菜品）", 
-                            font=self.fonts['small'],
-                            bg=self.colors['surface'], fg=self.colors['text_secondary'])
-        tip_label.pack(side="left", padx=(10, 0))
+        # Treeview list
+        tree_frame = tk.Frame(list_container, bg=self.colors['surface'])
+        tree_frame.pack(fill="both", expand=True, padx=20, pady=10)
         
-        # 创建表格
-        table_frame = tk.Frame(list_frame, bg=self.colors['surface'])
-        table_frame.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        # Style configuration
+        style = ttk.Style()
+        style.configure("Modern.Treeview",
+                        background=self.colors['surface'],
+                        foreground=self.colors['text_primary'],
+                        fieldbackground=self.colors['surface'],
+                        rowheight=35,
+                        font=self.fonts['body'])
+        style.configure("Modern.Treeview.Heading",
+                        background=self.colors['background'],
+                        foreground=self.colors['text_primary'],
+                        font=self.fonts['button'],
+                        relief="flat")
+        style.map("Modern.Treeview.Heading",
+                  background=[('active', self.colors['border'])])
+        style.layout("Modern.Treeview", [('Treeview.treearea', {'sticky': 'nswe'})]) # Remove borders
         
-        # 定义列
-        columns = ("ID", "商品名称", "分类", "当前库存", "最小库存", "单位", "单价", "状态", "供应商", "更新时间")
+        # Treeview definition
+        columns = ("id", "name", "category", "current_stock", "min_stock", "unit", "price", "status", "supplier", "last_updated")
+        self.inventory_tree = ttk.Treeview(tree_frame, columns=columns, show="headings", style="Modern.Treeview")
         
-        # 创建Treeview
-        self.inventory_tree = ttk.Treeview(table_frame, columns=columns, show="headings", height=15)
-        
-        # 设置列标题和宽度
-        column_widths = {
-            "ID": 50,
-            "商品名称": 120,
-            "分类": 80,
-            "当前库存": 80,
-            "最小库存": 80,
-            "单位": 60,
-            "单价": 80,
-            "状态": 80,
-            "供应商": 150,
-            "更新时间": 100
+        # Define headings
+        headings = {
+            "id": "ID", "name": "Product Name", "category": "Category", "current_stock": "Current Stock",
+            "min_stock": "Min Stock", "unit": "Unit", "price": "Unit Price", "status": "Status",
+            "supplier": "Supplier", "last_updated": "Last Updated"
         }
+        for col, text in headings.items():
+            self.inventory_tree.heading(col, text=text, anchor='w')
+            
+        # Define column widths
+        widths = {
+            "id": 60, "name": 150, "category": 100, "current_stock": 100, "min_stock": 80,
+            "unit": 60, "price": 80, "status": 100, "supplier": 150, "last_updated": 120
+        }
+        for col, width in widths.items():
+            self.inventory_tree.column(col, width=width, anchor='w')
         
-        for col in columns:
-            self.inventory_tree.heading(col, text=col)
-            self.inventory_tree.column(col, width=column_widths.get(col, 100), anchor="center")
+        # Vertical scrollbar
+        vsb = ttk.Scrollbar(tree_frame, orient="vertical", command=self.inventory_tree.yview)
+        vsb.pack(side='right', fill='y')
+        self.inventory_tree.configure(yscrollcommand=vsb.set)
         
-        # 滚动条
-        v_scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=self.inventory_tree.yview)
-        h_scrollbar = ttk.Scrollbar(table_frame, orient="horizontal", command=self.inventory_tree.xview)
+        # Horizontal scrollbar
+        hsb = ttk.Scrollbar(tree_frame, orient="horizontal", command=self.inventory_tree.xview)
+        hsb.pack(side='bottom', fill='x')
+        self.inventory_tree.configure(xscrollcommand=hsb.set)
         
-        self.inventory_tree.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
-        
-        # 布局
-        self.inventory_tree.grid(row=0, column=0, sticky="nsew")
-        v_scrollbar.grid(row=0, column=1, sticky="ns")
-        h_scrollbar.grid(row=1, column=0, sticky="ew")
-        
-        # 配置网格权重
-        table_frame.grid_rowconfigure(0, weight=1)
-        table_frame.grid_columnconfigure(0, weight=1)
-        
-        # 绑定双击事件
+        self.inventory_tree.pack(fill="both", expand=True)
         self.inventory_tree.bind("<Double-1>", self.edit_inventory_item)
         
-        # 右键菜单
-        self.create_context_menu()
+        # Action buttons below list
+        action_bar = tk.Frame(list_container, bg=self.colors['surface'])
+        action_bar.pack(fill="x", padx=20, pady=10)
         
-        # 加载数据
+        add_btn = tk.Button(action_bar, text="➕ Add Item", font=self.fonts['button'],
+                           bg=self.colors['success'], fg='white', bd=0, padx=15, pady=8,
+                           command=self.add_inventory_item)
+        add_btn.pack(side="left", padx=5)
+        
+        edit_btn = tk.Button(action_bar, text="✏️ Edit Selected", font=self.fonts['button'],
+                            bg=self.colors['info'], fg='white', bd=0, padx=15, pady=8,
+                            command=self.edit_selected_item)
+        edit_btn.pack(side="left", padx=5)
+        
+        delete_btn = tk.Button(action_bar, text="❌ Delete Selected", font=self.fonts['button'],
+                              bg=self.colors['error'], fg='white', bd=0, padx=15, pady=8,
+                              command=self.delete_selected_item)
+        delete_btn.pack(side="left", padx=5)
+        
+        restock_btn = tk.Button(action_bar, text="🚚 Restock", font=self.fonts['button'],
+                               bg=self.colors['secondary'], fg='white', bd=0, padx=15, pady=8,
+                               command=self.restock_item)
+        restock_btn.pack(side="left", padx=5)
+
+        adjust_stock_btn = tk.Button(action_bar, text="🛠️ Adjust Stock", font=self.fonts['button'],
+                                     bg=self.colors['warning'], fg=self.colors['text_primary'],
+                                     bd=0, padx=15, pady=8, command=self.adjust_stock)
+        adjust_stock_btn.pack(side="left", padx=5)
+
+        self.create_context_menu()
         self.refresh_inventory_list()
+        self.refresh_possible_meals()
         
     def create_context_menu(self):
-        """创建右键菜单"""
-        self.context_menu = tk.Menu(self.inventory_tree, tearoff=0)
-        self.context_menu.add_command(label="编辑", command=self.edit_selected_item)
-        self.context_menu.add_command(label="删除", command=self.delete_selected_item)
-        self.context_menu.add_separator()
-        self.context_menu.add_command(label="补货", command=self.restock_item)
-        self.context_menu.add_command(label="调整库存", command=self.adjust_stock)
+        """Create the context menu for the inventory list"""
+        menu = tk.Menu(self.inventory_tree, tearoff=0, font=self.fonts['body'],
+                       bg=self.colors['surface'], fg=self.colors['text_primary'])
+        menu.add_command(label="✏️ Edit", command=self.edit_selected_item)
+        menu.add_command(label="❌ Delete", command=self.delete_selected_item)
+        menu.add_separator()
+        menu.add_command(label="🚚 Restock", command=self.restock_item)
+        menu.add_command(label="🛠️ Adjust Stock", command=self.adjust_stock)
         
         def show_context_menu(event):
-            try:
-                self.context_menu.tk_popup(event.x_root, event.y_root)
-            finally:
-                self.context_menu.grab_release()
-        
+            # Select row under cursor
+            item = self.inventory_tree.identify_row(event.y)
+            if item:
+                self.inventory_tree.focus(item)
+                self.inventory_tree.selection_set(item)
+                menu.post(event.x_root, event.y_root)
+
         self.inventory_tree.bind("<Button-3>", show_context_menu)
-        
+    
     def refresh_inventory_list(self):
-        """刷新库存列表"""
-        # 如果UI组件还未创建（模块未显示），则不执行刷新
-        if not hasattr(self, 'inventory_tree') or not self.inventory_tree:
-            print("库存UI未初始化，跳过UI刷新。")
-            # 也可以在这里只重新加载数据
-            self.inventory_data = self.load_inventory_data()
-            return
+        """Refresh the inventory list display"""
+        # Clear existing items
+        for i in self.inventory_tree.get_children():
+            self.inventory_tree.delete(i)
             
-        # 清空现有数据
-        for item in self.inventory_tree.get_children():
-            self.inventory_tree.delete(item)
-        
-        # 获取筛选后的数据
         filtered_data = self.get_filtered_data()
         
-        # 插入数据
         for item in filtered_data:
-            # 判断库存状态
-            if item['current_stock'] == 0:
-                status = "缺货"
-                status_color = "red"
-            elif item['current_stock'] <= item['min_stock']:
-                status = "不足"
-                status_color = "orange"
-            else:
-                status = "正常"
-                status_color = "green"
+            current_stock = item.get('current_stock', 0)
+            min_stock = item.get('min_stock', 0)
             
-            # 插入行
-            item_id = self.inventory_tree.insert("", "end", values=(
-                item['id'],
-                item['name'],
-                item['category'],
-                item['current_stock'],
-                item['min_stock'],
-                item['unit'],
-                f"¥{item['price']:.2f}",
-                status,
-                item['supplier'],
-                item['last_updated']            ))
-            
-            # 根据状态设置行颜色
-            if status == "缺货":
-                self.inventory_tree.set(item_id, "状态", "🚫 缺货")
-            elif status == "不足":
-                self.inventory_tree.set(item_id, "状态", "⚠️ 不足")
+            # Determine stock status
+            if current_stock <= 0:
+                status = "Out of Stock"
+                tags = ('out_of_stock',)
+            elif current_stock <= min_stock:
+                status = "Low Stock"
+                tags = ('low_stock',)
             else:
-                self.inventory_tree.set(item_id, "状态", "✅ 正常")
+                status = "In Stock"
+                tags = ('in_stock',)
+            
+            # Insert data into Treeview
+            self.inventory_tree.insert(
+                "", "end", 
+                values=(
+                    item.get('id', ''), item.get('name', ''), item.get('category', ''),
+                    f"{current_stock:.2f}", f"{min_stock:.2f}",
+                    item.get('unit', ''), f"¥{item.get('price', 0.0):.2f}",
+                    status, item.get('supplier', ''), item.get('last_updated', '')
+                ),
+                tags=tags
+            )
+            
+        # Configure row colors
+        self.inventory_tree.tag_configure('in_stock', background=self.colors['surface'], foreground=self.colors['text_primary'])
+        self.inventory_tree.tag_configure('low_stock', background=self.colors['warning'], foreground=self.colors['text_primary'])
+        self.inventory_tree.tag_configure('out_of_stock', background=self.colors['error'], foreground=self.colors['white'])
         
-        # 更新统计卡片 - 已隐藏统计卡片
-        # self.update_stats_cards()
-    
     def get_filtered_data(self):
-        """获取筛选后的数据"""
-        filtered_data = self.inventory_data.copy()
+        """Get filtered data based on search and filter criteria"""
+        search_term = self.search_var.get().lower()
+        category_filter = self.category_filter_var.get()
+        stock_filter = self.stock_filter_var.get()
+
+        filtered_data = self.inventory_data
         
-        # 移除搜索和筛选功能，仅保留食材过滤
-        # 按搜索关键词筛选 - 已移除
-        # 按分类筛选 - 已移除  
-        # 按库存状态筛选 - 已移除
+        # Search filter
+        if search_term:
+            filtered_data = [
+                item for item in filtered_data 
+                if search_term in item['name'].lower() or \
+                   search_term in item['id'].lower() or \
+                   search_term in item['supplier'].lower()
+            ]
         
-        # 过滤只显示食材（原料），不显示成品菜品
-        finished_product_keywords = [
-            '炒饭', '面条', '汉堡', '红烧肉', '可乐', '米饭', '牛肉面', '炒面',
-            '汤', '粥', '饮料', '咖啡', '奶茶', '果汁', '沙拉'
-        ]
-        
-        ingredient_categories = [
-            '蔬菜', '肉类', '主食', '调料', '海鲜', '豆制品', '干货', '冷冻食品'
-        ]
-        
-        final_filtered_data = []
-        for item in filtered_data:
-            item_name = item['name']
-            item_category = item['category']
+        # Category filter
+        if category_filter != "All":
+            filtered_data = [item for item in filtered_data if item['category'] == category_filter]
+
+        # Stock status filter
+        if stock_filter == "Low Stock":
+            filtered_data = [item for item in filtered_data if 0 < item['current_stock'] <= item['min_stock']]
+        elif stock_filter == "Out of Stock":
+            filtered_data = [item for item in filtered_data if item['current_stock'] == 0]
             
-            # 检查是否为成品菜品
-            is_finished_product = any(keyword in item_name for keyword in finished_product_keywords)
-            
-            # 检查分类是否为食材分类
-            is_ingredient_category = item_category in ingredient_categories
-            
-            # 只有既不是成品菜品，又属于食材分类的商品才显示
-            if not is_finished_product and is_ingredient_category:
-                final_filtered_data.append(item)
-        
-        return final_filtered_data
+        return filtered_data
     
     def filter_ingredients_only(self):
-        """过滤只显示食材（原料），不显示成品菜品"""
-        # 定义成品菜品的关键词，这些不应该出现在食材库存中
-        finished_product_keywords = [
-            '炒饭', '面条', '汉堡', '红烧肉', '可乐', '米饭', '牛肉面', '炒面',
-            '汤', '粥', '饮料', '咖啡', '奶茶', '果汁', '沙拉'
-        ]
-        
-        # 定义食材分类，只显示这些分类的商品
-        ingredient_categories = [
-            '蔬菜', '肉类', '主食', '调料', '海鲜', '豆制品', '干货', '冷冻食品'
-        ]
-        
-        filtered_data = []
-        for item in self.inventory_data:
-            item_name = item['name']
-            item_category = item['category']
-            
-            # 检查是否为成品菜品
-            is_finished_product = any(keyword in item_name for keyword in finished_product_keywords)
-            
-            # 检查分类是否为食材分类
-            is_ingredient_category = item_category in ingredient_categories
-            
-            # 只有既不是成品菜品，又属于食材分类的商品才显示
-            if not is_finished_product and is_ingredient_category:
-                filtered_data.append(item)
-        
-        return filtered_data
+        """
+        This method is now part of get_filtered_data and is kept for conceptual reference.
+        It's designed to filter out finished products and only show raw materials.
+        This logic should be integrated into the data source or initial loading if needed permanently.
+        """
+        pass # Logic moved to get_filtered_data
 
     def update_stats_cards(self):
-        """更新统计卡片"""
-        filtered_data = self.get_filtered_data()
-        
-        total_items = len(filtered_data)
-        low_stock_items = len([item for item in filtered_data if item['current_stock'] <= item['min_stock']])
-        total_value = sum(item['current_stock'] * item['price'] for item in filtered_data)
-        out_of_stock = len([item for item in filtered_data if item['current_stock'] == 0])
-        
-        # 更新标签
-        if "商品总数" in self.stats_labels:
-            self.stats_labels["商品总数"].configure(text=f"{total_items}")
-        if "库存不足" in self.stats_labels:
-            self.stats_labels["库存不足"].configure(text=f"{low_stock_items}")
-        if "库存总值" in self.stats_labels:
-            self.stats_labels["库存总值"].configure(text=f"¥{total_value:,.0f}")
-        if "缺货商品" in self.stats_labels:
-            self.stats_labels["缺货商品"].configure(text=f"{out_of_stock}")
-            
-    def search_inventory(self):
-        """搜索库存"""
+        """Update the values on the statistics cards"""
+        total_items = len(self.inventory_data)
+        low_stock_items = len([item for item in self.inventory_data if item['current_stock'] <= item['min_stock']])
+        total_value = sum(item['current_stock'] * item['price'] for item in self.inventory_data)
+        out_of_stock = len([item for item in self.inventory_data if item['current_stock'] == 0])
+
+        if "Total Items" in self.stats_labels:
+            self.stats_labels["Total Items"].config(text=f"{total_items}")
+        if "Low Stock" in self.stats_labels:
+            self.stats_labels["Low Stock"].config(text=f"{low_stock_items}")
+        if "Total Value" in self.stats_labels:
+            self.stats_labels["Total Value"].config(text=f"¥{total_value:,.0f}")
+        if "Out of Stock" in self.stats_labels:
+            self.stats_labels["Out of Stock"].config(text=f"{out_of_stock}")
+
+    def search_inventory(self, *args):
+        """Search the inventory"""
         self.refresh_inventory_list()
-        
-    def filter_inventory(self):
-        """筛选库存"""
+
+    def filter_inventory(self, *args):
+        """Filter the inventory display"""
         self.refresh_inventory_list()
         
     def add_inventory_item(self):
-        """添加库存商品"""
-        dialog = InventoryItemDialog(self.parent_frame, "添加商品")
+        """Add a new inventory item"""
+        dialog = InventoryItemDialog(self.parent_frame, "Add New Item")
         if dialog.result:
-            # 生成新ID - 找到最大编号并+1
-            existing_ids = [item['id'] for item in self.inventory_data if item['id'].startswith('INV')]
-            if existing_ids:
-                # 提取数字部分，找到最大值
-                max_num = max([int(id_str[3:]) for id_str in existing_ids])
-                new_id = f"INV{max_num + 1:03d}"  # 格式化为INV001这样的格式
-            else:
-                new_id = "INV001"
+            new_item = dialog.result
             
-            dialog.result['id'] = new_id
-            dialog.result['last_updated'] = datetime.datetime.now().strftime("%Y-%m-%d")
-              # 添加到数据
-            self.inventory_data.append(dialog.result)
-            self.refresh_inventory_list()
-            messagebox.showinfo("成功", "商品添加成功！")
+            # Generate new ID
+            max_id = 0
+            for item in self.inventory_data:
+                if item['id'].startswith('INV'):
+                    try:
+                        num = int(item['id'][3:])
+                        if num > max_id:
+                            max_id = num
+                    except ValueError:
+                        continue
+            new_item['id'] = f"INV{max_id + 1:03d}"
+            
+            # Update data source
+            self.inventory_data.append(new_item)
+            if data_manager.save_data('inventory', self.inventory_data):
+                messagebox.showinfo("Success", "Item added successfully.")
+                self.refresh_inventory()
+            else:
+                messagebox.showerror("Error", "Failed to save new item.")
+                self.inventory_data.pop() # Revert change
             
     def edit_inventory_item(self, event):
-        """编辑库存商品"""
         self.edit_selected_item()
-        
+
     def edit_selected_item(self):
-        """编辑选中的商品"""
-        selected = self.inventory_tree.selection()
-        if not selected:
-            messagebox.showwarning("提示", "请选择要编辑的商品")
+        """Edit the selected inventory item"""
+        selected_item = self.inventory_tree.selection()
+        if not selected_item:
+            messagebox.showwarning("No Selection", "Please select an item to edit.")
             return
-            
-        item_id = self.inventory_tree.item(selected[0])['values'][0]  # 直接获取字符串ID，不转换为int
+        
+        item_id = self.inventory_tree.item(selected_item[0])['values'][0]
         item_data = next((item for item in self.inventory_data if item['id'] == item_id), None)
         
         if item_data:
-            dialog = InventoryItemDialog(self.parent_frame, "编辑商品", item_data)
-            if dialog.result:                # 更新数据
-                item_data.update(dialog.result)
-                item_data['last_updated'] = datetime.datetime.now().strftime("%Y-%m-%d")
-                self.refresh_inventory_list()
-                messagebox.showinfo("成功", "商品信息更新成功！")
+            dialog = InventoryItemDialog(self.parent_frame, "Edit Item", item_data)
+            if dialog.result:
+                updated_item = dialog.result
+                # Update data source
+                for i, item in enumerate(self.inventory_data):
+                    if item['id'] == item_id:
+                        self.inventory_data[i] = updated_item
+                        break
                 
+                if data_manager.save_data('inventory', self.inventory_data):
+                    messagebox.showinfo("Success", "Item updated successfully.")
+                    self.refresh_inventory()
+                else:
+                    messagebox.showerror("Error", "Failed to save updated item.")
+                    # Revert change (optional)
+    
     def delete_selected_item(self):
-        """删除选中的商品"""
-        selected = self.inventory_tree.selection()
-        if not selected:
-            messagebox.showwarning("提示", "请选择要删除的商品")
+        """Delete the selected inventory item"""
+        selected_item = self.inventory_tree.selection()
+        if not selected_item:
+            messagebox.showwarning("No Selection", "Please select an item to delete.")
             return
             
-        item_name = self.inventory_tree.item(selected[0])['values'][1]
-        if messagebox.askyesno("确认删除", f"确定要删除商品 '{item_name}' 吗？"):
-            item_id = self.inventory_tree.item(selected[0])['values'][0]  # 直接获取字符串ID
+        item_id = self.inventory_tree.item(selected_item[0])['values'][0]
+        item_name = self.inventory_tree.item(selected_item[0])['values'][1]
+
+        if messagebox.askyesno("Confirm Deletion", f"Are you sure you want to delete '{item_name}'?"):
+            original_data = list(self.inventory_data)
             self.inventory_data = [item for item in self.inventory_data if item['id'] != item_id]
-            self.refresh_inventory_list()
-            messagebox.showinfo("成功", "商品删除成功！")
             
+            if data_manager.save_data('inventory', self.inventory_data):
+                messagebox.showinfo("Success", "Item deleted successfully.")
+                self.refresh_inventory()
+            else:
+                messagebox.showerror("Error", "Failed to delete item.")
+                self.inventory_data = original_data # Revert
+
     def restock_item(self):
-        """补货"""
-        selected = self.inventory_tree.selection()
-        if not selected:
-            messagebox.showwarning("提示", "请选择要补货的商品")
+        """Restock the selected inventory item"""
+        selected_item = self.inventory_tree.selection()
+        if not selected_item:
+            messagebox.showwarning("No Selection", "Please select an item to restock.")
             return
             
-        item_id = self.inventory_tree.item(selected[0])['values'][0]  # 直接获取字符串ID
-        item_data = next((item for item in self.inventory_data if item['id'] == item_id), None)
+        item_name = self.inventory_tree.item(selected_item[0])['values'][1]
         
-        if item_data:
-            quantity = simpledialog.askinteger("补货", f"请输入 {item_data['name']} 的补货数量：", minvalue=1)
-            if quantity:
-                item_data['current_stock'] += quantity
-                item_data['last_updated'] = datetime.datetime.now().strftime("%Y-%m-%d")
-                self.refresh_inventory_list()
-                messagebox.showinfo("成功", f"已为 {item_data['name']} 补货 {quantity} {item_data['unit']}")
-                
+        amount = simpledialog.askinteger("Restock", f"Enter restock quantity for '{item_name}':",
+                                         parent=self.parent_frame, minvalue=1)
+        if amount:
+            item_id = self.inventory_tree.item(selected_item[0])['values'][0]
+            # Find item and update stock
+            for item in self.inventory_data:
+                if item['id'] == item_id:
+                    item['current_stock'] += amount
+                    item['last_updated'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    break
+            
+            if data_manager.save_data('inventory', self.inventory_data):
+                messagebox.showinfo("Success", f"{amount} units of '{item_name}' have been restocked.")
+                self.refresh_inventory()
+            else:
+                messagebox.showerror("Error", "Failed to save restock information.")
+                # Revert change
+
     def adjust_stock(self):
-        """调整库存"""
-        selected = self.inventory_tree.selection()
-        if not selected:
-            messagebox.showwarning("提示", "请选择要调整库存的商品")
+        """Manually adjust the stock of an item"""
+        selected_item = self.inventory_tree.selection()
+        if not selected_item:
+            messagebox.showwarning("No Selection", "Please select an item to adjust.")
             return
-            
-        item_id = self.inventory_tree.item(selected[0])['values'][0]  # 直接获取字符串ID
-        item_data = next((item for item in self.inventory_data if item['id'] == item_id), None)
+
+        item_name = self.inventory_tree.item(selected_item[0])['values'][1]
+
+        new_quantity = simpledialog.askinteger("Adjust Stock", f"Enter new stock quantity for '{item_name}':",
+                                               parent=self.parent_frame, minvalue=0)
         
-        if item_data:
-            new_stock = simpledialog.askinteger("调整库存", 
-                                               f"{item_data['name']} 当前库存：{item_data['current_stock']} {item_data['unit']}\n请输入新的库存数量：", 
-                                               minvalue=0)
-            if new_stock is not None:
-                item_data['current_stock'] = new_stock
-                item_data['last_updated'] = datetime.datetime.now().strftime("%Y-%m-%d")
-                self.refresh_inventory_list()
-                messagebox.showinfo("成功", f"{item_data['name']} 库存已调整为 {new_stock} {item_data['unit']}")
-                
+        if new_quantity is not None:
+            item_id = self.inventory_tree.item(selected_item[0])['values'][0]
+            # Find item and update stock
+            for item in self.inventory_data:
+                if item['id'] == item_id:
+                    item['current_stock'] = new_quantity
+                    item['last_updated'] = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                    break
+            
+            if data_manager.save_data('inventory', self.inventory_data):
+                messagebox.showinfo("Success", f"Stock for '{item_name}' has been adjusted to {new_quantity}.")
+                self.refresh_inventory()
+            else:
+                messagebox.showerror("Error", "Failed to save stock adjustment.")
+                # Revert change
+
     def export_inventory(self):
-        """导出库存数据"""
-        try:
+        """Export inventory data to a file"""
+        
+        export_dialog = tk.Toplevel(self.parent_frame)
+        export_dialog.title("Export Inventory")
+        export_dialog.geometry("400x250")
+        export_dialog.resizable(False, False)
+        export_dialog.transient(self.parent_frame)
+        export_dialog.grab_set()
+
+        # Style
+        export_dialog.configure(bg=self.colors['background'])
+        
+        main_frame = tk.Frame(export_dialog, bg=self.colors['background'], padx=20, pady=20)
+        main_frame.pack(fill="both", expand=True)
+
+        title_label = tk.Label(main_frame, text="Export Options", font=self.fonts['heading'],
+                               bg=self.colors['background'], fg=self.colors['text_primary'])
+        title_label.pack(pady=(0, 20))
+        
+        # Format selection
+        format_frame = tk.Frame(main_frame, bg=self.colors['background'])
+        format_frame.pack(fill="x", pady=5)
+        format_label = tk.Label(format_frame, text="File Format:", font=self.fonts['body'], bg=self.colors['background'])
+        format_label.pack(side="left", padx=5)
+        export_format = ttk.Combobox(format_frame, values=["Excel", "CSV", "PDF"], state="readonly", font=self.fonts['body'])
+        export_format.set("Excel")
+        export_format.pack(side="left", padx=5)
+
+        # Content selection
+        content_frame = tk.Frame(main_frame, bg=self.colors['background'])
+        content_frame.pack(fill="x", pady=5)
+        content_label = tk.Label(content_frame, text="Inventory Type:", font=self.fonts['body'], bg=self.colors['background'])
+        content_label.pack(side="left", padx=5)
+        inventory_type = ttk.Combobox(content_frame, values=["All", "Low Stock", "Out of Stock"], state="readonly", font=self.fonts['body'])
+        inventory_type.set("All")
+        inventory_type.pack(side="left", padx=5)
+
+        # Action buttons
+        button_frame = tk.Frame(main_frame, bg=self.colors['background'])
+        button_frame.pack(fill="x", pady=(20, 0))
+
+        def do_export():
+            file_format = export_format.get()
+            inv_type = inventory_type.get()
+            
             from tkinter import filedialog
-            import datetime
+            file_extensions = {
+                "Excel": ".xlsx",
+                "CSV": ".csv",
+                "PDF": ".pdf"
+            }
+            default_filename = f"inventory_export_{datetime.datetime.now().strftime('%Y%m%d')}{file_extensions[file_format]}"
             
-            # 创建导出选择对话框
-            dialog = tk.Toplevel(self.parent_frame)
-            dialog.title("导出库存数据")
-            dialog.geometry("400x300")
-            dialog.configure(bg=self.colors['background'])
-            dialog.transient(self.parent_frame)
-            dialog.grab_set()
-            
-            # 居中显示
-            dialog.update_idletasks()
-            x = (dialog.winfo_screenwidth() // 2) - (200)
-            y = (dialog.winfo_screenheight() // 2) - (150)
-            dialog.geometry(f"400x300+{x}+{y}")
-            
-            # 标题
-            tk.Label(dialog, text="导出库存数据", font=('Microsoft YaHei UI', 14, 'bold'),
-                    bg=self.colors['background'], fg=self.colors['text']).pack(pady=15)
-            
-            # 导出选项框架
-            options_frame = tk.Frame(dialog, bg=self.colors['background'])
-            options_frame.pack(fill="both", expand=True, padx=20, pady=10)
-            
-            # 导出格式选择
-            tk.Label(options_frame, text="选择导出格式:", font=('Microsoft YaHei UI', 12),
-                    bg=self.colors['background'], fg=self.colors['text']).pack(anchor="w", pady=(0, 10))
-            
-            format_var = tk.StringVar(dialog, value="Excel")
-            format_options = ["Excel", "CSV", "PDF"]
-            
-            format_frame = tk.Frame(options_frame, bg=self.colors['background'])
-            format_frame.pack(anchor="w")
-            
-            for i, fmt in enumerate(format_options):
-                rb = tk.Radiobutton(format_frame, text=fmt, variable=format_var, value=fmt,
-                                  font=('Microsoft YaHei UI', 10), bg=self.colors['background'], 
-                                  fg=self.colors['text'], selectcolor=self.colors['surface'])
-                rb.grid(row=0, column=i, sticky="w", padx=(0, 20))
-            
-            # 库存类型筛选
-            tk.Label(options_frame, text="库存类型:", font=('Microsoft YaHei UI', 12),
-                    bg=self.colors['background'], fg=self.colors['text']).pack(anchor="w", pady=(20, 10))
-            
-            type_var = tk.StringVar(dialog, value="全部")
-            type_options = ["全部", "原料", "容器"]
-            
-            type_combo = ttk.Combobox(options_frame, textvariable=type_var, 
-                                    values=type_options, state="readonly", width=20)
-            type_combo.pack(anchor="w")
-            
-            # 按钮框架
-            btn_frame = tk.Frame(dialog, bg=self.colors['background'])
-            btn_frame.pack(fill="x", padx=20, pady=20)
-            
-            def do_export():
-                try:
-                    file_format = format_var.get()
-                    inventory_type = type_var.get()
-                    
-                    # 获取当前时间戳
-                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                    filename = f"库存数据_{inventory_type}_{timestamp}"
-                    
-                    # 选择保存路径
-                    if file_format == "Excel":
-                        file_path = filedialog.asksaveasfilename(
-                            defaultextension=".xlsx",
-                            filetypes=[("Excel文件", "*.xlsx")],
-                            initialname=filename
-                        )
-                        if file_path:
-                            success = self.export_inventory_to_excel(file_path, inventory_type)
-                    elif file_format == "CSV":
-                        file_path = filedialog.asksaveasfilename(
-                            defaultextension=".csv",
-                            filetypes=[("CSV文件", "*.csv")],
-                            initialname=filename
-                        )
-                        if file_path:
-                            success = self.export_inventory_to_csv(file_path, inventory_type)
-                    elif file_format == "PDF":
-                        file_path = filedialog.asksaveasfilename(
-                            defaultextension=".pdf",
-                            filetypes=[("PDF文件", "*.pdf")],
-                            initialname=filename
-                        )
-                        if file_path:
-                            success = self.export_inventory_to_pdf(file_path, inventory_type)
-                    
-                    if success:
-                        messagebox.showinfo("导出成功", f"库存数据已成功导出为 {file_format} 格式", parent=dialog)
-                        dialog.destroy()
-                    else:
-                        messagebox.showerror("导出失败", "导出过程中发生错误", parent=dialog)
-                        
-                except Exception as e:
-                    messagebox.showerror("错误", f"导出失败：{e}", parent=dialog)
-            
-            tk.Button(btn_frame, text="📊 开始导出", command=do_export,
-                     bg=self.colors['primary'], fg='white', bd=0, pady=8, padx=20,
-                     font=('Microsoft YaHei UI', 10)).pack(side="left")
-            tk.Button(btn_frame, text="取消", command=dialog.destroy,
-                     bg=self.colors['text_light'], fg='white', bd=0, pady=8, padx=20,
-                     font=('Microsoft YaHei UI', 10)).pack(side="right")
-                     
-        except Exception as e:
-            messagebox.showerror("错误", f"打开导出对话框失败：{e}")
-    
-    def export_inventory_to_excel(self, file_path: str, inventory_type: str) -> bool:
-        """导出库存为Excel格式"""
-        try:
-            import openpyxl
-            from openpyxl.styles import Font, Alignment, PatternFill
-            
-            wb = openpyxl.Workbook()
-            ws = wb.active
-            ws.title = "库存数据"
-            
-            # 设置标题
-            title = f"智慧餐饮管理系统 - 库存数据 ({inventory_type})"
-            ws['A1'] = title
-            ws['A1'].font = Font(size=16, bold=True)
-            ws.merge_cells('A1:F1')
-            
-            # 设置表头样式
-            header_font = Font(bold=True, color="FFFFFF")
-            header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
-            header_alignment = Alignment(horizontal="center", vertical="center")
-            
-            # 表头
-            headers = ["物品名称", "类型", "当前库存", "单位", "预警阈值", "状态"]
-            ws.append(headers)
-            
-            # 设置表头样式
-            for cell in ws[2]:
-                cell.font = header_font
-                cell.fill = header_fill
-                cell.alignment = header_alignment
-            
-            # 获取库存数据
-            inventory_data = self.get_filtered_inventory(inventory_type)
-            
-            # 添加数据
-            for item in inventory_data:
-                # 判断库存状态
-                current_stock = item.get('stock', 0)
-                warning_threshold = item.get('warning_threshold', 0)
-                status = "正常" if current_stock > warning_threshold else "预警"
-                
-                row = [
-                    item.get('name', ''),
-                    item.get('type', ''),
-                    current_stock,
-                    item.get('unit', ''),
-                    warning_threshold,
-                    status
-                ]
-                ws.append(row)
-            
-            # 调整列宽
-            for column in ws.columns:
-                max_length = 0
-                column_letter = column[0].column_letter
-                for cell in column:
-                    try:
-                        if len(str(cell.value)) > max_length:
-                            max_length = len(str(cell.value))
-                    except:
-                        pass
-                adjusted_width = min(max_length + 2, 50)
-                ws.column_dimensions[column_letter].width = adjusted_width
-            
-            wb.save(file_path)
-            return True
-            
-        except ImportError:
-            messagebox.showerror("错误", "请安装openpyxl库：pip install openpyxl")
-            return False
-        except Exception as e:
-            print(f"导出Excel失败: {e}")
-            return False
-    
-    def export_inventory_to_csv(self, file_path: str, inventory_type: str) -> bool:
-        """导出库存为CSV格式"""
-        try:
-            import csv
-            
-            with open(file_path, 'w', newline='', encoding='utf-8-sig') as csvfile:
-                fieldnames = ["物品名称", "类型", "当前库存", "单位", "预警阈值", "状态"]
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                writer.writeheader()
-                
-                # 获取库存数据
-                inventory_data = self.get_filtered_inventory(inventory_type)
-                
-                for item in inventory_data:
-                    # 判断库存状态
-                    current_stock = item.get('stock', 0)
-                    warning_threshold = item.get('warning_threshold', 0)
-                    status = "正常" if current_stock > warning_threshold else "预警"
-                    
-                    writer.writerow({
-                        "物品名称": item.get('name', ''),
-                        "类型": item.get('type', ''),
-                        "当前库存": current_stock,
-                        "单位": item.get('unit', ''),
-                        "预警阈值": warning_threshold,
-                        "状态": status
-                    })
-            
-            return True
-            
-        except Exception as e:
-            print(f"导出CSV失败: {e}")
-            return False
-    
-    def export_inventory_to_pdf(self, file_path: str, inventory_type: str) -> bool:
-        """导出库存为PDF格式"""
-        try:
-            from reportlab.lib.pagesizes import A4
-            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-            from reportlab.lib import colors
-            
-            doc = SimpleDocTemplate(file_path, pagesize=A4)
-            story = []
-            
-            # 标题样式
-            styles = getSampleStyleSheet()
-            title_style = ParagraphStyle(
-                'CustomTitle',
-                parent=styles['Heading1'],
-                fontSize=16,
-                spaceAfter=30,
-                alignment=1  # 居中
+            file_path = filedialog.asksaveasfilename(
+                initialfile=default_filename,
+                defaultextension=file_extensions[file_format],
+                filetypes=[(f"{file_format} Files", f"*{file_extensions[file_format]}"), ("All Files", "*.*")]
             )
             
-            # 添加标题
-            title = Paragraph(f"智慧餐饮管理系统 - 库存数据 ({inventory_type})", title_style)
-            story.append(title)
-            story.append(Spacer(1, 20))
-            
-            # 获取库存数据
-            inventory_data = self.get_filtered_inventory(inventory_type)
-            
-            # 创建表格数据
-            table_data = [["物品名称", "类型", "当前库存", "单位", "预警阈值", "状态"]]
-            
-            for item in inventory_data:
-                # 判断库存状态
-                current_stock = item.get('stock', 0)
-                warning_threshold = item.get('warning_threshold', 0)
-                status = "正常" if current_stock > warning_threshold else "预警"
-                
-                row = [
-                    item.get('name', ''),
-                    item.get('type', ''),
-                    current_stock,
-                    item.get('unit', ''),
-                    warning_threshold,
-                    status
-                ]
-                table_data.append(row)
-            
-            # 创建表格
-            table = Table(table_data)
-            table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black),
-                ('FONTSIZE', (0, 1), (-1, -1), 8),
-                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.beige, colors.white])
-            ]))
-            story.append(table)
-            
-            doc.build(story)
-            return True
-            
-        except ImportError:
-            messagebox.showerror("错误", "请安装reportlab库：pip install reportlab")
-            return False
-        except Exception as e:
-            print(f"导出PDF失败: {e}")
-            return False
-    
-    def get_filtered_inventory(self, inventory_type: str) -> List[Dict]:
-        """获取筛选后的库存数据"""
-        if inventory_type == "全部":
-            return self.inventory_data
-        else:
-            return [item for item in self.inventory_data if item.get('type') == inventory_type]
-    
-    def refresh_inventory(self):
-        """刷新库存数据"""
-        print("🔄 正在刷新库存数据...")
-        try:
-            # 重新加载库存数据
-            self.inventory_data = self.load_inventory_data()
-            # 重新显示库存列表
-            self.refresh_inventory_list()
-            # 刷新可制作菜品
-            self.refresh_possible_meals()
-            # self.update_stats_cards() # 统计卡片已隐藏
+            if not file_path:
+                return
 
-            # 如果模块是可见的，才显示成功消息框
-            if self.parent_frame.winfo_viewable():
-                messagebox.showinfo("刷新成功", "库存数据已更新。", parent=self.parent_frame)
+            try:
+                success = False
+                if file_format == "Excel":
+                    success = self.export_inventory_to_excel(file_path, inv_type)
+                elif file_format == "CSV":
+                    success = self.export_inventory_to_csv(file_path, inv_type)
+                elif file_format == "PDF":
+                    success = self.export_inventory_to_pdf(file_path, inv_type)
+                
+                if success:
+                    messagebox.showinfo("Export Successful", f"Inventory data has been successfully exported to\n{file_path}", parent=export_dialog)
+                else:
+                    raise Exception("Export function returned False.")
+            except Exception as e:
+                messagebox.showerror("Export Failed", f"An error occurred during export:\n{e}", parent=export_dialog)
+            finally:
+                export_dialog.destroy()
+
+        export_button = tk.Button(button_frame, text="Export", command=do_export,
+                                  font=self.fonts['button'], bg=self.colors['success'], fg='white',
+                                  bd=0, padx=15, pady=8)
+        export_button.pack(side="right", padx=5)
+
+        cancel_button = tk.Button(button_frame, text="Cancel", command=export_dialog.destroy,
+                                  font=self.fonts['button'], bg=self.colors['error'], fg='white',
+                                  bd=0, padx=15, pady=8)
+        cancel_button.pack(side="right", padx=5)
+        
+    def export_inventory_to_excel(self, file_path: str, inventory_type: str) -> bool:
+        """Export inventory data to an Excel file"""
+        try:
+            import pandas as pd
+            from openpyxl import Workbook
+            from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+
+            inventory_to_export = self.get_filtered_inventory(inventory_type)
+            if not inventory_to_export:
+                messagebox.showwarning("No Data", "There is no data to export for the selected filter.", parent=self.parent_frame)
+                return False
+
+            df = pd.DataFrame(inventory_to_export)
+            
+            # Create Excel writer
+            with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False, sheet_name='Inventory')
+                workbook = writer.book
+                worksheet = writer.sheets['Inventory']
+
+                # --- Formatting ---
+                header_font = Font(name='Segoe UI', size=12, bold=True, color='FFFFFF')
+                header_fill = PatternFill(start_color='4F81BD', end_color='4F81BD', fill_type='solid')
+                cell_font = Font(name='Segoe UI', size=11)
+                center_alignment = Alignment(horizontal='center', vertical='center')
+                border = Border(left=Side(style='thin'), 
+                                right=Side(style='thin'), 
+                                top=Side(style='thin'), 
+                                bottom=Side(style='thin'))
+
+                # Format header
+                for cell in worksheet[1]:
+                    cell.font = header_font
+                    cell.fill = header_fill
+                    cell.alignment = center_alignment
+                    cell.border = border
+                
+                # Format data cells
+                for row in worksheet.iter_rows(min_row=2, max_row=worksheet.max_row, max_col=worksheet.max_column):
+                    for cell in row:
+                        cell.font = cell_font
+                        cell.alignment = Alignment(horizontal='left', vertical='center')
+                        cell.border = border
+
+                # Auto-adjust column widths
+                for col in worksheet.columns:
+                    max_length = 0
+                    column = col[0].column_letter # Get the column name
+                    for cell in col:
+                        try:
+                            if len(str(cell.value)) > max_length:
+                                max_length = len(cell.value)
+                        except:
+                            pass
+                    adjusted_width = (max_length + 2)
+                    worksheet.column_dimensions[column].width = adjusted_width
+            
+            return True
+        except ImportError:
+            messagebox.showerror("Dependency Error", "The 'pandas' and 'openpyxl' libraries are required for Excel export. Please install them.", parent=self.parent_frame)
+            return False
         except Exception as e:
-            # 只有在模块可见时才弹窗，否则只打印日志
-            if self.parent_frame.winfo_viewable():
-                messagebox.showerror("刷新失败", f"刷新库存数据时发生错误: {e}", parent=self.parent_frame)
-            else:
-                print(f"后台刷新库存失败: {e}")
+            print(f"Excel export failed: {e}")
+            return False
+
+    def export_inventory_to_csv(self, file_path: str, inventory_type: str) -> bool:
+        """Export inventory data to a CSV file"""
+        try:
+            import csv
+            inventory_to_export = self.get_filtered_inventory(inventory_type)
+            if not inventory_to_export:
+                messagebox.showwarning("No Data", "There is no data to export for the selected filter.", parent=self.parent_frame)
+                return False
+                
+            headers = list(inventory_to_export[0].keys())
+            with open(file_path, 'w', newline='', encoding='utf-8-sig') as f:
+                writer = csv.DictWriter(f, fieldnames=headers)
+                writer.writeheader()
+                writer.writerows(inventory_to_export)
+            return True
+        except Exception as e:
+            print(f"CSV export failed: {e}")
+            return False
+            
+    def export_inventory_to_pdf(self, file_path: str, inventory_type: str) -> bool:
+        """Export inventory data to a PDF file"""
+        try:
+            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+            from reportlab.lib.styles import getSampleStyleSheet
+            from reportlab.lib import colors
+            from reportlab.lib.pagesizes import letter, landscape
+
+            inventory_to_export = self.get_filtered_inventory(inventory_type)
+            if not inventory_to_export:
+                messagebox.showwarning("No Data", "There is no data to export for the selected filter.", parent=self.parent_frame)
+                return False
+
+            doc = SimpleDocTemplate(file_path, pagesize=landscape(letter))
+            elements = []
+            styles = getSampleStyleSheet()
+
+            # Title
+            title = Paragraph(f"Inventory Report ({inventory_type})", styles['h1'])
+            elements.append(title)
+            elements.append(Spacer(1, 12))
+            
+            # Data
+            headers = list(inventory_to_export[0].keys())
+            data = [headers] + [[str(item[h]) for h in headers] for item in inventory_to_export]
+            
+            # Create table
+            table = Table(data)
+            style = TableStyle([
+                ('BACKGROUND', (0,0), (-1,0), colors.grey),
+                ('TEXTCOLOR',(0,0),(-1,0),colors.whitesmoke),
+                ('ALIGN', (0,0), (-1,-1), 'CENTER'),
+                ('FONTNAME', (0,0), (-1,0), 'Helvetica-Bold'),
+                ('BOTTOMPADDING', (0,0), (-1,0), 12),
+                ('BACKGROUND', (0,1), (-1,-1), colors.beige),
+                ('GRID', (0,0), (-1,-1), 1, colors.black)
+            ])
+            table.setStyle(style)
+            
+            elements.append(table)
+            doc.build(elements)
+            return True
+        except ImportError:
+            messagebox.showerror("Dependency Error", "The 'reportlab' library is required for PDF export. Please install it.", parent=self.parent_frame)
+            return False
+        except Exception as e:
+            print(f"PDF export failed: {e}")
+            return False
+            
+    def get_filtered_inventory(self, inventory_type: str) -> List[Dict]:
+        """Get inventory data based on the selected filter"""
+        if inventory_type == "All":
+            return self.inventory_data
+        elif inventory_type == "Low Stock":
+            return [item for item in self.inventory_data if 0 < item['current_stock'] <= item['min_stock']]
+        elif inventory_type == "Out of Stock":
+            return [item for item in self.inventory_data if item['current_stock'] == 0]
+        return []
+
+    def refresh_inventory(self):
+        """Refresh all inventory data and UI components"""
+        self.inventory_data = self.load_inventory_data()
+        self.refresh_inventory_list()
+        self.refresh_possible_meals()
+        messagebox.showinfo("Refresh", "Inventory data has been updated.")
+
+    # --- Meal Possibility Calculation ---
     
     def load_recipe_data(self):
-        """加载配方数据"""
+        """Load recipe data from data manager"""
         try:
-            recipes_file = os.path.join(os.path.dirname(__file__), '..', 'data', 'recipes.json')
-            if os.path.exists(recipes_file):
-                with open(recipes_file, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            else:
-                print("配方文件不存在，使用默认配方")
-                return self.get_default_recipes()
+            # Use the correct method to load data
+            self.recipes = data_manager.load_data('recipes')
+            if not self.recipes:
+                self.recipes = self.get_default_recipes()
         except Exception as e:
-            print(f"加载配方数据失败: {e}")
-            return self.get_default_recipes()
-    
+            print(f"Error loading recipe data: {e}")
+            self.recipes = self.get_default_recipes()
+
     def get_default_recipes(self):
-        """获取默认配方数据"""
+        """Returns a default list of recipes if the data file is unavailable."""
         return [
-            {
-                "meal_id": "MEAL001",
-                "meal_name": "番茄牛肉面",
-                "ingredients": [
-                    {"ingredient_name": "番茄", "quantity_per_serving": 0.2, "unit": "kg"},
-                    {"ingredient_name": "牛肉", "quantity_per_serving": 0.15, "unit": "kg"},
-                    {"ingredient_name": "面条", "quantity_per_serving": 0.25, "unit": "包"}
-                ]
-            },
-            {
-                "meal_id": "MEAL002",
-                "meal_name": "鸡蛋炒饭",
-                "ingredients": [
-                    {"ingredient_name": "鸡蛋", "quantity_per_serving": 2, "unit": "个"},
-                    {"ingredient_name": "大米", "quantity_per_serving": 0.3, "unit": "kg"}
-                ]
-            }
+            {"name": "Tomato Beef Noodles", "ingredients": {"Tomato": 0.2, "Beef": 0.15, "Noodles": 1}},
+            {"name": "Egg Fried Rice", "ingredients": {"Egg": 2, "Rice": 0.3}},
+            {"name": "Beef Burger", "ingredients": {"Beef": 0.2, "Bread": 1, "Lettuce": 0.05}},
+            {"name": "French Fries", "ingredients": {"Potato": 0.3}},
+            {"name": "Salmon Set Meal", "ingredients": {"Salmon": 0.2, "Rice": 0.15}},
+            {"name": "Homestyle Chicken Rice", "ingredients": {"Chicken": 0.2, "Rice": 0.15}},
+            {"name": "Seafood Fried Rice", "ingredients": {"Shrimp": 0.1, "Rice": 0.15, "Egg": 1}},
+            {"name": "Classic Beef Rice", "ingredients": {"Beef": 0.2, "Rice": 0.15}},
+            {"name": "Vegetable Set Meal", "ingredients": {"Broccoli": 0.1, "Carrot": 0.1, "Rice": 0.15}},
+            {"name": "Spicy Tofu", "ingredients": {"Tofu": 0.3, "Chili": 0.05}}
         ]
-    
+
     def calculate_possible_meals(self):
-        """计算当前库存可制作的菜品数量"""
-        recipes = self.load_recipe_data()
-        inventory_dict = {item['name']: item['current_stock'] for item in self.inventory_data}
+        """Based on current inventory, calculate how many of each meal can be made."""
+        if not self.inventory_data:
+            return {}
+        
+        # Load recipes if not already loaded
+        if not self.recipes:
+            self.load_recipe_data()
+        
+        inventory_map = {item['name'].lower(): item['current_stock'] for item in self.inventory_data}
         
         possible_meals = {}
         
-        for recipe in recipes:
-            meal_name = recipe['meal_name']
-            min_possible = float('inf')
+        for recipe in self.recipes:
+            meal_name = recipe.get("name")
+            ingredients = recipe.get("ingredients")
+
+            if not meal_name or not ingredients:
+                continue
             
-            for ingredient in recipe['ingredients']:
-                ingredient_name = ingredient['ingredient_name']
-                required_quantity = ingredient['quantity_per_serving']
-                
-                if ingredient_name in inventory_dict:
-                    current_stock = inventory_dict[ingredient_name]
-                    # 防止除零错误
-                    if required_quantity > 0:
-                        possible_servings = int(current_stock / required_quantity)
-                        min_possible = min(min_possible, possible_servings)
-                    else:
-                        min_possible = 0
-                        break
-                else:
-                    min_possible = 0
+            can_make = float('inf')
+            for ingredient, required_amount in ingredients.items():
+                stock = inventory_map.get(ingredient.lower(), 0)
+                if stock < required_amount:
+                    can_make = 0
                     break
+                can_make = min(can_make, stock // required_amount)
             
-            if min_possible == float('inf'):
-                min_possible = 0
-                
-            possible_meals[meal_name] = {
-                'possible_servings': min_possible,
-                'recipe': recipe
-            }
+            if can_make > 0 and can_make != float('inf'):
+                possible_meals[meal_name] = {
+                    "possible_servings": int(can_make),
+                    "recipe": ingredients
+                }
         
         return possible_meals
 
     def create_possible_meals_section(self, parent):
-        """创建可制作菜品展示区域"""
-        section_frame = tk.Frame(parent, bg=self.colors['background'])
-        section_frame.pack(fill="x", pady=(0, 20))
+        """Creates the section to display meals that can be made with current inventory."""
+        section_frame = tk.Frame(parent, bg=self.colors['surface'])
+        section_frame.pack(fill='x', pady=(0,10))
+
+        header_frame = tk.Frame(section_frame, bg=self.colors['surface'])
+        header_frame.pack(fill='x', padx=20, pady=(10,5))
         
-        # 标题
-        title_frame = tk.Frame(section_frame, bg=self.colors['background'])
-        title_frame.pack(fill="x", pady=(0, 15))
-        
-        title_label = tk.Label(title_frame, text="🍽️ 可制作菜品数量", 
-                              font=self.fonts['heading'],
-                              bg=self.colors['background'], 
-                              fg=self.colors['text_primary'])
-        title_label.pack(side="left")
-        
-        # 刷新按钮
-        refresh_btn = tk.Button(title_frame, text="🔄 刷新", 
-                               font=self.fonts['body'],
-                               bg=self.colors['primary'], fg="white",
-                               bd=0, relief="flat", cursor="hand2",
-                               command=self.refresh_possible_meals,
-                               padx=15, pady=5)
-        refresh_btn.pack(side="right")
-        
-        # 可制作菜品卡片容器
-        self.meals_container = tk.Frame(section_frame, bg=self.colors['background'])
-        self.meals_container.pack(fill="x")
-        
-        # 初始加载可制作菜品
+        tk.Label(header_frame, text="Dishes to Make", font=self.fonts['subheading'], 
+                 bg=self.colors['surface'], fg=self.colors['text_primary']).pack(side='left')
+
+        self.possible_meals_frame = tk.Frame(section_frame, bg=self.colors['surface'])
+        self.possible_meals_frame.pack(fill="x", padx=15, pady=(0, 10))
+
         self.refresh_possible_meals()
-    
+
     def refresh_possible_meals(self):
-        """刷新可制作菜品显示"""
-        # 如果UI组件还未创建，则跳过刷新
-        if not hasattr(self, 'meals_container') or not self.meals_container:
-            print("可制作菜品UI未初始化，跳过UI刷新。")
+        """Refreshes the display of meals that can be made."""
+        if not self.possible_meals_frame:
             return
-            
-        # 清空现有显示
-        for widget in self.meals_container.winfo_children():
+
+        for widget in self.possible_meals_frame.winfo_children():
             widget.destroy()
-        
-        # 计算可制作菜品
+
         possible_meals = self.calculate_possible_meals()
         
         if not possible_meals:
-            no_data_label = tk.Label(self.meals_container, 
-                                   text="暂无配方数据",
-                                   font=self.fonts['body'],
-                                   bg=self.colors['background'],
-                                   fg=self.colors['text_secondary'])
-            no_data_label.pack(pady=20)
+            tk.Label(self.possible_meals_frame, text="Not enough ingredients to make any dishes.",
+                     font=self.fonts['body'], bg=self.colors['surface'], fg=self.colors['text_secondary']
+            ).pack(pady=10)
             return
-        
-        # 创建卡片网格
-        row = 0
-        col = 0
-        max_cols = 4
-        
+
+        row, col = 0, 0
         for meal_name, meal_info in possible_meals.items():
-            self.create_meal_card(self.meals_container, meal_name, meal_info, row, col)
-            
+            self.create_meal_card(self.possible_meals_frame, meal_name, meal_info, row, col)
             col += 1
-            if col >= max_cols:
+            if col % 5 == 0:
                 col = 0
                 row += 1
-        
-        # 配置网格权重
-        for i in range(max_cols):
-            self.meals_container.grid_columnconfigure(i, weight=1)
-    
+                
     def create_meal_card(self, parent, meal_name, meal_info, row, col):
-        """创建菜品卡片"""
-        possible_servings = meal_info['possible_servings']
-        recipe = meal_info['recipe']
+        """Creates a small card for a meal that can be made."""
+        card = tk.Frame(parent, bg=self.colors['background'], bd=1, relief='solid', borderwidth=1, highlightbackground=self.colors['border'])
+        card.grid(row=row, column=col, padx=5, pady=5, sticky='ew')
         
-        # 根据可制作数量确定颜色
-        if possible_servings == 0:
-            card_color = self.colors['error']
-            text_color = "white"
-            status_text = "缺料"
-        elif possible_servings < 5:
-            card_color = self.colors['warning']
-            text_color = "white"
-            status_text = "库存低"
-        else:
-            card_color = self.colors['success']
-            text_color = "white"
-            status_text = "充足"
+        servings = meal_info.get('possible_servings', 0)
         
-        # 卡片框架
-        card_frame = tk.Frame(parent, bg=card_color, relief="flat", bd=1)
-        card_frame.grid(row=row, column=col, padx=8, pady=8, sticky="ew")
-        
-        # 卡片内容
-        content_frame = tk.Frame(card_frame, bg=card_color)
-        content_frame.pack(fill="both", expand=True, padx=15, pady=12)
-        
-        # 菜品名称
-        name_label = tk.Label(content_frame, text=meal_name,
-                             font=self.fonts['subheading'],
-                             bg=card_color, fg=text_color)
-        name_label.pack(anchor="w")
-        
-        # 可制作数量
-        count_label = tk.Label(content_frame, text=f"可制作: {possible_servings} 份",
-                              font=self.fonts['body'],
-                              bg=card_color, fg=text_color)
-        count_label.pack(anchor="w", pady=(2, 0))
-        
-        # 状态标签
-        status_label = tk.Label(content_frame, text=status_text,
-                               font=self.fonts['small'],
-                               bg=card_color, fg=text_color)
-        status_label.pack(anchor="w", pady=(2, 0))
-        
-        # 点击查看详情
-        def show_recipe_detail():
-            self.show_recipe_detail_dialog(meal_name, recipe, possible_servings)
-        
-        card_frame.bind("<Button-1>", lambda e: show_recipe_detail())
-        content_frame.bind("<Button-1>", lambda e: show_recipe_detail())
-        name_label.bind("<Button-1>", lambda e: show_recipe_detail())
-        count_label.bind("<Button-1>", lambda e: show_recipe_detail())
-        status_label.bind("<Button-1>", lambda e: show_recipe_detail())
-        
-        # 悬停效果
-        def on_enter(event):
-            card_frame.configure(relief="raised", bd=2)
-        
-        def on_leave(event):
-            card_frame.configure(relief="flat", bd=1)
-        
-        card_frame.bind("<Enter>", on_enter)
-        card_frame.bind("<Leave>", on_leave)
-    
+        emoji_map = {'noodle': '🍜', 'rice': '🍚', 'burger': '🍔', 'fries': '🍟', 'salmon': '🍣', 'chicken': '🍗', 'seafood': '🦐', 'beef': '🍖', 'vegetable': '🥦', 'tofu': '🌶️'}
+        emoji = '🍽️'
+        for key, e in emoji_map.items():
+            if key in meal_name.lower():
+                emoji = e
+                break
+
+        tk.Label(card, text=emoji, font=('Segoe UI Emoji', 20), bg=self.colors['background']).pack(pady=(10,0))
+        tk.Label(card, text=meal_name, font=self.fonts['small'], wraplength=120, justify='center', bg=self.colors['background'], fg=self.colors['text_primary']).pack(pady=5, padx=5)
+        tk.Label(card, text=f"{servings} servings", font=('Segoe UI', 12, 'bold'), bg=self.colors['background'], fg=self.colors['success']).pack(pady=(0,10))
+
+        parent.grid_columnconfigure(col, weight=1)
+
     def show_recipe_detail_dialog(self, meal_name, recipe, possible_servings):
-        """显示配方详情对话框"""
-        dialog = tk.Toplevel()
-        dialog.title(f"配方详情 - {meal_name}")
-        dialog.geometry("500x900")
+        """Show a dialog with recipe details."""
+        dialog = tk.Toplevel(self.parent_frame)
+        dialog.title(f"Recipe Details - {meal_name}")
+        dialog.geometry("450x400")
         dialog.configure(bg=self.colors['background'])
         dialog.resizable(False, False)
-        
-        # 居中显示
-        dialog.transient(self.parent_frame.winfo_toplevel())
+
+        # Header
+        header = tk.Frame(dialog, bg=self.colors['primary'])
+        header.pack(fill='x')
+        tk.Label(header, text=meal_name, font=self.fonts['heading'], bg=self.colors['primary'], fg=self.colors['white']).pack(pady=10)
+
+        # Info
+        info_frame = tk.Frame(dialog, bg=self.colors['background'])
+        info_frame.pack(padx=20, pady=10)
+        tk.Label(info_frame, text=f"You can make: {possible_servings} servings", font=self.fonts['body'], bg=self.colors['background']).pack()
+
+        # Ingredients list
+        ingredients_frame = tk.Frame(dialog, bg=self.colors['surface'])
+        ingredients_frame.pack(fill='both', expand=True, padx=20, pady=10)
+
+        inventory_map = {item['name'].lower(): (item['current_stock'], item['unit']) for item in self.inventory_data}
+
+        for ingredient, required in recipe.items():
+            stock, unit = inventory_map.get(ingredient.lower(), (0, 'unit'))
+            status_color = self.colors['success'] if stock >= required else self.colors['error']
+            
+            row = tk.Frame(ingredients_frame, bg=self.colors['surface'])
+            row.pack(fill='x', padx=10, pady=3)
+            
+            tk.Label(row, text=f"{ingredient}:", font=self.fonts['body'], bg=self.colors['surface']).pack(side='left')
+            tk.Label(row, text=f"Required {required}{unit}, Have {stock}{unit}", 
+                     font=self.fonts['body'], fg=status_color, bg=self.colors['surface']).pack(side='right')
+
+        # Close button
+        tk.Button(dialog, text="Close", command=dialog.destroy, 
+                  bg=self.colors['secondary'], fg=self.colors['white'], bd=0,
+                  font=self.fonts['button'], padx=15, pady=5).pack(pady=10)
+
+        dialog.transient(self.parent_frame)
         dialog.grab_set()
-        
-        # 标题
-        title_frame = tk.Frame(dialog, bg=self.colors['primary'], height=60)
-        title_frame.pack(fill="x")
-        title_frame.pack_propagate(False)
-        
-        title_label = tk.Label(title_frame, text=f"🍽️ {meal_name}",
-                              font=self.fonts['heading'],
-                              bg=self.colors['primary'], fg="white")
-        title_label.pack(expand=True)
-        
-        # 内容区域
-        content_frame = tk.Frame(dialog, bg=self.colors['background'])
-        content_frame.pack(fill="both", expand=True, padx=20, pady=20)
-        
-        # 可制作数量信息
-        count_frame = tk.Frame(content_frame, bg=self.colors['surface'], padx=15, pady=10)
-        count_frame.pack(fill="x", pady=(0, 15))
-        
-        tk.Label(count_frame, text=f"当前可制作: {possible_servings} 份",
-                font=self.fonts['subheading'],
-                bg=self.colors['surface'], fg=self.colors['primary']).pack()
-        
-        # 配方表
-        recipe_frame = tk.Frame(content_frame, bg=self.colors['surface'])
-        recipe_frame.pack(fill="both", expand=True)
-        
-        # 表头
-        header_frame = tk.Frame(recipe_frame, bg=self.colors['primary'])
-        header_frame.pack(fill="x")
-        
-        tk.Label(header_frame, text="食材名称", font=self.fonts['body'],
-                bg=self.colors['primary'], fg="white", width=15).pack(side="left", padx=5, pady=8)
-        tk.Label(header_frame, text="单份用量", font=self.fonts['body'],
-                bg=self.colors['primary'], fg="white", width=12).pack(side="left", padx=5, pady=8)
-        tk.Label(header_frame, text="当前库存", font=self.fonts['body'],
-                bg=self.colors['primary'], fg="white", width=12).pack(side="left", padx=5, pady=8)
-        tk.Label(header_frame, text="状态", font=self.fonts['body'],
-                bg=self.colors['primary'], fg="white", width=8).pack(side="left", padx=5, pady=8)
-        
-        # 滚动区域
-        canvas = tk.Canvas(recipe_frame, bg=self.colors['surface'])
-        scrollbar = ttk.Scrollbar(recipe_frame, orient="vertical", command=canvas.yview)
-        scrollable_frame = tk.Frame(canvas, bg=self.colors['surface'])
-        
-        scrollable_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
-        )
-        
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-        
-        # 食材列表
-        inventory_dict = {item['name']: item for item in self.inventory_data}
-        
-        for i, ingredient in enumerate(recipe['ingredients']):
-            ingredient_name = ingredient['ingredient_name']
-            required_qty = ingredient['quantity_per_serving']
-            unit = ingredient['unit']
-            
-            # 获取当前库存
-            current_stock = 0
-            if ingredient_name in inventory_dict:
-                current_stock = inventory_dict[ingredient_name]['current_stock']
-            
-            # 判断状态
-            if current_stock >= required_qty:
-                status = "✅ 充足"
-                status_color = self.colors['success']
-            elif current_stock > 0:
-                status = "⚠️ 不足"
-                status_color = self.colors['warning']
-            else:
-                status = "❌ 缺料"
-                status_color = self.colors['error']
-            
-            # 行背景色
-            row_bg = self.colors['background'] if i % 2 == 0 else self.colors['surface']
-            
-            row_frame = tk.Frame(scrollable_frame, bg=row_bg)
-            row_frame.pack(fill="x", pady=1)
-            
-            tk.Label(row_frame, text=ingredient_name, font=self.fonts['body'],
-                    bg=row_bg, fg=self.colors['text_primary'], width=15).pack(side="left", padx=5, pady=5)
-            tk.Label(row_frame, text=f"{required_qty} {unit}", font=self.fonts['body'],
-                    bg=row_bg, fg=self.colors['text_primary'], width=12).pack(side="left", padx=5, pady=5)
-            tk.Label(row_frame, text=f"{current_stock} {unit}", font=self.fonts['body'],
-                    bg=row_bg, fg=self.colors['text_primary'], width=12).pack(side="left", padx=5, pady=5)
-            tk.Label(row_frame, text=status, font=self.fonts['small'],
-                    bg=row_bg, fg=status_color, width=8).pack(side="left", padx=5, pady=5)
-        
-        canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
-        
-        # 关闭按钮
-        close_btn = tk.Button(content_frame, text="关闭", font=self.fonts['body'],
-                             bg=self.colors['text_secondary'], fg="white",
-                             bd=0, relief="flat", cursor="hand2",
-                             command=dialog.destroy, padx=20, pady=8)
-        close_btn.pack(pady=15)
+        self.parent_frame.wait_window(dialog)
 
 class InventoryItemDialog:
-    """库存商品对话框"""
+    """A dialog for adding or editing an inventory item."""
     def __init__(self, parent, title, item_data=None):
+        self.parent = parent
+        self.title = title
+        self.item_data = item_data
         self.result = None
-          # 创建对话框窗口
-        self.dialog = tk.Toplevel(parent)
-        self.dialog.title(title)
-        self.dialog.geometry("500x900")  # 增加高度从600到700
-        self.dialog.configure(bg="#f8f9fa")
-        self.dialog.resizable(False, False)
-        self.dialog.grab_set()
         
-        # 居中显示
+        self.top = tk.Toplevel(parent)
+        self.top.title(self.title)
+        self.top.transient(parent)
+        self.top.grab_set()
+        self.top.resizable(False, False)
+        self.top.configure(bg='#F0F0F0')
+
+        self.vars = {
+            "name": tk.StringVar(value=item_data.get('name', '') if item_data else ''),
+            "category": tk.StringVar(value=item_data.get('category', 'Vegetable') if item_data else 'Vegetable'),
+            "current_stock": tk.DoubleVar(value=item_data.get('current_stock', 0.0) if item_data else 0.0),
+            "min_stock": tk.DoubleVar(value=item_data.get('min_stock', 10.0) if item_data else 10.0),
+            "unit": tk.StringVar(value=item_data.get('unit', 'kg') if item_data else 'kg'),
+            "price": tk.DoubleVar(value=item_data.get('price', 0.0) if item_data else 0.0),
+            "supplier": tk.StringVar(value=item_data.get('supplier', '') if item_data else '')
+        }
+        
+        self.create_dialog_ui()
         self.center_window()
         
-        # 颜色主题
-        self.colors = {
-            'primary': '#FF6B35',
-            'background': '#F8F9FA',
-            'surface': '#FFFFFF',
-            'text_primary': '#2D3436',
-            'text_secondary': '#636E72',
-            'border': '#E0E0E0'
-        }
-        
-        # 字体
-        self.fonts = {
-            'heading': ('Microsoft YaHei UI', 16, 'bold'),
-            'body': ('Microsoft YaHei UI', 12),
-            'button': ('Microsoft YaHei UI', 11, 'bold')
-        }
-          # 创建变量
-        self.name_var = tk.StringVar(self.dialog, value=item_data['name'] if item_data else "")
-        self.category_var = tk.StringVar(self.dialog, value=item_data['category'] if item_data else "")
-        self.current_stock_var = tk.IntVar(self.dialog, value=item_data['current_stock'] if item_data else 0)
-        self.min_stock_var = tk.IntVar(self.dialog, value=item_data['min_stock'] if item_data else 0)
-        self.max_stock_var = tk.IntVar(self.dialog, value=item_data['max_stock'] if item_data else 0)
-        self.unit_var = tk.StringVar(self.dialog, value=item_data['unit'] if item_data else "")
-        self.price_var = tk.DoubleVar(self.dialog, value=item_data['price'] if item_data else 0.0)
-        self.supplier_var = tk.StringVar(self.dialog, value=item_data['supplier'] if item_data else "")
-        
-        # 创建界面
-        self.create_dialog_ui()
-        
+        self.top.wait_window(self.top)
+
     def center_window(self):
-        """窗口居中"""
-        self.dialog.update_idletasks()
-        width = self.dialog.winfo_width()
-        height = self.dialog.winfo_height()
-        x = (self.dialog.winfo_screenwidth() // 2) - (width // 2)
-        y = (self.dialog.winfo_screenheight() // 2) - (height // 2)
-        self.dialog.geometry(f'{width}x{height}+{x}+{y}')
+        """Center the dialog on the parent window."""
+        self.top.update_idletasks()
+        width = self.top.winfo_width()
+        height = self.top.winfo_height()
+        x = (self.top.winfo_screenwidth() // 2) - (width // 2)
+        y = (self.top.winfo_screenheight() // 2) - (height // 2)
+        self.top.geometry(f"+{x}+{y}")
         
     def create_dialog_ui(self):
-        """创建对话框界面"""
-        # 主容器
-        main_frame = tk.Frame(self.dialog, bg=self.colors['surface'])
-        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        main_frame = tk.Frame(self.top, bg='#FFFFFF', bd=5, relief='groove')
+        main_frame.pack(padx=10, pady=10, fill='both', expand=True)
+
+        # Form fields
+        self.create_form_field(main_frame, "Name:", self.vars['name'], 'entry')
+        self.create_form_field(main_frame, "Category:", self.vars['category'], 'combobox', 
+                               options=['Vegetable', 'Meat', 'Staple', 'Beverage', 'Seasoning', 'Other'])
+        self.create_form_field(main_frame, "Current Stock:", self.vars['current_stock'], 'spinbox')
+        self.create_form_field(main_frame, "Min Stock:", self.vars['min_stock'], 'spinbox')
+        self.create_form_field(main_frame, "Unit:", self.vars['unit'], 'entry')
+        self.create_form_field(main_frame, "Unit Price:", self.vars['price'], 'spinbox')
+        self.create_form_field(main_frame, "Supplier:", self.vars['supplier'], 'entry')
+
+        # Buttons
+        button_frame = tk.Frame(main_frame, bg='#FFFFFF')
+        button_frame.pack(fill='x', padx=10, pady=(20, 10))
         
-        # 标题
-        title_label = tk.Label(main_frame, text="📦 商品信息", font=self.fonts['heading'],
-                              bg=self.colors['surface'], fg=self.colors['text_primary'])
-        title_label.pack(pady=(0, 20))
+        ok_btn = tk.Button(button_frame, text="OK", width=12, command=self.ok)
+        ok_btn.pack(side='right', padx=5)
         
-        # 表单字段
-        fields = [
-            ("商品名称 *", self.name_var, "entry"),
-            ("商品分类 *", self.category_var, "combo", ["主食", "肉类", "蔬菜", "禽蛋", "调料", "其他"]),
-            ("当前库存 *", self.current_stock_var, "entry"),
-            ("最小库存 *", self.min_stock_var, "entry"),
-            ("最大库存 *", self.max_stock_var, "entry"),
-            ("单位 *", self.unit_var, "combo", ["公斤", "克", "升", "毫升", "个", "包", "盒", "袋"]),
-            ("单价 *", self.price_var, "entry"),
-            ("供应商", self.supplier_var, "entry")
-        ]
-        
-        for field_name, field_var, field_type, *options in fields:
-            self.create_form_field(main_frame, field_name, field_var, field_type, options[0] if options else None)
-        
-        # 按钮区域
-        button_frame = tk.Frame(main_frame, bg=self.colors['surface'])
-        button_frame.pack(fill="x", pady=(20, 0))
-        
-        # 取消按钮
-        cancel_btn = tk.Button(button_frame, text="取消", font=self.fonts['button'],
-                              bg=self.colors['background'], fg=self.colors['text_secondary'],
-                              bd=0, relief="flat", cursor="hand2", command=self.cancel,
-                              padx=30, pady=10)
-        cancel_btn.pack(side="right", padx=(10, 0))
-        
-        # 确定按钮
-        ok_btn = tk.Button(button_frame, text="确定", font=self.fonts['button'],
-                          bg=self.colors['primary'], fg="white",
-                          bd=0, relief="flat", cursor="hand2", command=self.ok,
-                          padx=30, pady=10)
-        ok_btn.pack(side="right")
-        
+        cancel_btn = tk.Button(button_frame, text="Cancel", width=12, command=self.cancel)
+        cancel_btn.pack(side='right', padx=5)
+
     def create_form_field(self, parent, label_text, variable, field_type, options=None):
-        """创建表单字段"""
-        field_frame = tk.Frame(parent, bg=self.colors['surface'])
-        field_frame.pack(fill="x", pady=10)
+        """Helper to create a form field."""
+        field_frame = tk.Frame(parent, bg='#FFFFFF')
+        field_frame.pack(fill='x', padx=10, pady=5)
         
-        # 标签
-        label = tk.Label(field_frame, text=label_text, font=self.fonts['body'],
-                        bg=self.colors['surface'], fg=self.colors['text_secondary'], anchor="w")
-        label.pack(fill="x", pady=(0, 5))
+        label = tk.Label(field_frame, text=label_text, width=15, anchor='w', bg='#FFFFFF')
+        label.pack(side='left')
         
-        # 输入控件
-        if field_type == "entry":
-            entry = tk.Entry(field_frame, textvariable=variable, font=self.fonts['body'],
-                            bg=self.colors['background'], bd=1, relief="solid")
-            entry.pack(fill="x", ipady=8)
-        elif field_type == "combo" and options:
-            combo = ttk.Combobox(field_frame, textvariable=variable, values=options,
-                                font=self.fonts['body'], state="readonly")
-            combo.pack(fill="x", ipady=5)
-            
+        if field_type == 'entry':
+            widget = tk.Entry(field_frame, textvariable=variable)
+        elif field_type == 'spinbox':
+            widget = tk.Spinbox(field_frame, from_=0, to=10000, textvariable=variable, width=18)
+        elif field_type == 'combobox':
+            widget = ttk.Combobox(field_frame, textvariable=variable, values=options, state='readonly')
+        
+        widget.pack(side='left', fill='x', expand=True)
+
     def ok(self):
-        """确定按钮处理"""
-        # 验证必填字段
-        if not self.name_var.get().strip():
-            messagebox.showerror("错误", "请输入商品名称")
-            return
-        if not self.category_var.get().strip():
-            messagebox.showerror("错误", "请选择商品分类")
-            return
-        if not self.unit_var.get().strip():
-            messagebox.showerror("错误", "请选择单位")
-            return
-            
-        # 验证数值
+        """Handle OK button click."""
         try:
-            current_stock = self.current_stock_var.get()
-            min_stock = self.min_stock_var.get()
-            max_stock = self.max_stock_var.get()
-            price = self.price_var.get()
-            
-            if current_stock < 0 or min_stock < 0 or max_stock < 0 or price < 0:
-                messagebox.showerror("错误", "数值不能为负数")
+            self.result = {
+                "id": self.item_data.get('id', '') if self.item_data else '',
+                "name": self.vars['name'].get(),
+                "category": self.vars['category'].get(),
+                "current_stock": self.vars['current_stock'].get(),
+                "min_stock": self.vars['min_stock'].get(),
+                "unit": self.vars['unit'].get(),
+                "price": self.vars['price'].get(),
+                "supplier": self.vars['supplier'].get(),
+                "last_updated": datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+
+            if not self.result["name"] or not self.result["unit"]:
+                messagebox.showerror("Validation Error", "Name and Unit fields cannot be empty.", parent=self.top)
+                self.result = None
                 return
                 
-            if min_stock > max_stock:
-                messagebox.showerror("错误", "最小库存不能大于最大库存")
-                return
-                
-        except tk.TclError:
-            messagebox.showerror("错误", "请输入有效的数值")
-            return
-        
-        # 保存结果
-        self.result = {
-            'name': self.name_var.get().strip(),
-            'category': self.category_var.get(),
-            'current_stock': current_stock,
-            'min_stock': min_stock,
-            'max_stock': max_stock,
-            'unit': self.unit_var.get(),
-            'price': price,
-            'supplier': self.supplier_var.get().strip()
-        }
-        
-        self.dialog.destroy()
-        
+            self.top.destroy()
+        except tk.TclError as e:
+            messagebox.showerror("Input Error", f"Invalid input value: {e}", parent=self.top)
+            self.result = None
+
     def cancel(self):
-        """取消按钮处理"""
-        self.dialog.destroy()
+        """Handle Cancel button click."""
+        self.result = None
+        self.top.destroy()
 
 if __name__ == "__main__":
     # 测试代码

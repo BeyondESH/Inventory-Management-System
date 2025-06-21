@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-现代化订单管理模块
-基于现代化外卖平台风格的订单管理界面
+Modern Order Management Module
+Based on modern takeout platform style order management interface
 """
 
 import tkinter as tk
@@ -12,14 +12,14 @@ import datetime
 import json
 import os
 
-# 导入数据管理中心
+# Import data management center
 try:
     from .data_manager import data_manager
 except ImportError:
     try:
         from data_manager import data_manager
     except ImportError:
-        # 如果导入失败，创建一个简单的模拟数据管理器
+        # If import fails, create a simple mock data manager
         class MockDataManager:
             def register_module(self, module_type, instance):
                 pass
@@ -38,65 +38,65 @@ class ModernOrderModule:
         self.inventory_module = inventory_module
         self.customer_module = customer_module
         
-        # 注册到数据管理中心
+        # Register to data management center
         data_manager.register_module('order', self)
         
-        # 现代化配色方案
+        # Modern color scheme
         self.colors = {
-            'primary': '#FF6B35',        # 主橙色
-            'primary_dark': '#E5522A',   # 深橙色
-            'secondary': '#4ECDC4',      # 青绿色
-            'success': '#2ECC71',        # 成功绿
-            'warning': '#F39C12',        # 警告橙
-            'danger': '#E74C3C',         # 危险红
-            'info': '#3498DB',           # 信息蓝
-            'light': '#ECF0F1',          # 浅灰
-            'dark': '#2C3E50',           # 深蓝灰
-            'white': '#FFFFFF',          # 白色
-            'background': '#F8F9FA',     # 背景色
-            'card': '#FFFFFF',           # 卡片背景
-            'border': '#E1E8ED',         # 边框色
-            'text': '#2C3E50',           # 文本色
-            'text_light': '#7F8C8D',     # 浅文本色
-            'shadow': '#BDC3C7'          # 阴影色
+            'primary': '#FF6B35',        # Primary orange
+            'primary_dark': '#E5522A',   # Dark orange
+            'secondary': '#4ECDC4',      # Teal
+            'success': '#2ECC71',        # Success green
+            'warning': '#F39C12',        # Warning orange
+            'danger': '#E74C3C',         # Danger red
+            'info': '#3498DB',           # Info blue
+            'light': '#ECF0F1',          # Light gray
+            'dark': '#2C3E50',           # Dark blue gray
+            'white': '#FFFFFF',          # White
+            'background': '#F8F9FA',     # Background color
+            'card': '#FFFFFF',           # Card background
+            'border': '#E1E8ED',         # Border color
+            'text': '#2C3E50',           # Text color
+            'text_light': '#7F8C8D',     # Light text color
+            'shadow': '#BDC3C7'          # Shadow color
         }
         
-        # 订单状态配色
+        # Order status color scheme
         self.status_colors = {
-            '待接单': '#F39C12',
-            '已接单': '#3498DB',
-            '制作中': '#9B59B6',
-            '已暂停': '#7f8c8d',
-            '配送中': '#E67E22',
-            '待取餐': '#16a085',
-            '已完成': '#2ECC71',
-            '已取消': '#E74C3C',
-            '已归档': '#bdc3c7'
+            'Pending': '#F39C12',
+            'Accepted': '#3498DB',
+            'Preparing': '#9B59B6',
+            'Paused': '#7f8c8d',
+            'Delivering': '#E67E22',
+            'Ready for Pickup': '#16a085',
+            'Completed': '#2ECC71',
+            'Cancelled': '#E74C3C',
+            'Archived': '#bdc3c7'
         }
         
-        # 订单数据 - 从数据管理中心获取
+        # Order data - get from data management center
         self.order_data = self.load_order_data()
         
-        # 界面状态变量
+        # Interface state variables
         self.selected_order = None
-        self.current_filter = "全部"
+        self.current_filter = "All"
         self.search_keyword = ""
         self.stats_frame = None
         self.orders_container = None
     
     def load_order_data(self):
-        """从数据管理中心加载订单数据"""
+        """Load order data from data management center"""
         try:
             orders = data_manager.get_orders()
-            # 转换数据格式以适配现有界面
+            # Convert data format to adapt to existing interface
             formatted_orders = []
             for order in orders:
-                # 处理菜品数据
+                # Process meal data
                 meals = []
                 items = order.get('items', [])
                 for item in items:
                     meal = {
-                        "name": item.get('name', item.get('product_id', '未知菜品')),
+                        "name": item.get('name', item.get('product_id', 'Unknown Dish')),
                         "price": item.get('price', 0),
                         "quantity": item.get('quantity', 1)
                     }
@@ -104,110 +104,110 @@ class ModernOrderModule:
                 
                 formatted_order = {
                     "id": order.get('id', ''),
-                    "customer": order.get('customer_name', order.get('table_number', '未知客户')),
+                    "customer": order.get('customer_name', order.get('table_number', 'Unknown Customer')),
                     "phone": order.get('customer_phone', order.get('phone', '')),
-                    "address": order.get('delivery_address', order.get('address', '堂食')),
+                    "address": order.get('delivery_address', order.get('address', 'Dine-in')),
                     "meals": meals,
                     "total": order.get('total_amount', order.get('total', 0)),
                     "create_time": order.get('create_time', '').replace('T', ' ')[:16] if 'T' in order.get('create_time', '') else order.get('create_time', ''),
-                    "status": order.get('status', '待处理'),
-                    "type": order.get('order_type', order.get('type', '外卖')),
-                    "payment": order.get('payment_method', order.get('payment', '现金')),
+                    "status": order.get('status', 'Pending'),
+                    "type": order.get('order_type', order.get('type', 'Takeout')),
+                    "payment": order.get('payment_method', order.get('payment', 'Cash')),
                     "note": order.get('note', '')
                 }
                 formatted_orders.append(formatted_order)
             
-            # 如果没有数据或数据太少，使用默认示例数据
+            # If no data or too little data, use default sample data
             if len(formatted_orders) < 3:
-                print("订单数据较少，添加示例数据...")
+                print("Order data is limited, adding sample data...")
                 formatted_orders.extend(self.get_default_order_data())
             
             return formatted_orders
         except Exception as e:
-            print(f"加载订单数据失败: {e}")
+            print(f"Failed to load order data: {e}")
             return self.get_default_order_data()
     
     def get_default_order_data(self):
-        """获取默认订单数据"""
+        """Get default order data"""
         return [
             {
                 "id": 1001, 
-                "customer": "张三", 
+                "customer": "John Smith", 
                 "phone": "138****1234",
-                "address": "北京市朝阳区xxx街道1号",
+                "address": "123 Main Street, Chaoyang District, Beijing",
                 "meals": [
-                    {"name": "番茄牛肉面", "price": 25.0, "quantity": 2},
-                    {"name": "可乐", "price": 5.0, "quantity": 1}
+                    {"name": "Tomato Beef Noodles", "price": 25.0, "quantity": 2},
+                    {"name": "Cola", "price": 5.0, "quantity": 1}
                 ],
                 "total": 55.0, 
                 "create_time": "2024-06-15 12:30", 
-                "status": "已完成", 
-                "type": "外卖",
-                "payment": "微信支付",
-                "note": "少放辣椒"
+                "status": "Completed", 
+                "type": "Takeout",
+                "payment": "WeChat Pay",
+                "note": "Less spicy"
             },
             {
                 "id": 1002, 
-                "customer": "李四", 
+                "customer": "Jane Doe", 
                 "phone": "139****5678",
-                "address": "北京市海淀区xxx路88号",
+                "address": "88 Business Road, Haidian District, Beijing",
                 "meals": [
-                    {"name": "鸡蛋炒饭", "price": 18.0, "quantity": 1}
+                    {"name": "Egg Fried Rice", "price": 18.0, "quantity": 1}
                 ],
                 "total": 18.0, 
                 "create_time": "2024-06-15 12:45", 
-                "status": "制作中", 
-                "type": "外卖",
-                "payment": "支付宝",
+                "status": "Preparing", 
+                "type": "Takeout",
+                "payment": "Alipay",
                 "note": ""
             },
             {
                 "id": 1003, 
-                "customer": "王五", 
+                "customer": "Mike Johnson", 
                 "phone": "136****9012",
-                "address": "北京市西城区xxx胡同66号",
+                "address": "66 Old Alley, Xicheng District, Beijing",
                 "meals": [
-                    {"name": "牛肉汉堡", "price": 32.0, "quantity": 3},
-                    {"name": "薯条", "price": 12.0, "quantity": 2}
+                    {"name": "Beef Burger", "price": 32.0, "quantity": 3},
+                    {"name": "French Fries", "price": 12.0, "quantity": 2}
                 ],
                 "total": 120.0, 
                 "create_time": "2024-06-15 11:20", 
-                "status": "待接单", 
-                "type": "外卖",
-                "payment": "现金",
-                "note": "汉堡不要洋葱"
+                "status": "Pending", 
+                "type": "Takeout",
+                "payment": "Cash",
+                "note": "No onions in burger"
             },
             {
                 "id": 1004, 
-                "customer": "赵六", 
+                "customer": "Sarah Wilson", 
                 "phone": "137****3456",
-                "address": "堂食",
+                "address": "Dine-in",
                 "meals": [
-                    {"name": "红烧肉", "price": 35.0, "quantity": 1},
-                    {"name": "米饭", "price": 3.0, "quantity": 2}
+                    {"name": "Braised Pork", "price": 35.0, "quantity": 1},
+                    {"name": "Rice", "price": 3.0, "quantity": 2}
                 ],
                 "total": 41.0, 
                 "create_time": "2024-06-15 13:15", 
-                "status": "配送中", 
-                "type": "堂食",
-                "payment": "微信支付",
+                "status": "Delivering", 
+                "type": "Dine-in",
+                "payment": "WeChat Pay",
                 "note": ""            }
         ]
         
         self.selected_order = None
-        self.current_filter = "全部"
+        self.current_filter = "All"
         self.search_keyword = ""
     
     def create_status_card(self, parent, status, count, color):
-        """创建状态统计卡片"""
+        """Create status statistics card"""
         card_frame = tk.Frame(parent, bg=self.colors['card'], relief='flat', bd=1,
                              highlightbackground=self.colors['border'], highlightthickness=1)
         card_frame.pack(side='left', padx=10, pady=5, fill='both', expand=True)
         
-        # 设置最小尺寸
+        # Set minimum size
         card_frame.configure(width=200, height=100)
         
-        # 状态图标和数字
+        # Status icon and number
         icon_frame = tk.Frame(card_frame, bg=color, width=80, height=80)
         icon_frame.pack(side='left', padx=15, pady=10)
         icon_frame.pack_propagate(False)
@@ -216,7 +216,7 @@ class ModernOrderModule:
                               bg=color, fg=self.colors['white'])
         count_label.pack(expand=True)
         
-        # 状态信息
+        # Status information
         info_frame = tk.Frame(card_frame, bg=self.colors['card'])
         info_frame.pack(side='left', padx=(0, 15), pady=15, fill='both', expand=True)
         
@@ -224,24 +224,24 @@ class ModernOrderModule:
                                bg=self.colors['card'], fg=self.colors['text'])
         status_label.pack(anchor='w', pady=(5, 0))
         
-        desc_label = tk.Label(info_frame, text='订单数量', font=('Microsoft YaHei UI', 10),
+        desc_label = tk.Label(info_frame, text='Order quantity', font=('Microsoft YaHei UI', 10),
                              bg=self.colors['card'], fg=self.colors['text_light'])
         desc_label.pack(anchor='w', pady=(0, 5))
         
         return card_frame
     
     def create_order_card(self, parent, order):
-        """创建订单卡片"""
+        """Create order card"""
         card_frame = tk.Frame(parent, bg=self.colors['card'], relief='flat', bd=1,
                              highlightbackground=self.colors['border'], highlightthickness=1)
         card_frame.pack(fill='x', padx=5, pady=5)
         
-        # 卡片头部
+        # Card header
         header_frame = tk.Frame(card_frame, bg=self.colors['card'], height=50)
         header_frame.pack(fill='x', padx=15, pady=(15, 10))
         header_frame.pack_propagate(False)
         
-        # 订单号和状态
+        # Order number and status
         order_info_frame = tk.Frame(header_frame, bg=self.colors['card'])
         order_info_frame.pack(side='left', fill='y')
         
@@ -255,7 +255,7 @@ class ModernOrderModule:
                              bg=self.colors['card'], fg=self.colors['text_light'])
         time_label.pack(anchor='w')
         
-        # 状态标签
+        # Status label
         status_color = self.status_colors.get(order['status'], self.colors['info'])
         status_frame = tk.Frame(header_frame, bg=status_color, padx=10, pady=5)
         status_frame.pack(side='right', pady=5)
@@ -265,7 +265,7 @@ class ModernOrderModule:
                                bg=status_color, fg=self.colors['white'])
         status_label.pack()
         
-        # 客户信息
+        # Customer information
         customer_frame = tk.Frame(card_frame, bg=self.colors['card'])
         customer_frame.pack(fill='x', padx=15, pady=5)
         
@@ -279,7 +279,7 @@ class ModernOrderModule:
                                 bg=self.colors['card'], fg=self.colors['text_light'])
         address_label.pack(anchor='w')
         
-        # 菜品信息
+        # Meal information
         meals_frame = tk.Frame(card_frame, bg=self.colors['background'], padx=10, pady=8)
         meals_frame.pack(fill='x', padx=15, pady=5)
         
@@ -291,75 +291,75 @@ class ModernOrderModule:
                                anchor='w')
             meal_item.pack(fill='x', pady=2)
         
-        # 订单总额和操作按钮
+        # Order total and action buttons
         bottom_frame = tk.Frame(card_frame, bg=self.colors['card'])
         bottom_frame.pack(fill='x', padx=15, pady=(5, 15))
         
-        # 总额
-        total_label = tk.Label(bottom_frame, text=f"总计：¥{order['total']:.2f}", 
+        # Total
+        total_label = tk.Label(bottom_frame, text=f"Total: ¥{order['total']:.2f}", 
                               font=('Microsoft YaHei UI', 12, 'bold'),
                               bg=self.colors['card'], fg=self.colors['primary'])
         total_label.pack(side='left')
         
-        # 支付方式和类型
+        # Payment method and type
         payment_label = tk.Label(bottom_frame, text=f"{order['payment']} | {order['type']}", 
                                font=('Microsoft YaHei UI', 9),
                                bg=self.colors['card'], fg=self.colors['text_light'])
         payment_label.pack(side='left', padx=(20, 0))
         
-        # 操作按钮
+        # Action buttons
         actions_frame = tk.Frame(bottom_frame, bg=self.colors['card'])
         actions_frame.pack(side='right')
 
-        # 查看详情按钮
-        detail_btn = tk.Button(actions_frame, text="查看详情",
+        # View details button
+        detail_btn = tk.Button(actions_frame, text="View Details",
                               font=('Microsoft YaHei UI', 9),
                               bg=self.colors['info'], fg=self.colors['white'],
                               bd=0, padx=15, pady=5, cursor='hand2',
                               command=lambda o=order: self.show_order_detail(o))
         detail_btn.pack(side='right', padx=5)
 
-        # 动态添加状态操作按钮
-        order_status = order.get('status', '未知')
-        order_type = order.get('type', '外卖')
+        # Dynamic add status action buttons
+        order_status = order.get('status', 'Unknown')
+        order_type = order.get('type', 'Takeout')
 
-        if order_status == '待接单':
-            self.add_action_button(actions_frame, "接单", self.colors['success'],
-                                   lambda o=order: self.update_order_status(o['id'], '已接单'))
-            self.add_action_button(actions_frame, "取消", self.colors['danger'],
-                                   lambda o=order: self.update_order_status(o['id'], '已取消'))
+        if order_status == 'Pending':
+            self.add_action_button(actions_frame, "Accept", self.colors['success'],
+                                   lambda o=order: self.update_order_status(o['id'], 'Accepted'))
+            self.add_action_button(actions_frame, "Cancel", self.colors['danger'],
+                                   lambda o=order: self.update_order_status(o['id'], 'Cancelled'))
 
-        elif order_status == '已接单':
-            self.add_action_button(actions_frame, "开始制作", self.colors['warning'],
-                                   lambda o=order: self.update_order_status(o['id'], '制作中'))
-            self.add_action_button(actions_frame, "取消", self.colors['danger'],
-                                   lambda o=order: self.update_order_status(o['id'], '已取消'))
+        elif order_status == 'Accepted':
+            self.add_action_button(actions_frame, "Start Preparing", self.colors['warning'],
+                                   lambda o=order: self.update_order_status(o['id'], 'Preparing'))
+            self.add_action_button(actions_frame, "Cancel", self.colors['danger'],
+                                   lambda o=order: self.update_order_status(o['id'], 'Cancelled'))
 
-        elif order_status == '制作中':
-            next_status = '配送中' if order_type == '外卖' else '待取餐'
-            self.add_action_button(actions_frame, "制作完成", self.colors['primary'],
+        elif order_status == 'Preparing':
+            next_status = 'Delivering' if order_type == 'Takeout' else 'Ready for Pickup'
+            self.add_action_button(actions_frame, "Finish Preparing", self.colors['primary'],
                                    lambda o=order, s=next_status: self.update_order_status(o['id'], s))
-            self.add_action_button(actions_frame, "暂停", '#7f8c8d',
-                                   lambda o=order: self.update_order_status(o['id'], '已暂停'))
+            self.add_action_button(actions_frame, "Pause", '#7f8c8d',
+                                   lambda o=order: self.update_order_status(o['id'], 'Paused'))
 
-        elif order_status == '已暂停':
-             self.add_action_button(actions_frame, "继续制作", self.colors['success'],
-                                   lambda o=order: self.update_order_status(o['id'], '制作中'))
+        elif order_status == 'Paused':
+             self.add_action_button(actions_frame, "Continue Preparing", self.colors['success'],
+                                   lambda o=order: self.update_order_status(o['id'], 'Preparing'))
 
-        elif order_status == '配送中' or order_status == '待取餐':
-            self.add_action_button(actions_frame, "已送达", self.colors['success'],
-                                   lambda o=order: self.update_order_status(o['id'], '已完成'))
+        elif order_status == 'Delivering' or order_status == 'Ready for Pickup':
+            self.add_action_button(actions_frame, "Delivered", self.colors['success'],
+                                   lambda o=order: self.update_order_status(o['id'], 'Completed'))
 
-        elif order_status == '已完成':
-            self.add_action_button(actions_frame, "归档", self.colors['info'],
-                                   lambda o=order: self.update_order_status(o['id'], '已归档'))
+        elif order_status == 'Completed':
+            self.add_action_button(actions_frame, "Archive", self.colors['info'],
+                                   lambda o=order: self.update_order_status(o['id'], 'Archived'))
         
-        # 备注信息
+        # Note information
         if order.get('note'):
             note_frame = tk.Frame(card_frame, bg=self.colors['light'], padx=10, pady=5)
             note_frame.pack(fill='x', padx=15, pady=(0, 15))
             
-            note_label = tk.Label(note_frame, text=f"📝 备注：{order['note']}", 
+            note_label = tk.Label(note_frame, text=f"📝 Note: {order['note']}", 
                                  font=('Microsoft YaHei UI', 9),
                                  bg=self.colors['light'], fg=self.colors['text'])
             note_label.pack(anchor='w')
@@ -367,7 +367,7 @@ class ModernOrderModule:
         return card_frame
 
     def add_action_button(self, parent, text, color, command):
-        """辅助函数，用于创建标准化的操作按钮"""
+        """Helper function, used to create standardized action buttons"""
         btn = tk.Button(parent, text=text,
                         font=('Microsoft YaHei UI', 9),
                         bg=color, fg=self.colors['white'],
@@ -376,61 +376,61 @@ class ModernOrderModule:
         btn.pack(side='right', padx=5)
 
     def update_order_status(self, order_id, new_status):
-        """更新订单状态并刷新UI"""
+        """Update order status and refresh UI"""
         success = data_manager.update_order_status(order_id, new_status)
         if success:
-            messagebox.showinfo("成功", f"订单 #{order_id} 状态已更新为: {new_status}")
-            # 从数据库重新加载数据以确保一致性
+            messagebox.showinfo("Success", f"Order #{order_id} status has been updated to: {new_status}")
+            # Reload data from database to ensure consistency
             self.refresh_data()
         else:
-            messagebox.showerror("失败", "更新订单状态失败，请重试")
+            messagebox.showerror("Failed", "Failed to update order status, please try again")
     
     def show_order_detail(self, order):
-        """显示订单详情"""
+        """Show order details"""
         detail_window = tk.Toplevel()
-        detail_window.title(f"订单详情 - #{order['id']}")
+        detail_window.title(f"Order Details - #{order['id']}")
         detail_window.geometry("500x600")
         detail_window.configure(bg=self.colors['background'])
         detail_window.resizable(False, False)
         
-        # 标题
+        # Title
         title_frame = tk.Frame(detail_window, bg=self.colors['primary'], height=60)
         title_frame.pack(fill='x')
         title_frame.pack_propagate(False)
         
-        title_label = tk.Label(title_frame, text="【测试修改V2】订单详情 #" + str(order['id']),
+        title_label = tk.Label(title_frame, text="【Test Modified V2】Order Details #" + str(order['id']),
                               font=('Microsoft YaHei UI', 16, 'bold'),
                               bg=self.colors['primary'], fg=self.colors['white'])
         title_label.pack(expand=True)
         
-        # 详情内容
+        # Details content
         content_frame = tk.Frame(detail_window, bg=self.colors['background'])
         content_frame.pack(fill='both', expand=True, padx=20, pady=20)
         
-        # 基本信息
+        # Basic information
         info_frame = tk.Frame(content_frame, bg=self.colors['card'], padx=20, pady=15)
         info_frame.pack(fill='x', pady=(0, 10))
         
-        tk.Label(info_frame, text="基本信息", font=('Microsoft YaHei UI', 12, 'bold'),
+        tk.Label(info_frame, text="Basic Information", font=('Microsoft YaHei UI', 12, 'bold'),
                 bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w')
         
-        info_text = f"""订单号：#{order['id']}
-客户姓名：{order['customer']}
-联系电话：{order['phone']}
-配送地址：{order['address']}
-订单类型：{order['type']}
-支付方式：{order['payment']}
-下单时间：{order['create_time']}
-订单状态：{order['status']}"""
+        info_text = f"""Order Number: #{order['id']}
+Customer Name: {order['customer']}
+Contact Phone: {order['phone']}
+Delivery Address: {order['address']}
+Order Type: {order['type']}
+Payment Method: {order['payment']}
+Order Time: {order['create_time']}
+Order Status: {order['status']}"""
         
         tk.Label(info_frame, text=info_text, font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text'], justify='left').pack(anchor='w', pady=(10, 0))
         
-        # 菜品信息
+        # Meal information
         meals_frame = tk.Frame(content_frame, bg=self.colors['card'], padx=20, pady=15)
         meals_frame.pack(fill='x', pady=(0, 10))
         
-        tk.Label(meals_frame, text="菜品信息", font=('Microsoft YaHei UI', 12, 'bold'),
+        tk.Label(meals_frame, text="Meal Information", font=('Microsoft YaHei UI', 12, 'bold'),
                 bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w')
         
         for meal in order['meals']:
@@ -444,71 +444,71 @@ class ModernOrderModule:
                     font=('Microsoft YaHei UI', 10),
                     bg=self.colors['background'], fg=self.colors['text']).pack(side='right')
         
-        # 总计
+        # Total
         total_frame = tk.Frame(meals_frame, bg=self.colors['primary'], padx=10, pady=8)
         total_frame.pack(fill='x', pady=(10, 0))
         
-        tk.Label(total_frame, text=f"订单总计：¥{order['total']:.2f}", 
+        tk.Label(total_frame, text=f"Order Total: ¥{order['total']:.2f}", 
                 font=('Microsoft YaHei UI', 12, 'bold'),
                 bg=self.colors['primary'], fg=self.colors['white']).pack()
         
-        # 备注信息
+        # Note information
         if order['note']:
             note_frame = tk.Frame(content_frame, bg=self.colors['card'], padx=20, pady=15)
             note_frame.pack(fill='x', pady=(0, 10))
             
-            tk.Label(note_frame, text="备注信息", font=('Microsoft YaHei UI', 12, 'bold'),
+            tk.Label(note_frame, text="Note Information", font=('Microsoft YaHei UI', 12, 'bold'),
                     bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w')
             
             tk.Label(note_frame, text=order['note'], font=('Microsoft YaHei UI', 10),
                     bg=self.colors['card'], fg=self.colors['text'], wraplength=400).pack(anchor='w', pady=(10, 0))
-          # 关闭按钮
-        tk.Button(content_frame, text="关闭", font=('Microsoft YaHei UI', 10),
+          # Close button
+        tk.Button(content_frame, text="Close", font=('Microsoft YaHei UI', 10),
                  bg=self.colors['text_light'], fg=self.colors['white'],
                  bd=0, padx=30, pady=8, cursor='hand2',
                  command=detail_window.destroy).pack(pady=20)
     
     def filter_orders(self, status):
-        """筛选订单"""
+        """Filter orders"""
         self.current_filter = status
         self.refresh_order_list()
         
-        # 更新筛选按钮的状态显示
+        # Update filter button status display
         self.update_filter_buttons()
     
     def refresh_data(self):
-        """从数据库重新加载数据并刷新整个UI"""
-        # 1. 从数据库加载最新数据
+        """Reload data from database and refresh entire UI"""
+        # 1. Reload latest data from database
         self.order_data = self.load_order_data()
         
-        # 2. 更新统计卡片
+        # 2. Update statistics card
         self.update_statistics()
         
-        # 3. 刷新订单列表
+        # 3. Refresh order list
         if hasattr(self, 'orders_container'):
             self.refresh_order_list()
     
     def update_statistics(self):
-        """更新统计信息"""
+        """Update statistics information"""
         if not self.stats_frame:
             return
             
-        # 清空现有统计卡片
+        # Clear existing statistics cards
         for widget in self.stats_frame.winfo_children():
             widget.destroy()
         
-        # 统计各状态订单数量
+        # Count orders by status
         status_counts = {status: 0 for status in self.status_colors}
         for order in self.order_data:
-            status = order.get('status', '未知')
+            status = order.get('status', 'Unknown')
             if status in status_counts:
                 status_counts[status] += 1
         
-        # 重新创建统计卡片
-        # 我们只显示有订单的状态，或者一些关键状态，避免UI过于拥挤
-        key_statuses = ['待接单', '制作中', '配送中', '待取餐', '已完成', '已取消']
+        # Recreate statistics cards
+        # We only display orders with status or some key statuses to avoid UI being too crowded
+        key_statuses = ['Pending', 'Preparing', 'Delivering', 'Ready for Pickup', 'Completed', 'Cancelled']
         
-        # 添加当前存在订单的其他状态
+        # Add other statuses of existing orders
         for status, count in status_counts.items():
             if count > 0 and status not in key_statuses:
                 key_statuses.append(status)
@@ -520,106 +520,106 @@ class ModernOrderModule:
                 self.create_status_card(self.stats_frame, status, count, color)
     
     def add_new_order(self):
-        """添加新订单"""
-        # 创建新订单窗口
+        """Add new order"""
+        # Create new order window
         order_window = tk.Toplevel()
-        order_window.title("新建订单")
-        order_window.geometry("600x800")  # 增加高度从700到800
+        order_window.title("New Order")
+        order_window.geometry("600x800")  # Increase height from 700 to 800
         order_window.configure(bg=self.colors['background'])
         order_window.resizable(False, False)
         
-        # 标题
+        # Title
         title_frame = tk.Frame(order_window, bg=self.colors['primary'], height=60)
         title_frame.pack(fill='x')
         title_frame.pack_propagate(False)
         
-        title_label = tk.Label(title_frame, text="新建订单", 
+        title_label = tk.Label(title_frame, text="New Order", 
                               font=('Microsoft YaHei UI', 16, 'bold'),
                               bg=self.colors['primary'], fg=self.colors['white'])
         title_label.pack(expand=True)
         
-        # 表单内容
+        # Form content
         form_frame = tk.Frame(order_window, bg=self.colors['background'])
         form_frame.pack(fill='both', expand=True, padx=20, pady=20)
         
-        # 客户信息
+        # Customer information
         customer_frame = tk.Frame(form_frame, bg=self.colors['card'], padx=20, pady=15)
         customer_frame.pack(fill='x', pady=(0, 10))
         
-        tk.Label(customer_frame, text="客户信息", font=('Microsoft YaHei UI', 12, 'bold'),
+        tk.Label(customer_frame, text="Customer Information", font=('Microsoft YaHei UI', 12, 'bold'),
                 bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w')
         
-        # 客户姓名
+        # Customer name
         name_frame = tk.Frame(customer_frame, bg=self.colors['card'])
         name_frame.pack(fill='x', pady=5)
-        tk.Label(name_frame, text="客户姓名:", font=('Microsoft YaHei UI', 10),
+        tk.Label(name_frame, text="Customer Name:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(side='left')
         customer_name_var = tk.StringVar(order_window)
         name_entry = tk.Entry(name_frame, textvariable=customer_name_var, font=('Microsoft YaHei UI', 10))
         name_entry.pack(side='right', fill='x', expand=True, padx=(10, 0))
         
-        # 联系电话
+        # Contact phone
         phone_frame = tk.Frame(customer_frame, bg=self.colors['card'])
         phone_frame.pack(fill='x', pady=5)
-        tk.Label(phone_frame, text="联系电话:", font=('Microsoft YaHei UI', 10),
+        tk.Label(phone_frame, text="Contact Phone:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(side='left')
         customer_phone_var = tk.StringVar(order_window)
         phone_entry = tk.Entry(phone_frame, textvariable=customer_phone_var, font=('Microsoft YaHei UI', 10))
         phone_entry.pack(side='right', fill='x', expand=True, padx=(10, 0))
         
-        # 配送地址
+        # Delivery address
         address_frame = tk.Frame(customer_frame, bg=self.colors['card'])
         address_frame.pack(fill='x', pady=5)
-        tk.Label(address_frame, text="配送地址:", font=('Microsoft YaHei UI', 10),
+        tk.Label(address_frame, text="Delivery Address:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(side='left')
         customer_address_var = tk.StringVar(order_window)
         address_entry = tk.Entry(address_frame, textvariable=customer_address_var, font=('Microsoft YaHei UI', 10))
         address_entry.pack(side='right', fill='x', expand=True, padx=(10, 0))
         
-        # 订单类型
+        # Order type
         type_frame = tk.Frame(customer_frame, bg=self.colors['card'])
         type_frame.pack(fill='x', pady=5)
-        tk.Label(type_frame, text="订单类型:", font=('Microsoft YaHei UI', 10),
+        tk.Label(type_frame, text="Order Type:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(side='left')
-        order_type_var = tk.StringVar(order_window, value="外卖")
+        order_type_var = tk.StringVar(order_window, value="Takeout")
         type_combo = ttk.Combobox(type_frame, textvariable=order_type_var, 
-                                 values=["外卖", "堂食"], state="readonly")
+                                 values=["Takeout", "Dine-in"], state="readonly")
         type_combo.pack(side='right', padx=(10, 0))
         
-        # 支付方式
+        # Payment method
         payment_frame = tk.Frame(customer_frame, bg=self.colors['card'])
         payment_frame.pack(fill='x', pady=5)
-        tk.Label(payment_frame, text="支付方式:", font=('Microsoft YaHei UI', 10),
+        tk.Label(payment_frame, text="Payment Method:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(side='left')
-        payment_var = tk.StringVar(order_window, value="微信支付")
+        payment_var = tk.StringVar(order_window, value="WeChat Pay")
         payment_combo = ttk.Combobox(payment_frame, textvariable=payment_var, 
-                                    values=["微信支付", "支付宝", "现金", "银行卡"], state="readonly")
+                                    values=["WeChat Pay", "Alipay", "Cash", "Bank Card"], state="readonly")
         payment_combo.pack(side='right', padx=(10, 0))
         
-        # 备注
+        # Note
         note_frame = tk.Frame(customer_frame, bg=self.colors['card'])
         note_frame.pack(fill='x', pady=5)
-        tk.Label(note_frame, text="订单备注:", font=('Microsoft YaHei UI', 10),
+        tk.Label(note_frame, text="Order Note:", font=('Microsoft YaHei UI', 10),
                 bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w')
         note_var = tk.StringVar(order_window)
         note_entry = tk.Entry(note_frame, textvariable=note_var, font=('Microsoft YaHei UI', 10))
         note_entry.pack(fill='x', pady=(5, 0))
         
-        # 菜品选择
+        # Meal selection
         meals_frame = tk.Frame(form_frame, bg=self.colors['card'], padx=20, pady=15)
         meals_frame.pack(fill='both', expand=True, pady=(0, 10))
         
-        tk.Label(meals_frame, text="菜品选择", font=('Microsoft YaHei UI', 12, 'bold'),
+        tk.Label(meals_frame, text="Meal Selection", font=('Microsoft YaHei UI', 12, 'bold'),
                 bg=self.colors['card'], fg=self.colors['text']).pack(anchor='w')
         
-        # 简化的菜品选择（实际应该从菜品模块获取）
+        # Simplified meal selection (should be obtained from meal module)
         sample_meals = [
-            {"name": "番茄牛肉面", "price": 25.0},
-            {"name": "鸡蛋炒饭", "price": 18.0},
-            {"name": "牛肉汉堡", "price": 32.0},
-            {"name": "红烧肉", "price": 35.0},
-            {"name": "可乐", "price": 5.0},
-            {"name": "米饭", "price": 3.0}
+            {"name": "Tomato Beef Noodles", "price": 25.0},
+            {"name": "Egg Fried Rice", "price": 18.0},
+            {"name": "Beef Burger", "price": 32.0},
+            {"name": "Braised Pork", "price": 35.0},
+            {"name": "Cola", "price": 5.0},
+            {"name": "Rice", "price": 3.0}
         ]
         
         selected_meals = []
@@ -637,27 +637,27 @@ class ModernOrderModule:
                                bg=self.colors['background'], fg=self.colors['text'])
             cb.pack(side='left')
             
-            # 数量选择
+            # Quantity selection
             qty_var = tk.IntVar(value=1)
             meal_vars[f"{meal['name']}_qty"] = qty_var
             
-            tk.Label(meal_frame, text="数量:", font=('Microsoft YaHei UI', 9),
+            tk.Label(meal_frame, text="Quantity:", font=('Microsoft YaHei UI', 9),
                     bg=self.colors['background'], fg=self.colors['text']).pack(side='right', padx=(0, 5))
             
             qty_spinbox = tk.Spinbox(meal_frame, from_=1, to=10, width=5, textvariable=qty_var)
             qty_spinbox.pack(side='right')
         
-        # 按钮
+        # Buttons
         button_frame = tk.Frame(form_frame, bg=self.colors['background'])
         button_frame.pack(fill='x', pady=10)
         
         def save_order():
-            # 验证输入
+            # Verify input
             if not customer_name_var.get() or not customer_phone_var.get():
-                messagebox.showerror("错误", "请填写客户姓名和联系电话")
+                messagebox.showerror("Error", "Please fill in customer name and contact phone")
                 return
             
-            # 收集选中的菜品
+            # Collect selected meals
             order_meals = []
             total_amount = 0
             
@@ -672,60 +672,60 @@ class ModernOrderModule:
                     total_amount += meal['price'] * quantity
             
             if not order_meals:
-                messagebox.showerror("错误", "请至少选择一个菜品")
+                messagebox.showerror("Error", "Please select at least one meal")
                 return
             
             try:
-                # 准备订单数据用于库存检查
+                # Prepare order data for stock check
                 order_items = []
                 for meal in order_meals:
                     order_items.append({
-                        'product_id': meal['name'],  # 使用菜品名称作为产品ID
+                        'product_id': meal['name'],  # Use meal name as product ID
                         'quantity': meal['quantity']
                     })
                 
-                # 创建订单数据
+                # Create order data
                 order_data = {
                     "customer_name": customer_name_var.get(),
                     "phone": customer_phone_var.get(),
-                    "address": customer_address_var.get() if customer_address_var.get() else "堂食",
+                    "address": customer_address_var.get() if customer_address_var.get() else "Dine-in",
                     "items": order_items,
-                    "meals": order_meals,  # 保留原有的meals格式用于显示
+                    "meals": order_meals,  # Keep original meals format for display
                     "total_amount": total_amount,
                     "type": order_type_var.get(),
                     "payment": payment_var.get(),
                     "note": note_var.get(),
-                    "status": "待接单"
+                    "status": "Pending"
                 }
                 
-                # 使用数据管理器创建订单（包含库存检查）
+                # Use data manager to create order (including stock check)
                 try:
                     order_id = data_manager.create_order(order_data)
-                    messagebox.showinfo("成功", f"订单 #{order_id} 创建成功！")
+                    messagebox.showinfo("Success", f"Order #{order_id} created successfully!")
                     order_window.destroy()
                     self.refresh_order_list()
                 except ValueError as e:
-                    if "库存不足" in str(e):
-                        messagebox.showerror("库存不足", "当前库存不足，无法创建订单。\n请检查菜品库存后重试。")
+                    if "Stock insufficient" in str(e):
+                        messagebox.showerror("Stock insufficient", "Current stock insufficient, unable to create order.\nPlease check meal stock and try again.")
                     else:
-                        messagebox.showerror("错误", f"创建订单失败：{e}")
+                        messagebox.showerror("Error", f"Failed to create order: {e}")
                     return
                 except Exception as e:
-                    messagebox.showerror("错误", f"创建订单失败：{e}")
+                    messagebox.showerror("Error", f"Failed to create order: {e}")
                     return
                     
             except Exception as e:
-                messagebox.showerror("错误", f"订单处理失败：{e}")
+                messagebox.showerror("Error", f"Order processing failed: {e}")
                 return
         
-        save_btn = tk.Button(button_frame, text="保存订单", 
+        save_btn = tk.Button(button_frame, text="Save Order", 
                            font=('Microsoft YaHei UI', 10, 'bold'),
                            bg=self.colors['primary'], fg=self.colors['white'],
                            bd=0, padx=30, pady=8, cursor='hand2',
                            command=save_order)
         save_btn.pack(side='right', padx=5)
         
-        cancel_btn = tk.Button(button_frame, text="取消", 
+        cancel_btn = tk.Button(button_frame, text="Cancel", 
                              font=('Microsoft YaHei UI', 10),
                              bg=self.colors['text_light'], fg=self.colors['white'],
                              bd=0, padx=30, pady=8, cursor='hand2',
@@ -733,50 +733,50 @@ class ModernOrderModule:
         cancel_btn.pack(side='right', padx=5)
     
     def on_data_changed(self, event_type, data):
-        """处理数据变更通知"""
+        """Handle data change notification"""
         if event_type in ['order_added', 'order_updated']:
-            # 刷新订单数据
+            # Refresh order data
             self.order_data = self.load_order_data()
-            # 如果当前正在显示订单界面，刷新显示
+            # If current displaying order interface, refresh display
             if hasattr(self, 'order_list_frame'):
                 self.refresh_order_list()
     
     def refresh_order_list(self):
-        """刷新订单列表"""
-        # 重新加载订单数据
+        """Refresh order list"""
+        # Reload order data
         self.order_data = self.load_order_data()
         
-        # 清空容器（如果存在）
+        # Clear container (if exists)
         if hasattr(self, 'orders_container') and self.orders_container:
             for widget in self.orders_container.winfo_children():
                 widget.destroy()
         
-        # 筛选和搜索订单
+        # Filter and search orders
         filtered_orders = self.order_data
         
-        # 应用状态筛选
-        if self.current_filter != "全部":
+        # Apply status filter
+        if self.current_filter != "All":
             filtered_orders = [order for order in self.order_data if order['status'] == self.current_filter]
         
-        # 应用搜索
+        # Apply search
         if hasattr(self, 'search_keyword') and self.search_keyword:
             filtered_orders = [order for order in filtered_orders 
                               if self.search_keyword.lower() in order.get('customer', '').lower() 
                               or self.search_keyword in str(order['id'])
                               or self.search_keyword.lower() in order.get('phone', '').lower()]
         
-        # 创建订单卡片
+        # Create order card
         if hasattr(self, 'orders_container') and self.orders_container:
             for order in filtered_orders:
                 self.create_order_card(self.orders_container, order)
         
-        # 更新统计信息
+        # Update statistics information
         self.update_statistics()
     
     def update_title_frame(self):
-        """更新标题框架，但保留面包屑导航"""
-        # 不清空整个title_frame，而是查找并更新特定元素
-        # 如果title_frame为空或没有找到合适的元素，创建新的标题
+        """Update title frame but keep breadcrumb navigation"""
+        # Do not clear entire title_frame, but find and update specific elements
+        # If title_frame is empty or no suitable element found, create new title
         found_title = False
         
         try:
@@ -785,51 +785,51 @@ class ModernOrderModule:
                     for child in widget.winfo_children():
                         if isinstance(child, tk.Label):
                             text = child.cget("text")
-                            # 如果是模块标题（不是面包屑），则更新
-                            if "订单管理" in text or ("管理" in text and "首页" not in text):
-                                child.configure(text="📋 订单管理")
+                            # If it's module title (not breadcrumb), then update
+                            if "Order Management" in text or ("Management" in text and "Home" not in text):
+                                child.configure(text="📋 Order Management")
                                 found_title = True
                                 break
                     if found_title:
                         break
         except tk.TclError:
-            # Widget可能已被销毁
+            # Widget may have been destroyed
             pass
         
-        # 如果没有找到现有标题，创建新的标题区域
+        # If no existing title found, create new title area
         if not found_title:
-            # 标题栏
+            # Title bar
             title_container = tk.Frame(self.title_frame, bg=self.colors['white'])
-            title_container.pack(fill='x', side='bottom')  # 放在底部，不影响面包屑
+            title_container.pack(fill='x', side='bottom')  # Put at bottom, does not affect breadcrumbs
             
-            # 标题
-            title_label = tk.Label(title_container, text="📋 订单管理", 
+            # Title
+            title_label = tk.Label(title_container, text="📋 Order Management", 
                                   font=('Microsoft YaHei UI', 18, 'bold'),
                                   bg=self.colors['white'], fg=self.colors['text'])
             title_label.pack(side='left', padx=20, pady=15)
             
-            # 操作按钮
+            # Action buttons
             actions_frame = tk.Frame(title_container, bg=self.colors['white'])
             actions_frame.pack(side='right', padx=20, pady=15)
             
-            # 新建订单按钮
-            add_btn = tk.Button(actions_frame, text="➕ 新建订单", 
+            # New order button
+            add_btn = tk.Button(actions_frame, text="➕ New Order", 
                                font=('Microsoft YaHei UI', 10, 'bold'),
                                bg=self.colors['primary'], fg=self.colors['white'],
                                bd=0, padx=20, pady=8, cursor='hand2',
                                command=self.add_new_order)
             add_btn.pack(side='right', padx=5)
             
-            # 刷新按钮
-            refresh_btn = tk.Button(actions_frame, text="🔄 刷新", 
+            # Refresh button
+            refresh_btn = tk.Button(actions_frame, text="🔄 Refresh", 
                                    font=('Microsoft YaHei UI', 10),
                                    bg=self.colors['info'], fg=self.colors['white'],
                                    bd=0, padx=20, pady=8, cursor='hand2',
                                    command=self.refresh_order_list)
             refresh_btn.pack(side='right', padx=5)
             
-            # 导出按钮
-            export_btn = tk.Button(actions_frame, text="📊 导出", 
+            # Export button
+            export_btn = tk.Button(actions_frame, text="📊 Export", 
                                   font=('Microsoft YaHei UI', 10),
                                   bg=self.colors['success'], fg=self.colors['white'],
                                   bd=0, padx=20, pady=8, cursor='hand2',
@@ -837,43 +837,43 @@ class ModernOrderModule:
             export_btn.pack(side='right', padx=5)
     
     def show(self):
-        """显示订单管理界面"""
+        """Show order management interface"""
         self.clear_frames()
         self.update_title_frame()
         
-        # 创建主容器
+        # Create main container
         main_frame = tk.Frame(self.parent_frame, bg=self.colors['background'])
         main_frame.pack(fill='both', expand=True, padx=20, pady=(0, 20))
         
-        # 顶部统计信息
+        # Top statistics information
         self.stats_frame = tk.Frame(main_frame, bg=self.colors['background'])
         self.stats_frame.pack(fill='x', pady=(10, 5))
         
-        # 筛选和搜索
+        # Filter and search
         self.create_filter_bar(main_frame)
         
-        # 订单列表
+        # Order list
         self.create_order_list(main_frame)
         
-        # 首次加载时刷新数据
+        # First load refresh data
         self.refresh_data()
 
     def clear_frames(self):
-        """清空所有子框架"""
+        """Clear all subframes"""
         for widget in self.parent_frame.winfo_children():
             widget.destroy()
 
     def create_filter_bar(self, parent):
-        """创建筛选栏"""
+        """Create filter bar"""
         filter_frame = tk.Frame(parent, bg=self.colors['background'])
         filter_frame.pack(fill='x', pady=(0, 20))
         
-        tk.Label(filter_frame, text="筛选订单：", font=('Microsoft YaHei UI', 12, 'bold'),
+        tk.Label(filter_frame, text="Filter Orders:", font=('Microsoft YaHei UI', 12, 'bold'),
                 bg=self.colors['background'], fg=self.colors['text']).pack(side='left')
         
-        # 存储筛选按钮以便后续更新状态
+        # Store filter buttons for subsequent status update
         self.filter_buttons = {}
-        filter_buttons = ["全部", "待接单", "已接单", "制作中", "配送中", "已完成", "已取消"]
+        filter_buttons = ["All", "Pending", "Accepted", "Preparing", "Delivering", "Completed", "Cancelled"]
         
         for filter_name in filter_buttons:
             btn_color = self.colors['primary'] if filter_name == self.current_filter else self.colors['light']
@@ -888,7 +888,7 @@ class ModernOrderModule:
             self.filter_buttons[filter_name] = filter_btn
     
     def update_filter_buttons(self):
-        """更新筛选按钮的状态显示"""
+        """Update filter button status display"""
         if hasattr(self, 'filter_buttons'):
             for filter_name, button in self.filter_buttons.items():
                 try:
@@ -897,16 +897,16 @@ class ModernOrderModule:
                     else:
                         button.configure(bg=self.colors['light'], fg=self.colors['text'])
                 except tk.TclError:
-                    # 按钮可能已被销毁
+                    # Button may have been destroyed
                     pass
     
     def create_order_list(self, parent):
-        """创建订单列表"""
-        # 订单列表容器
+        """Create order list"""
+        # Order list container
         list_frame = tk.Frame(parent, bg=self.colors['background'])
         list_frame.pack(fill='both', expand=True)
         
-        # 滚动区域
+        # Scroll area
         canvas = tk.Canvas(list_frame, bg=self.colors['background'], highlightthickness=0)
         scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=canvas.yview)
         self.orders_container = tk.Frame(canvas, bg=self.colors['background'])
@@ -922,50 +922,50 @@ class ModernOrderModule:
         canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
         
-        # 初始化显示
+        # Initial display
         self.refresh_order_list()
         
-        # 绑定鼠标滚轮事件
+        # Bind mouse wheel events
         def on_mousewheel(event):
             try:
                 if canvas.winfo_exists():
                     canvas.yview_scroll(int(-1*(event.delta/120)), "units")
             except tk.TclError:
-                pass  # Widget已被销毁，忽略错误
+                pass  # Widget may have been destroyed, ignore error
         
         canvas.bind("<MouseWheel>", on_mousewheel)
         self.orders_container.bind("<MouseWheel>", on_mousewheel)
 
     def export_orders(self):
-        """导出订单数据"""
+        """Export order data"""
         try:
             from tkinter import filedialog
             import datetime
             
-            # 创建导出选择对话框
+            # Create export selection dialog
             dialog = tk.Toplevel(self.parent_frame)
-            dialog.title("导出订单数据")
+            dialog.title("Export Order Data")
             dialog.geometry("400x300")
             dialog.configure(bg=self.colors['background'])
             dialog.transient(self.parent_frame)
             dialog.grab_set()
             
-            # 居中显示
+            # Center display
             dialog.update_idletasks()
             x = (dialog.winfo_screenwidth() // 2) - (200)
             y = (dialog.winfo_screenheight() // 2) - (150)
             dialog.geometry(f"400x300+{x}+{y}")
             
-            # 标题
-            tk.Label(dialog, text="导出订单数据", font=('Microsoft YaHei UI', 14, 'bold'),
+            # Title
+            tk.Label(dialog, text="Export Order Data", font=('Microsoft YaHei UI', 14, 'bold'),
                     bg=self.colors['background'], fg=self.colors['text']).pack(pady=15)
             
-            # 导出选项框架
+            # Export options frame
             options_frame = tk.Frame(dialog, bg=self.colors['background'])
             options_frame.pack(fill="both", expand=True, padx=20, pady=10)
             
-            # 导出格式选择
-            tk.Label(options_frame, text="选择导出格式:", font=('Microsoft YaHei UI', 12),
+            # Export format selection
+            tk.Label(options_frame, text="Select Export Format:", font=('Microsoft YaHei UI', 12),
                     bg=self.colors['background'], fg=self.colors['text']).pack(anchor="w", pady=(0, 10))
             
             format_var = tk.StringVar(dialog, value="Excel")
@@ -980,18 +980,18 @@ class ModernOrderModule:
                                   fg=self.colors['text'], selectcolor=self.colors['surface'])
                 rb.grid(row=0, column=i, sticky="w", padx=(0, 20))
             
-            # 状态筛选
-            tk.Label(options_frame, text="状态筛选:", font=('Microsoft YaHei UI', 12),
+            # Status filter
+            tk.Label(options_frame, text="Status Filter:", font=('Microsoft YaHei UI', 12),
                     bg=self.colors['background'], fg=self.colors['text']).pack(anchor="w", pady=(20, 10))
             
-            status_var = tk.StringVar(dialog, value="全部")
-            status_options = ["全部", "待接单", "已接单", "制作中", "配送中", "已完成", "已取消"]
+            status_var = tk.StringVar(dialog, value="All")
+            status_options = ["All", "Pending", "Accepted", "Preparing", "Delivering", "Completed", "Cancelled"]
             
             status_combo = ttk.Combobox(options_frame, textvariable=status_var, 
                                       values=status_options, state="readonly", width=20)
             status_combo.pack(anchor="w")
             
-            # 按钮框架
+            # Button frame
             btn_frame = tk.Frame(dialog, bg=self.colors['background'])
             btn_frame.pack(fill="x", padx=20, pady=20)
             
@@ -1000,15 +1000,15 @@ class ModernOrderModule:
                     file_format = format_var.get()
                     status_filter = status_var.get()
                     
-                    # 获取当前时间戳
+                    # Get current timestamp
                     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                    filename = f"订单数据_{status_filter}_{timestamp}"
+                    filename = f"Order Data_{status_filter}_{timestamp}"
                     
-                    # 选择保存路径
+                    # Select save path
                     if file_format == "Excel":
                         file_path = filedialog.asksaveasfilename(
                             defaultextension=".xlsx",
-                            filetypes=[("Excel文件", "*.xlsx")],
+                            filetypes=[("Excel File", "*.xlsx")],
                             initialname=filename
                         )
                         if file_path:
@@ -1016,7 +1016,7 @@ class ModernOrderModule:
                     elif file_format == "CSV":
                         file_path = filedialog.asksaveasfilename(
                             defaultextension=".csv",
-                            filetypes=[("CSV文件", "*.csv")],
+                            filetypes=[("CSV File", "*.csv")],
                             initialname=filename
                         )
                         if file_path:
@@ -1024,68 +1024,68 @@ class ModernOrderModule:
                     elif file_format == "PDF":
                         file_path = filedialog.asksaveasfilename(
                             defaultextension=".pdf",
-                            filetypes=[("PDF文件", "*.pdf")],
+                            filetypes=[("PDF File", "*.pdf")],
                             initialname=filename
                         )
                         if file_path:
                             success = self.export_orders_to_pdf(file_path, status_filter)
                     
                     if success:
-                        messagebox.showinfo("导出成功", f"订单数据已成功导出为 {file_format} 格式", parent=dialog)
+                        messagebox.showinfo("Export Success", f"Order data successfully exported to {file_format} format", parent=dialog)
                         dialog.destroy()
                     else:
-                        messagebox.showerror("导出失败", "导出过程中发生错误", parent=dialog)
+                        messagebox.showerror("Export Failed", "Error occurred during export", parent=dialog)
                         
                 except Exception as e:
-                    messagebox.showerror("错误", f"导出失败：{e}", parent=dialog)
+                    messagebox.showerror("Error", f"Export failed: {e}", parent=dialog)
             
-            tk.Button(btn_frame, text="📊 开始导出", command=do_export,
+            tk.Button(btn_frame, text="📊 Start Export", command=do_export,
                      bg=self.colors['primary'], fg='white', bd=0, pady=8, padx=20,
                      font=('Microsoft YaHei UI', 10)).pack(side="left")
-            tk.Button(btn_frame, text="取消", command=dialog.destroy,
+            tk.Button(btn_frame, text="Cancel", command=dialog.destroy,
                      bg=self.colors['text_light'], fg='white', bd=0, pady=8, padx=20,
                      font=('Microsoft YaHei UI', 10)).pack(side="right")
                      
         except Exception as e:
-            messagebox.showerror("错误", f"打开导出对话框失败：{e}")
+            messagebox.showerror("Error", f"Failed to open export dialog: {e}")
     
     def export_orders_to_excel(self, file_path: str, status_filter: str) -> bool:
-        """导出订单为Excel格式"""
+        """Export order to Excel format"""
         try:
             import openpyxl
             from openpyxl.styles import Font, Alignment, PatternFill
             
             wb = openpyxl.Workbook()
             ws = wb.active
-            ws.title = "订单数据"
+            ws.title = "Order Data"
             
-            # 设置标题
-            title = f"智慧餐饮管理系统 - 订单数据 ({status_filter})"
+            # Set title
+            title = f"Smart Restaurant Management System - Order Data ({status_filter})"
             ws['A1'] = title
             ws['A1'].font = Font(size=16, bold=True)
             ws.merge_cells('A1:H1')
             
-            # 设置表头样式
+            # Set header style
             header_font = Font(bold=True, color="FFFFFF")
             header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
             header_alignment = Alignment(horizontal="center", vertical="center")
             
-            # 表头
-            headers = ["订单号", "客户姓名", "联系电话", "配送地址", "菜品", "总金额", "订单状态", "下单时间"]
+            # Header
+            headers = ["Order Number", "Customer Name", "Contact Phone", "Delivery Address", "Meal", "Total Amount", "Order Status", "Order Time"]
             ws.append(headers)
             
-            # 设置表头样式
+            # Set header style
             for cell in ws[2]:
                 cell.font = header_font
                 cell.fill = header_fill
                 cell.alignment = header_alignment
             
-            # 获取订单数据
+            # Get order data
             orders = self.get_filtered_orders(status_filter)
             
-            # 添加数据
+            # Add data
             for order in orders:
-                # 处理菜品信息
+                # Process meal information
                 meals_text = ""
                 for meal in order.get('meals', []):
                     meals_text += f"{meal.get('name', '')}x{meal.get('quantity', 1)} "
@@ -1102,7 +1102,7 @@ class ModernOrderModule:
                 ]
                 ws.append(row)
             
-            # 调整列宽
+            # Adjust column width
             for column in ws.columns:
                 max_length = 0
                 column_letter = column[0].column_letter
@@ -1119,50 +1119,50 @@ class ModernOrderModule:
             return True
             
         except ImportError:
-            messagebox.showerror("错误", "请安装openpyxl库：pip install openpyxl")
+            messagebox.showerror("Error", "Please install openpyxl library: pip install openpyxl")
             return False
         except Exception as e:
-            print(f"导出Excel失败: {e}")
+            print(f"Failed to export Excel: {e}")
             return False
     
     def export_orders_to_csv(self, file_path: str, status_filter: str) -> bool:
-        """导出订单为CSV格式"""
+        """Export order to CSV format"""
         try:
             import csv
             
             with open(file_path, 'w', newline='', encoding='utf-8-sig') as csvfile:
-                fieldnames = ["订单号", "客户姓名", "联系电话", "配送地址", "菜品", "总金额", "订单状态", "下单时间"]
+                fieldnames = ["Order Number", "Customer Name", "Contact Phone", "Delivery Address", "Meal", "Total Amount", "Order Status", "Order Time"]
                 writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
                 writer.writeheader()
                 
-                # 获取订单数据
+                # Get order data
                 orders = self.get_filtered_orders(status_filter)
                 
                 for order in orders:
-                    # 处理菜品信息
+                    # Process meal information
                     meals_text = ""
                     for meal in order.get('meals', []):
                         meals_text += f"{meal.get('name', '')}x{meal.get('quantity', 1)} "
                     
                     writer.writerow({
-                        "订单号": f"#{order.get('id', '')}",
-                        "客户姓名": order.get('customer', ''),
-                        "联系电话": order.get('phone', ''),
-                        "配送地址": order.get('address', ''),
-                        "菜品": meals_text.strip(),
-                        "总金额": f"￥{order.get('total', 0):.2f}",
-                        "订单状态": order.get('status', ''),
-                        "下单时间": order.get('create_time', '')
+                        "Order Number": f"#{order.get('id', '')}",
+                        "Customer Name": order.get('customer', ''),
+                        "Contact Phone": order.get('phone', ''),
+                        "Delivery Address": order.get('address', ''),
+                        "Meal": meals_text.strip(),
+                        "Total Amount": f"￥{order.get('total', 0):.2f}",
+                        "Order Status": order.get('status', ''),
+                        "Order Time": order.get('create_time', '')
                     })
             
             return True
             
         except Exception as e:
-            print(f"导出CSV失败: {e}")
+            print(f"Failed to export CSV: {e}")
             return False
     
     def export_orders_to_pdf(self, file_path: str, status_filter: str) -> bool:
-        """导出订单为PDF格式"""
+        """Export order to PDF format"""
         try:
             from reportlab.lib.pagesizes import A4
             from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
@@ -1172,29 +1172,29 @@ class ModernOrderModule:
             doc = SimpleDocTemplate(file_path, pagesize=A4)
             story = []
             
-            # 标题样式
+            # Title style
             styles = getSampleStyleSheet()
             title_style = ParagraphStyle(
                 'CustomTitle',
                 parent=styles['Heading1'],
                 fontSize=16,
                 spaceAfter=30,
-                alignment=1  # 居中
+                alignment=1  # Center
             )
             
-            # 添加标题
-            title = Paragraph(f"智慧餐饮管理系统 - 订单数据 ({status_filter})", title_style)
+            # Add title
+            title = Paragraph(f"Smart Restaurant Management System - Order Data ({status_filter})", title_style)
             story.append(title)
             story.append(Spacer(1, 20))
             
-            # 获取订单数据
+            # Get order data
             orders = self.get_filtered_orders(status_filter)
             
-            # 创建表格数据
-            table_data = [["订单号", "客户姓名", "联系电话", "配送地址", "菜品", "总金额", "订单状态", "下单时间"]]
+            # Create table data
+            table_data = [["Order Number", "Customer Name", "Contact Phone", "Delivery Address", "Meal", "Total Amount", "Order Status", "Order Time"]]
             
             for order in orders:
-                # 处理菜品信息
+                # Process meal information
                 meals_text = ""
                 for meal in order.get('meals', []):
                     meals_text += f"{meal.get('name', '')}x{meal.get('quantity', 1)} "
@@ -1211,7 +1211,7 @@ class ModernOrderModule:
                 ]
                 table_data.append(row)
             
-            # 创建表格
+            # Create table
             table = Table(table_data)
             table.setStyle(TableStyle([
                 ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
@@ -1231,15 +1231,15 @@ class ModernOrderModule:
             return True
             
         except ImportError:
-            messagebox.showerror("错误", "请安装reportlab库：pip install reportlab")
+            messagebox.showerror("Error", "Please install reportlab library: pip install reportlab")
             return False
         except Exception as e:
-            print(f"导出PDF失败: {e}")
+            print(f"Failed to export PDF: {e}")
             return False
     
     def get_filtered_orders(self, status_filter: str) -> List[Dict]:
-        """获取筛选后的订单数据"""
-        if status_filter == "全部":
+        """Get filtered order data"""
+        if status_filter == "All":
             return self.order_data
         else:
             return [order for order in self.order_data if order.get('status') == status_filter]

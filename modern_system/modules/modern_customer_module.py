@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-现代化客户管理模块
+Modern Customer Management Module
 """
 
 import tkinter as tk
@@ -10,19 +10,25 @@ from typing import Dict, List, Any, Optional
 import datetime
 import json
 
-# 导入数据管理中心
+# Import data management center
 try:
-    from .data_manager import data_manager
+    from ..utils.data_manager import data_manager
 except ImportError:
     try:
         from data_manager import data_manager
     except ImportError:
-        # 模拟数据管理器
+        # Mock data manager
         class MockDataManager:
-            def load_data(self, data_type):
+            def get_customers(self):
                 return []
             def register_module(self, module_type, instance):
                 pass
+            def add_customer(self, data):
+                return "CUST_NEW"
+            def update_customer(self, cust_id, data):
+                return True
+            def delete_customer(self, cust_id):
+                return True
         data_manager = MockDataManager()
 
 class ModernCustomerModule:
@@ -30,775 +36,397 @@ class ModernCustomerModule:
         self.parent_frame = parent_frame
         self.title_frame = title_frame
         
-        # 注册到数据管理中心
+        # Register with data management center
         data_manager.register_module('customer', self)
         
-        # 现代化配色方案
+        # Modern color scheme
         self.colors = {
-            'primary': '#FF6B35',      # 主色调
-            'secondary': '#F7931E',    # 次色调
-            'accent': '#FFD23F',       # 强调色
-            'background': '#F8F9FA',   # 背景色
-            'surface': '#FFFFFF',      # 卡片背景
-            'text_primary': '#2D3436', # 主文字
-            'text_secondary': '#636E72', # 次文字
-            'border': '#E0E0E0',       # 边框
-            'success': '#00B894',      # 成功色
-            'warning': '#FDCB6E',      # 警告色
-            'error': '#E84393',        # 错误色
-            'card_shadow': '#F0F0F0',  # 卡片阴影
-            'white': '#FFFFFF',        # 白色
-            'info': '#3498DB',         # 信息色
-            'danger': '#E74C3C'        # 危险色
+            'primary': '#3498DB',      # Primary
+            'secondary': '#2ECC71',    # Secondary
+            'accent': '#F1C40F',       # Accent
+            'background': '#F8F9FA',   # Background
+            'surface': '#FFFFFF',      # Card background
+            'text_primary': '#2D3436', # Main text
+            'text_secondary': '#636E72', # Secondary text
+            'border': '#E0E0E0',       # Border
+            'success': '#27AE60',      # Success
+            'warning': '#F39C12',      # Warning
+            'error': '#E74C3C',        # Error
+            'card_shadow': '#F0F0F0',  # Card shadow
+            'white': '#FFFFFF',        # White
+            'info': '#3498DB',         # Info
+            'danger': '#E74C3C'        # Danger
         }
         
-        # 字体配置
+        # Font configuration
         self.fonts = {
-            'title': ('Microsoft YaHei UI', 16, 'bold'),
-            'heading': ('Microsoft YaHei UI', 14, 'bold'),
-            'body': ('Microsoft YaHei UI', 12),
-            'small': ('Microsoft YaHei UI', 10)
+            'title': ('Segoe UI', 20, 'bold'),
+            'heading': ('Segoe UI', 16, 'bold'),
+            'subheading': ('Segoe UI', 14, 'bold'),
+            'body': ('Segoe UI', 12),
+            'small': ('Segoe UI', 10),
+            'button': ('Segoe UI', 11, 'bold')
         }
         
         self.main_frame = None
-        self.customer_data = self.load_customer_data()
-        
+        self.customer_data = [] # Lazy loading
+        self.customer_tree = None
+        self.stats_labels = {}
+
     def load_customer_data(self):
-        """从数据库加载客户数据"""
+        """Load customer data from the data manager"""
         try:
-            # 从数据管理器获取客户数据
             customers = data_manager.get_customers()
             if not customers:
-                # 如果没有数据，返回默认示例数据
-                return [
-                    {"id": "CUST001", "name": "张三", "phone": "138****1234", "address": "北京市朝阳区xxx街道1号", "total_orders": 15, "total_amount": 1580.0},
-                    {"id": "CUST002", "name": "李四", "phone": "139****5678", "address": "北京市海淀区xxx路88号", "total_orders": 8, "total_amount": 890.0},
-                    {"id": "CUST003", "name": "王五", "phone": "136****9012", "address": "北京市西城区xxx胡同66号", "total_orders": 12, "total_amount": 1250.0}
-                ]
+                return self.get_default_customers()
             
-            # 处理数据库字段映射
+            # Process data for UI compatibility
             formatted_customers = []
-            for customer in customers:
-                # 处理姓名字段
-                first_name = customer.get('first_name', '')
-                last_name = customer.get('last_name', '')
-                name = f"{first_name} {last_name}".strip()
-                
-                # 处理电话字段
-                phone = customer.get('customer_phone', customer.get('phone', ''))
-                
-                # 处理地址字段
-                address = customer.get('customer_address', customer.get('address', ''))
-                
-                # 处理ID字段
-                customer_id = customer.get('customer_id', customer.get('id', ''))
-                
-                # 计算订单数和消费金额（从订单表统计）
-                total_orders = customer.get('total_orders', 0)
-                total_amount = customer.get('total_amount', 0)
-                
-                formatted_customer = {
-                    'id': customer_id,
-                    'name': name,
-                    'phone': phone,
-                    'address': address,
-                    'total_orders': total_orders,
-                    'total_amount': total_amount,
-                    # 保留原始数据用于编辑
-                    'first_name': first_name,
-                    'last_name': last_name,
-                    'customer_phone': phone,
-                    'customer_address': address,
-                    'customer_email': customer.get('customer_email', ''),
-                    'payment_method_id': customer.get('payment_method_id')
-                }
-                formatted_customers.append(formatted_customer)
-            
+            for cust in customers:
+                formatted_customers.append({
+                    'id': cust.get('customer_id', cust.get('id')),
+                    'name': f"{cust.get('first_name', '')} {cust.get('last_name', '')}".strip(),
+                    'phone': cust.get('customer_phone', cust.get('phone', '')),
+                    'address': cust.get('customer_address', cust.get('address', '')),
+                    'email': cust.get('customer_email', cust.get('email', '')),
+                    'total_orders': cust.get('total_orders', 0),
+                    'total_amount': cust.get('total_amount', 0.0)
+                })
             return formatted_customers
-            
         except Exception as e:
-            print(f"加载客户数据失败: {e}")
-            return []
-    
+            print(f"Failed to load customer data: {e}")
+            return self.get_default_customers()
+            
+    def get_default_customers(self):
+        """Return default sample customer data"""
+        return [
+            {"id": "CUST001", "name": "John Smith", "phone": "138-0000-1234", "address": "123 Main St, Anytown", "email": "john.s@example.com", "total_orders": 15, "total_amount": 1580.0},
+            {"id": "CUST002", "name": "Jane Doe", "phone": "139-0000-5678", "address": "456 Oak Ave, Somecity", "email": "jane.d@example.com", "total_orders": 8, "total_amount": 890.0},
+            {"id": "CUST003", "name": "Mike Johnson", "phone": "136-0000-9012", "address": "789 Pine Ln, Yourtown", "email": "mike.j@example.com", "total_orders": 12, "total_amount": 1250.0}
+        ]
+
+    def show(self):
+        """Show the customer management module"""
+        self.customer_data = self.load_customer_data()
+        self.clear_frames()
+        self.update_title()
+        self.create_main_interface()
+
+    def clear_frames(self):
+        """Clear all widgets from the parent and title frames."""
+        for widget in self.parent_frame.winfo_children():
+            widget.destroy()
+        for widget in self.title_frame.winfo_children():
+            widget.destroy()
+
+    def update_title(self):
+        """Update the title bar."""
+        title_frame = tk.Frame(self.title_frame, bg=self.colors['surface'])
+        title_frame.pack(fill="both", expand=True)
+
+        left_frame = tk.Frame(title_frame, bg=self.colors['surface'])
+        left_frame.pack(side="left", padx=30, pady=20)
+
+        tk.Label(left_frame, text="👥", font=('Segoe UI Emoji', 22), 
+                 bg=self.colors['surface'], fg=self.colors['primary']).pack(side="left", padx=(0, 10))
+        tk.Label(left_frame, text="Customer Management", font=self.fonts['title'], 
+                 bg=self.colors['surface'], fg=self.colors['text_primary']).pack(side="left")
+
+        right_frame = tk.Frame(title_frame, bg=self.colors['surface'])
+        right_frame.pack(side="right", padx=30, pady=20)
+        
+        add_btn = tk.Button(right_frame, text="Add Customer", font=self.fonts['button'],
+                            bg=self.colors['primary'], fg=self.colors['white'], bd=0,
+                            cursor="hand2", padx=20, pady=8, command=self.add_customer)
+        add_btn.pack(side='right', padx=5)
+
+    def create_main_interface(self):
+        """Create the main customer management interface"""
+        self.main_frame = tk.Frame(self.parent_frame, bg=self.colors['background'])
+        self.main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+
+        self.create_customer_stats(self.main_frame)
+        self.create_customer_list(self.main_frame)
+
+    def create_customer_stats(self, parent):
+        """Create the statistics cards area"""
+        stats_frame = tk.Frame(parent, bg=self.colors['background'])
+        stats_frame.pack(fill="x", pady=(0, 20))
+
+        total_customers = len(self.customer_data)
+        total_orders = sum(c.get('total_orders', 0) for c in self.customer_data)
+        total_revenue = sum(c.get('total_amount', 0) for c in self.customer_data)
+        avg_spend = total_revenue / total_customers if total_customers > 0 else 0
+
+        stats = [
+            {"title": "Total Customers", "value": f"{total_customers}", "icon": "👥"},
+            {"title": "Total Orders", "value": f"{total_orders}", "icon": "🧾"},
+            {"title": "Total Revenue", "value": f"${total_revenue:,.2f}", "icon": "💰"},
+            {"title": "Avg. Spend", "value": f"${avg_spend:,.2f}", "icon": "💲"}
+        ]
+
+        for i, stat in enumerate(stats):
+            stats_frame.grid_columnconfigure(i, weight=1)
+            card = tk.Frame(stats_frame, bg=self.colors['surface'], relief="flat", bd=0)
+            card.grid(row=0, column=i, padx=10, sticky="ew")
+
+            icon_label = tk.Label(card, text=stat["icon"], font=('Segoe UI Emoji', 24),
+                                  bg=self.colors['surface'], fg=self.colors['primary'])
+            icon_label.pack(side="left", padx=20, pady=20)
+            
+            text_frame = tk.Frame(card, bg=self.colors['surface'])
+            text_frame.pack(side="left", pady=20)
+            
+            value_label = tk.Label(text_frame, text=stat["value"], font=self.fonts['heading'],
+                                   bg=self.colors['surface'], fg=self.colors['text_primary'])
+            value_label.pack(anchor="w")
+            
+            title_label = tk.Label(text_frame, text=stat["title"], font=self.fonts['body'],
+                                   bg=self.colors['surface'], fg=self.colors['text_secondary'])
+            title_label.pack(anchor="w")
+            self.stats_labels[stat['title']] = value_label
+
+    def create_customer_list(self, parent):
+        """Create the customer list view"""
+        list_container = tk.Frame(parent, bg=self.colors['surface'])
+        list_container.pack(fill="both", expand=True)
+
+        list_header = tk.Frame(list_container, bg=self.colors['surface'])
+        list_header.pack(fill="x", padx=20, pady=(15, 10))
+
+        tk.Label(list_header, text="Customer List", font=self.fonts['heading'],
+                 bg=self.colors['surface'], fg=self.colors['text_primary']).pack(side="left")
+        
+        refresh_btn = tk.Button(list_header, text="🔄 Refresh", font=self.fonts['small'],
+                                bg=self.colors['secondary'], fg=self.colors['white'], bd=0,
+                                cursor="hand2", padx=15, pady=5, command=self.refresh_customer_data)
+        refresh_btn.pack(side="right")
+        
+        # Treeview
+        style = ttk.Style()
+        style.theme_use("default")
+        style.configure("Treeview", background=self.colors['surface'], foreground=self.colors['text_primary'],
+                        fieldbackground=self.colors['surface'], rowheight=30, font=self.fonts['body'])
+        style.configure("Treeview.Heading", font=self.fonts['button'], background=self.colors['background'], 
+                        foreground=self.colors['text_primary'], relief="flat")
+        style.map("Treeview.Heading", background=[('active', self.colors['border'])])
+        style.layout("Treeview", [('Treeview.treearea', {'sticky': 'nswe'})]) # Remove borders
+
+        cols = ("ID", "Name", "Phone", "Email", "Orders", "Total Spend")
+        self.customer_tree = ttk.Treeview(list_container, columns=cols, show='headings', style="Treeview")
+
+        for col in cols:
+            self.customer_tree.heading(col, text=col)
+            self.customer_tree.column(col, width=150, anchor='w')
+
+        self.customer_tree.column("ID", width=80, anchor='center')
+        self.customer_tree.column("Orders", width=80, anchor='center')
+        self.customer_tree.column("Total Spend", width=120, anchor='e')
+
+        self.customer_tree.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        self.customer_tree.bind("<Double-1>", lambda e: self.edit_customer())
+        self.create_context_menu()
+        self.refresh_customer_list()
+
+    def create_context_menu(self):
+        """Create a right-click context menu for the treeview."""
+        self.context_menu = tk.Menu(self.customer_tree, tearoff=0, font=self.fonts['body'],
+                                    bg=self.colors['surface'], fg=self.colors['text_primary'])
+        self.context_menu.add_command(label="✏️ Edit Selected Customer", command=self.edit_customer)
+        self.context_menu.add_command(label="🗑️ Delete Selected Customer", command=self.delete_customer)
+        self.context_menu.add_separator()
+        self.context_menu.add_command(label="View Orders (Not Implemented)")
+
+        self.customer_tree.bind("<Button-3>", self.show_context_menu)
+
+    def show_context_menu(self, event):
+        """Show the context menu on right-click."""
+        row_id = self.customer_tree.identify_row(event.y)
+        if row_id:
+            self.customer_tree.selection_set(row_id)
+            self.context_menu.post(event.x_root, event.y_root)
+
     def refresh_customer_data(self):
-        """刷新客户数据"""
+        """Refresh both data and UI display"""
         self.customer_data = self.load_customer_data()
         self.refresh_customer_list()
-    
+        self.update_stats()
+
+    def update_stats(self):
+        """Update statistics cards"""
+        total_customers = len(self.customer_data)
+        total_orders = sum(c.get('total_orders', 0) for c in self.customer_data)
+        total_revenue = sum(c.get('total_amount', 0) for c in self.customer_data)
+        avg_spend = total_revenue / total_customers if total_customers > 0 else 0
+        
+        self.stats_labels["Total Customers"].config(text=f"{total_customers}")
+        self.stats_labels["Total Orders"].config(text=f"{total_orders}")
+        self.stats_labels["Total Revenue"].config(text=f"${total_revenue:,.2f}")
+        self.stats_labels["Avg. Spend"].config(text=f"${avg_spend:,.2f}")
+
     def refresh_customer_list(self):
-        """刷新客户列表显示"""
-        if hasattr(self, 'customer_tree'):
-            # 清空现有数据
+        """Refresh only the customer list display"""
+        if self.customer_tree:
             for item in self.customer_tree.get_children():
                 self.customer_tree.delete(item)
             
-            # 重新插入数据
             for customer in self.customer_data:
                 values = (
                     customer.get('id', ''),
                     customer.get('name', ''),
                     customer.get('phone', ''),
-                    customer.get('address', ''),
+                    customer.get('email', ''),
                     customer.get('total_orders', 0),
-                    f"￥{customer.get('total_amount', 0):.0f}"
+                    f"${customer.get('total_amount', 0):,.2f}"
                 )
-                self.customer_tree.insert("", "end", values=values)
-        
-    def create_customer_buttons(self, parent):
-        """创建客户操作按钮"""
-        button_frame = tk.Frame(parent, bg=self.colors['surface'])
-        button_frame.pack(fill="x", padx=10, pady=(0, 10))
-        
-        # 添加客户按钮
-        add_btn = tk.Button(button_frame, text="➕ 添加客户", 
-                           font=self.fonts['body'],
-                           bg=self.colors['success'], fg='white',
-                           bd=0, pady=8, padx=15, cursor="hand2",
-                           command=self.add_customer)
-        add_btn.pack(side="left", padx=(0, 10))
-        
-        # 编辑客户按钮
-        edit_btn = tk.Button(button_frame, text="✏️ 编辑客户", 
-                            font=self.fonts['body'],
-                            bg=self.colors['info'], fg='white',
-                            bd=0, pady=8, padx=15, cursor="hand2",
-                            command=self.edit_customer)
-        edit_btn.pack(side="left", padx=(0, 10))
-        
-        # 删除客户按钮
-        delete_btn = tk.Button(button_frame, text="🗑️ 删除客户", 
-                              font=self.fonts['body'],
-                              bg=self.colors['danger'], fg='white',
-                              bd=0, pady=8, padx=15, cursor="hand2",
-                              command=self.delete_customer)
-        delete_btn.pack(side="left", padx=(0, 10))
-        
-        # 刷新按钮
-        refresh_btn = tk.Button(button_frame, text="🔄 刷新", 
-                               font=self.fonts['body'],
-                               bg=self.colors['secondary'], fg='white',
-                               bd=0, pady=8, padx=15, cursor="hand2",
-                               command=self.refresh_customer_data)
-        refresh_btn.pack(side="right")
-        
-        # 导出按钮
-        export_btn = tk.Button(button_frame, text="📊 导出", 
-                              font=self.fonts['body'],
-                              bg=self.colors['success'], fg='white',
-                              bd=0, pady=8, padx=15, cursor="hand2",
-                              command=self.export_customers)
-        export_btn.pack(side="right")
+                self.customer_tree.insert("", "end", values=values, tags=(customer.get('id'),))
     
     def add_customer(self):
-        """添加客户"""
-        try:
-            # 创建输入对话框
-            dialog = tk.Toplevel(self.main_frame)
-            dialog.title("添加客户")
-            dialog.geometry("400x350")
-            dialog.configure(bg=self.colors['background'])
-            dialog.transient(self.main_frame)
-            dialog.grab_set()
-            
-            # 居中显示
-            dialog.update_idletasks()
-            x = (dialog.winfo_screenwidth() // 2) - (200)
-            y = (dialog.winfo_screenheight() // 2) - (175)
-            dialog.geometry(f"400x350+{x}+{y}")
-            
-            # 输入字段
-            tk.Label(dialog, text="添加客户", font=self.fonts['heading'],
-                    bg=self.colors['background'], fg=self.colors['text_primary']).pack(pady=10)
-            
-            # 姓名
-            tk.Label(dialog, text="姓名:", bg=self.colors['background'], 
-                    fg=self.colors['text_primary']).pack(anchor="w", padx=20)
-            name_var = tk.StringVar(dialog)
-            name_entry = tk.Entry(dialog, textvariable=name_var, font=self.fonts['body'])
-            name_entry.pack(fill="x", padx=20, pady=5)
-            
-            # 电话
-            tk.Label(dialog, text="电话:", bg=self.colors['background'], 
-                    fg=self.colors['text_primary']).pack(anchor="w", padx=20)
-            phone_var = tk.StringVar(dialog)
-            phone_entry = tk.Entry(dialog, textvariable=phone_var, font=self.fonts['body'])
-            phone_entry.pack(fill="x", padx=20, pady=5)
-            
-            # 地址
-            tk.Label(dialog, text="地址:", bg=self.colors['background'], 
-                    fg=self.colors['text_primary']).pack(anchor="w", padx=20)
-            address_var = tk.StringVar(dialog)
-            address_entry = tk.Entry(dialog, textvariable=address_var, font=self.fonts['body'])
-            address_entry.pack(fill="x", padx=20, pady=5)
-            
-            # 按钮
-            btn_frame = tk.Frame(dialog, bg=self.colors['background'])
-            btn_frame.pack(fill="x", padx=20, pady=20)
-            
-            def save_customer():
-                try:
-                    name = name_var.get().strip()
-                    phone = phone_var.get().strip()
-                    address = address_var.get().strip()
-                    
-                    if not name or not phone:
-                        messagebox.showerror("错误", "请填写姓名和电话", parent=dialog)
-                        return
-                    
-                    # 创建客户数据
-                    customer_data = {
-                        'first_name': name.split()[0] if ' ' in name else name,
-                        'last_name': name.split()[1] if ' ' in name else '',
-                        'phone': phone,
-                        'address': address,
-                        'email': '',
-                        'registration_date': datetime.datetime.now().strftime('%Y-%m-%d')
-                    }
-                    
-                    # 使用数据管理器添加客户
-                    customer_id = data_manager.add_customer(customer_data)
-                    
-                    messagebox.showinfo("成功", f"客户添加成功，ID: {customer_id}", parent=dialog)
-                    dialog.destroy()
-                    self.refresh_customer_data()
-                    
-                except Exception as e:
-                    messagebox.showerror("错误", f"添加客户失败：{e}", parent=dialog)
-            
-            tk.Button(btn_frame, text="保存", command=save_customer,
-                     bg=self.colors['success'], fg='white', bd=0, pady=8, padx=20).pack(side="left")
-            tk.Button(btn_frame, text="取消", command=dialog.destroy,
-                     bg=self.colors['text_secondary'], fg='white', bd=0, pady=8, padx=20).pack(side="right")
-                     
-        except Exception as e:
-            messagebox.showerror("错误", f"打开添加客户对话框失败：{e}")
-    
-    def edit_customer(self):
-        """编辑客户"""
-        try:
-            # 获取选中的客户
-            selected_item = self.customer_tree.selection()
-            if not selected_item:
-                messagebox.showwarning("提示", "请先选择一个客户")
-                return
-            
-            # 获取客户数据
-            item_values = self.customer_tree.item(selected_item[0])['values']
-            customer_id = item_values[0]
-            
-            # 查找客户数据
-            customer = None
-            for c in self.customer_data:
-                if str(c.get('id', '')) == str(customer_id):
-                    customer = c
-                    break
-            
-            if not customer:
-                messagebox.showerror("错误", "未找到客户数据")
-                return
-            
-            # 创建编辑对话框
-            dialog = tk.Toplevel(self.main_frame)
-            dialog.title("编辑客户")
-            dialog.geometry("400x350")
-            dialog.configure(bg=self.colors['background'])
-            dialog.transient(self.main_frame)
-            dialog.grab_set()
-            
-            # 居中显示
-            dialog.update_idletasks()
-            x = (dialog.winfo_screenwidth() // 2) - (200)
-            y = (dialog.winfo_screenheight() // 2) - (175)
-            dialog.geometry(f"400x350+{x}+{y}")
-            
-            # 输入字段
-            tk.Label(dialog, text="编辑客户", font=self.fonts['heading'],
-                    bg=self.colors['background'], fg=self.colors['text_primary']).pack(pady=10)
-            
-            # 姓名
-            tk.Label(dialog, text="姓名:", bg=self.colors['background'], 
-                    fg=self.colors['text_primary']).pack(anchor="w", padx=20)
-            name_var = tk.StringVar(dialog, value=customer.get('name', ''))
-            name_entry = tk.Entry(dialog, textvariable=name_var, font=self.fonts['body'])
-            name_entry.pack(fill="x", padx=20, pady=5)
-            
-            # 电话
-            tk.Label(dialog, text="电话:", bg=self.colors['background'], 
-                    fg=self.colors['text_primary']).pack(anchor="w", padx=20)
-            phone_var = tk.StringVar(dialog, value=customer.get('phone', ''))
-            phone_entry = tk.Entry(dialog, textvariable=phone_var, font=self.fonts['body'])
-            phone_entry.pack(fill="x", padx=20, pady=5)
-            
-            # 地址
-            tk.Label(dialog, text="地址:", bg=self.colors['background'], 
-                    fg=self.colors['text_primary']).pack(anchor="w", padx=20)
-            address_var = tk.StringVar(dialog, value=customer.get('address', ''))
-            address_entry = tk.Entry(dialog, textvariable=address_var, font=self.fonts['body'])
-            address_entry.pack(fill="x", padx=20, pady=5)
-            
-            # 按钮
-            btn_frame = tk.Frame(dialog, bg=self.colors['background'])
-            btn_frame.pack(fill="x", padx=20, pady=20)
-            
-            def update_customer():
-                try:
-                    name = name_var.get().strip()
-                    phone = phone_var.get().strip()
-                    address = address_var.get().strip()
-                    
-                    if not name or not phone:
-                        messagebox.showerror("错误", "请填写姓名和电话", parent=dialog)
-                        return
-                    
-                    # 更新客户数据
-                    customer_data = {
-                        'id': customer_id,
-                        'first_name': name.split()[0] if ' ' in name else name,
-                        'last_name': name.split()[1] if ' ' in name else '',
-                        'phone': phone,
-                        'address': address
-                    }
-                    
-                    # 使用数据管理器更新客户
-                    success = data_manager.update_customer(customer_id, customer_data)
-                    
-                    if success:
-                        messagebox.showinfo("成功", "客户信息更新成功", parent=dialog)
-                        dialog.destroy()
-                        self.refresh_customer_data()
-                    else:
-                        messagebox.showerror("错误", "更新客户信息失败", parent=dialog)
-                    
-                except Exception as e:
-                    messagebox.showerror("错误", f"更新客户失败：{e}", parent=dialog)
-            
-            tk.Button(btn_frame, text="更新", command=update_customer,
-                     bg=self.colors['success'], fg='white', bd=0, pady=8, padx=20).pack(side="left")
-            tk.Button(btn_frame, text="取消", command=dialog.destroy,
-                     bg=self.colors['text_secondary'], fg='white', bd=0, pady=8, padx=20).pack(side="right")
-                     
-        except Exception as e:
-            messagebox.showerror("错误", f"编辑客户失败：{e}")
-    
-    def delete_customer(self):
-        """删除客户"""
-        try:
-            # 获取选中的客户
-            selected_item = self.customer_tree.selection()
-            if not selected_item:
-                messagebox.showwarning("提示", "请先选择一个客户")
-                return
-            
-            # 获取客户数据
-            item_values = self.customer_tree.item(selected_item[0])['values']
-            customer_id = item_values[0]
-            customer_name = item_values[1]
-            
-            # 确认删除
-            result = messagebox.askyesno("确认删除", f"确定要删除客户 {customer_name} 吗？\n此操作不可恢复！")
-            if not result:
-                return
-            
-            # 使用数据管理器删除客户
-            success = data_manager.delete_customer(customer_id)
-            
-            if success:
-                messagebox.showinfo("成功", f"客户 {customer_name} 已删除")
-                self.refresh_customer_data()
-            else:
-                messagebox.showerror("错误", "删除客户失败")
-                
-        except Exception as e:
-            messagebox.showerror("错误", f"删除客户失败：{e}")
-    
-    def show(self):
-        """显示客户管理界面"""
-        if self.main_frame:
-            self.main_frame.destroy()
-        
-        self.main_frame = tk.Frame(self.parent_frame, bg=self.colors['background'])
-        self.main_frame.pack(fill="both", expand=True)
-        
-        # 标题
-        title_label = tk.Label(self.main_frame, text="👥 客户管理", 
-                              font=self.fonts['title'],
-                              bg=self.colors['background'], 
-                              fg=self.colors['text_primary'])
-        title_label.pack(pady=(0, 20))
-        
-        # 客户统计
-        self.create_customer_stats()
-        
-        # 客户列表
-        self.create_customer_list()
-        
-    def create_customer_stats(self):
-        """创建客户统计"""
-        stats_frame = tk.Frame(self.main_frame, bg=self.colors['background'])
-        stats_frame.pack(fill="x", pady=(0, 20))
-        
-        # 统计数据
-        total_customers = len(self.customer_data)
-        total_orders = sum(customer.get('total_orders', 0) for customer in self.customer_data)
-        total_amount = sum(customer.get('total_amount', 0) for customer in self.customer_data)
-        avg_amount = total_amount / total_customers if total_customers > 0 else 0
-        
-        stats = [
-            {"title": "客户总数", "value": str(total_customers), "icon": "👥", "color": self.colors['primary']},
-            {"title": "总订单数", "value": str(total_orders), "icon": "📋", "color": self.colors['info']},
-            {"title": "总消费额", "value": f"￥{total_amount:.0f}", "icon": "💰", "color": self.colors['success']},
-            {"title": "平均消费", "value": f"￥{avg_amount:.0f}", "icon": "📊", "color": self.colors['secondary']}
-        ]
-        
-        for stat in stats:
-            card = tk.Frame(stats_frame, bg=self.colors['surface'], relief="flat", bd=1)
-            card.pack(side="left", fill="both", expand=True, padx=(0, 10))
-            
-            # 图标
-            icon_label = tk.Label(card, text=stat['icon'], font=('Segoe UI Emoji', 24),
-                                bg=self.colors['surface'], fg=stat['color'])
-            icon_label.pack(pady=(10, 5))
-            
-            # 数值
-            value_label = tk.Label(card, text=stat['value'], font=self.fonts['heading'],
-                                 bg=self.colors['surface'], fg=self.colors['text_primary'])
-            value_label.pack()
-            
-            # 标题
-            title_label = tk.Label(card, text=stat['title'], font=self.fonts['body'],
-                                 bg=self.colors['surface'], fg=self.colors['text_secondary'])
-            title_label.pack(pady=(5, 10))
-            
-    def create_customer_list(self):
-        """创建客户列表"""
-        list_frame = tk.Frame(self.main_frame, bg=self.colors['surface'])
-        list_frame.pack(fill="both", expand=True)
-        
-        # 表格标题
-        list_title = tk.Label(list_frame, text="📋 客户列表", 
-                             font=self.fonts['heading'],
-                             bg=self.colors['surface'], 
-                             fg=self.colors['text_primary'])
-        list_title.pack(pady=10)
-        
-        # 创建Treeview表格
-        columns = ("客户ID", "姓名", "电话", "地址", "订单数", "消费金额")
-        self.customer_tree = ttk.Treeview(list_frame, columns=columns, show='headings', height=15)
-        
-        # 设置列标题
-        for col in columns:
-            self.customer_tree.heading(col, text=col)
-            if col == "地址":
-                self.customer_tree.column(col, width=200, anchor="w")
-            else:
-                self.customer_tree.column(col, width=120, anchor="center")
-        
-        # 添加客户数据
-        for customer in self.customer_data:
-            values = (
-                customer.get('id', ''),
-                customer.get('name', ''),
-                customer.get('phone', ''),
-                customer.get('address', ''),
-                customer.get('total_orders', 0),
-                f"￥{customer.get('total_amount', 0):.0f}"
-            )
-            self.customer_tree.insert("", "end", values=values)
-        
-        # 添加滚动条
-        scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=self.customer_tree.yview)
-        self.customer_tree.configure(yscrollcommand=scrollbar.set)
-        
-        # 布局
-        self.customer_tree.pack(side="left", fill="both", expand=True, padx=10, pady=10)
-        scrollbar.pack(side="right", fill="y", pady=10)
-        
-        # 添加操作按钮
-        self.create_customer_buttons(list_frame)
+        """Add a new customer"""
+        CustomerDialog(self.main_frame, "Add New Customer", colors=self.colors, fonts=self.fonts,
+                       callback=self.refresh_customer_data)
 
+    def edit_customer(self):
+        """Edit the selected customer"""
+        selected_item = self.customer_tree.selection()
+        if not selected_item:
+            messagebox.showwarning("No Selection", "Please select a customer to edit.", parent=self.main_frame)
+            return
+        
+        customer_id = self.customer_tree.item(selected_item[0])['tags'][0]
+        customer_data = next((c for c in self.customer_data if c['id'] == customer_id), None)
+        
+        if customer_data:
+            CustomerDialog(self.main_frame, "Edit Customer", customer_data, self.colors, self.fonts,
+                           callback=self.refresh_customer_data)
+
+    def delete_customer(self):
+        """Delete the selected customer"""
+        selected_item = self.customer_tree.selection()
+        if not selected_item:
+            messagebox.showwarning("No Selection", "Please select a customer to delete.", parent=self.main_frame)
+            return
+            
+        customer_id = self.customer_tree.item(selected_item[0])['tags'][0]
+        customer_name = self.customer_tree.item(selected_item[0])['values'][1]
+
+        if messagebox.askyesno("Confirm Deletion", f"Are you sure you want to delete customer '{customer_name}'?\nThis action cannot be undone.", parent=self.main_frame):
+            try:
+                if data_manager.delete_customer(customer_id):
+                    messagebox.showinfo("Success", f"Customer '{customer_name}' deleted successfully.", parent=self.main_frame)
+                    self.refresh_customer_data()
+                else:
+                    messagebox.showerror("Error", "Failed to delete customer. Please check logs.", parent=self.main_frame)
+            except Exception as e:
+                messagebox.showerror("Error", f"An error occurred: {e}", parent=self.main_frame)
+    
     def export_customers(self):
-        """导出客户数据"""
+        """Export customer data (placeholder)"""
+        messagebox.showinfo("Export", "Export functionality is not yet implemented.", parent=self.main_frame)
+
+class CustomerDialog(tk.Toplevel):
+    def __init__(self, parent, title, customer_data=None, colors=None, fonts=None, callback=None):
+        super().__init__(parent)
+        self.title(title)
+        self.customer_data = customer_data
+        self.colors = colors
+        self.fonts = fonts
+        self.callback = callback
+        
+        self.geometry("450x400")
+        self.configure(bg=self.colors['background'])
+        self.transient(parent)
+        self.grab_set()
+        
+        self.create_widgets()
+        self.load_data()
+        self.center_window()
+        
+    def create_widgets(self):
+        """Create widgets for the dialog"""
+        main_frame = tk.Frame(self, bg=self.colors['background'], padx=20, pady=20)
+        main_frame.pack(fill="both", expand=True)
+
+        tk.Label(main_frame, text=self.title(), font=self.fonts['heading'],
+                 bg=self.colors['background'], fg=self.colors['text_primary']).pack(pady=(0, 15))
+
+        self.entries = {}
+        fields = ["Name", "Phone", "Email", "Address"]
+        for field in fields:
+            frame = tk.Frame(main_frame, bg=self.colors['background'])
+            frame.pack(fill='x', pady=5)
+            tk.Label(frame, text=f"{field}:", font=self.fonts['body'], 
+                     bg=self.colors['background'], fg=self.colors['text_secondary'], width=8, anchor='w').pack(side='left')
+            
+            entry_var = tk.StringVar()
+            entry = ttk.Entry(frame, textvariable=entry_var, font=self.fonts['body'], width=40)
+            entry.pack(side='left', fill='x', expand=True)
+            self.entries[field.lower()] = entry_var
+
+        button_frame = tk.Frame(main_frame, bg=self.colors['background'])
+        button_frame.pack(fill='x', pady=(20, 0))
+        
+        save_btn = tk.Button(button_frame, text="Save", font=self.fonts['button'],
+                             bg=self.colors['success'], fg=self.colors['white'], bd=0,
+                             padx=20, pady=8, cursor="hand2", command=self.save)
+        save_btn.pack(side='right', padx=5)
+
+        cancel_btn = tk.Button(button_frame, text="Cancel", font=self.fonts['button'],
+                               bg=self.colors['text_secondary'], fg=self.colors['white'], bd=0,
+                               padx=20, pady=8, cursor="hand2", command=self.destroy)
+        cancel_btn.pack(side='right', padx=5)
+
+    def load_data(self):
+        """Load customer data into the form if editing"""
+        if self.customer_data:
+            self.entries['name'].set(self.customer_data.get('name', ''))
+            self.entries['phone'].set(self.customer_data.get('phone', ''))
+            self.entries['email'].set(self.customer_data.get('email', ''))
+            self.entries['address'].set(self.customer_data.get('address', ''))
+
+    def center_window(self):
+        """Center the dialog on the parent window"""
+        self.update_idletasks()
+        parent_x = self.master.winfo_rootx()
+        parent_y = self.master.winfo_rooty()
+        parent_w = self.master.winfo_width()
+        parent_h = self.master.winfo_height()
+        dialog_w = self.winfo_width()
+        dialog_h = self.winfo_height()
+        x = parent_x + (parent_w - dialog_w) // 2
+        y = parent_y + (parent_h - dialog_h) // 2
+        self.geometry(f'+{x}+{y}')
+
+    def save(self):
+        """Save the customer data"""
+        name = self.entries['name'].get().strip()
+        phone = self.entries['phone'].get().strip()
+        if not name or not phone:
+            messagebox.showerror("Validation Error", "Name and Phone are required.", parent=self)
+            return
+
+        data = {
+            'first_name': name.split(' ')[0] if ' ' in name else name,
+            'last_name': ' '.join(name.split(' ')[1:]) if ' ' in name else '',
+            'customer_phone': phone,
+            'customer_email': self.entries['email'].get().strip(),
+            'customer_address': self.entries['address'].get().strip()
+        }
+        
         try:
-            from tkinter import filedialog
-            import datetime
-            
-            # 创建导出选择对话框
-            dialog = tk.Toplevel(self.parent_frame)
-            dialog.title("导出客户数据")
-            dialog.geometry("400x300")
-            dialog.configure(bg=self.colors['background'])
-            dialog.transient(self.parent_frame)
-            dialog.grab_set()
-            
-            # 居中显示
-            dialog.update_idletasks()
-            x = (dialog.winfo_screenwidth() // 2) - (200)
-            y = (dialog.winfo_screenheight() // 2) - (150)
-            dialog.geometry(f"400x300+{x}+{y}")
-            
-            # 标题
-            tk.Label(dialog, text="导出客户数据", font=('Microsoft YaHei UI', 14, 'bold'),
-                    bg=self.colors['background'], fg=self.colors['text']).pack(pady=15)
-            
-            # 导出选项框架
-            options_frame = tk.Frame(dialog, bg=self.colors['background'])
-            options_frame.pack(fill="both", expand=True, padx=20, pady=10)
-            
-            # 导出格式选择
-            tk.Label(options_frame, text="选择导出格式:", font=('Microsoft YaHei UI', 12),
-                    bg=self.colors['background'], fg=self.colors['text']).pack(anchor="w", pady=(0, 10))
-            
-            format_var = tk.StringVar(dialog, value="Excel")
-            format_options = ["Excel", "CSV", "PDF"]
-            
-            format_frame = tk.Frame(options_frame, bg=self.colors['background'])
-            format_frame.pack(anchor="w")
-            
-            for i, fmt in enumerate(format_options):
-                rb = tk.Radiobutton(format_frame, text=fmt, variable=format_var, value=fmt,
-                                  font=('Microsoft YaHei UI', 10), bg=self.colors['background'], 
-                                  fg=self.colors['text'], selectcolor=self.colors['surface'])
-                rb.grid(row=0, column=i, sticky="w", padx=(0, 20))
-            
-            # 客户类型筛选
-            tk.Label(options_frame, text="客户类型:", font=('Microsoft YaHei UI', 12),
-                    bg=self.colors['background'], fg=self.colors['text']).pack(anchor="w", pady=(20, 10))
-            
-            type_var = tk.StringVar(dialog, value="全部")
-            type_options = ["全部", "个人", "企业"]
-            
-            type_combo = ttk.Combobox(options_frame, textvariable=type_var, 
-                                    values=type_options, state="readonly", width=20)
-            type_combo.pack(anchor="w")
-            
-            # 按钮框架
-            btn_frame = tk.Frame(dialog, bg=self.colors['background'])
-            btn_frame.pack(fill="x", padx=20, pady=20)
-            
-            def do_export():
-                try:
-                    file_format = format_var.get()
-                    customer_type = type_var.get()
-                    
-                    # 获取当前时间戳
-                    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-                    filename = f"客户数据_{customer_type}_{timestamp}"
-                    
-                    # 选择保存路径
-                    if file_format == "Excel":
-                        file_path = filedialog.asksaveasfilename(
-                            defaultextension=".xlsx",
-                            filetypes=[("Excel文件", "*.xlsx")],
-                            initialname=filename
-                        )
-                        if file_path:
-                            success = self.export_customers_to_excel(file_path, customer_type)
-                    elif file_format == "CSV":
-                        file_path = filedialog.asksaveasfilename(
-                            defaultextension=".csv",
-                            filetypes=[("CSV文件", "*.csv")],
-                            initialname=filename
-                        )
-                        if file_path:
-                            success = self.export_customers_to_csv(file_path, customer_type)
-                    elif file_format == "PDF":
-                        file_path = filedialog.asksaveasfilename(
-                            defaultextension=".pdf",
-                            filetypes=[("PDF文件", "*.pdf")],
-                            initialname=filename
-                        )
-                        if file_path:
-                            success = self.export_customers_to_pdf(file_path, customer_type)
-                    
-                    if success:
-                        messagebox.showinfo("导出成功", f"客户数据已成功导出为 {file_format} 格式", parent=dialog)
-                        dialog.destroy()
-                    else:
-                        messagebox.showerror("导出失败", "导出过程中发生错误", parent=dialog)
-                        
-                except Exception as e:
-                    messagebox.showerror("错误", f"导出失败：{e}", parent=dialog)
-            
-            tk.Button(btn_frame, text="📊 开始导出", command=do_export,
-                     bg=self.colors['primary'], fg='white', bd=0, pady=8, padx=20,
-                     font=('Microsoft YaHei UI', 10)).pack(side="left")
-            tk.Button(btn_frame, text="取消", command=dialog.destroy,
-                     bg=self.colors['text_light'], fg='white', bd=0, pady=8, padx=20,
-                     font=('Microsoft YaHei UI', 10)).pack(side="right")
-                     
+            if self.customer_data: # Update
+                success = data_manager.update_customer(self.customer_data['id'], data)
+                msg = f"Customer '{name}' updated successfully."
+            else: # Add
+                success = data_manager.add_customer(data)
+                msg = f"Customer '{name}' added successfully."
+
+            if success:
+                messagebox.showinfo("Success", msg, parent=self)
+                if self.callback:
+                    self.callback()
+                self.destroy()
+            else:
+                messagebox.showerror("Database Error", "Failed to save customer data.", parent=self)
         except Exception as e:
-            messagebox.showerror("错误", f"打开导出对话框失败：{e}")
-    
-    def export_customers_to_excel(self, file_path: str, customer_type: str) -> bool:
-        """导出客户为Excel格式"""
-        try:
-            import openpyxl
-            from openpyxl.styles import Font, Alignment, PatternFill
-            
-            wb = openpyxl.Workbook()
-            ws = wb.active
-            ws.title = "客户数据"
-            
-            # 设置标题
-            title = f"智慧餐饮管理系统 - 客户数据 ({customer_type})"
-            ws['A1'] = title
-            ws['A1'].font = Font(size=16, bold=True)
-            ws.merge_cells('A1:F1')
-            
-            # 设置表头样式
-            header_font = Font(bold=True, color="FFFFFF")
-            header_fill = PatternFill(start_color="366092", end_color="366092", fill_type="solid")
-            header_alignment = Alignment(horizontal="center", vertical="center")
-            
-            # 表头
-            headers = ["客户姓名", "联系电话", "客户类型", "地址", "备注", "注册时间"]
-            ws.append(headers)
-            
-            # 设置表头样式
-            for cell in ws[2]:
-                cell.font = header_font
-                cell.fill = header_fill
-                cell.alignment = header_alignment
-            
-            # 获取客户数据
-            customers = self.get_filtered_customers(customer_type)
-            
-            # 添加数据
-            for customer in customers:
-                row = [
-                    customer.get('name', ''),
-                    customer.get('phone', ''),
-                    customer.get('type', ''),
-                    customer.get('address', ''),
-                    customer.get('note', ''),
-                    customer.get('created_at', '')
-                ]
-                ws.append(row)
-            
-            # 调整列宽
-            for column in ws.columns:
-                max_length = 0
-                column_letter = column[0].column_letter
-                for cell in column:
-                    try:
-                        if len(str(cell.value)) > max_length:
-                            max_length = len(str(cell.value))
-                    except:
-                        pass
-                adjusted_width = min(max_length + 2, 50)
-                ws.column_dimensions[column_letter].width = adjusted_width
-            
-            wb.save(file_path)
-            return True
-            
-        except ImportError:
-            messagebox.showerror("错误", "请安装openpyxl库：pip install openpyxl")
-            return False
-        except Exception as e:
-            print(f"导出Excel失败: {e}")
-            return False
-    
-    def export_customers_to_csv(self, file_path: str, customer_type: str) -> bool:
-        """导出客户为CSV格式"""
-        try:
-            import csv
-            
-            with open(file_path, 'w', newline='', encoding='utf-8-sig') as csvfile:
-                fieldnames = ["客户姓名", "联系电话", "客户类型", "地址", "备注", "注册时间"]
-                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
-                writer.writeheader()
-                
-                # 获取客户数据
-                customers = self.get_filtered_customers(customer_type)
-                
-                for customer in customers:
-                    writer.writerow({
-                        "客户姓名": customer.get('name', ''),
-                        "联系电话": customer.get('phone', ''),
-                        "客户类型": customer.get('type', ''),
-                        "地址": customer.get('address', ''),
-                        "备注": customer.get('note', ''),
-                        "注册时间": customer.get('created_at', '')
-                    })
-            
-            return True
-            
-        except Exception as e:
-            print(f"导出CSV失败: {e}")
-            return False
-    
-    def export_customers_to_pdf(self, file_path: str, customer_type: str) -> bool:
-        """导出客户为PDF格式"""
-        try:
-            from reportlab.lib.pagesizes import A4
-            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
-            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-            from reportlab.lib import colors
-            
-            doc = SimpleDocTemplate(file_path, pagesize=A4)
-            story = []
-            
-            # 标题样式
-            styles = getSampleStyleSheet()
-            title_style = ParagraphStyle(
-                'CustomTitle',
-                parent=styles['Heading1'],
-                fontSize=16,
-                spaceAfter=30,
-                alignment=1  # 居中
-            )
-            
-            # 添加标题
-            title = Paragraph(f"智慧餐饮管理系统 - 客户数据 ({customer_type})", title_style)
-            story.append(title)
-            story.append(Spacer(1, 20))
-            
-            # 获取客户数据
-            customers = self.get_filtered_customers(customer_type)
-            
-            # 创建表格数据
-            table_data = [["客户姓名", "联系电话", "客户类型", "地址", "备注", "注册时间"]]
-            
-            for customer in customers:
-                row = [
-                    customer.get('name', ''),
-                    customer.get('phone', ''),
-                    customer.get('type', ''),
-                    customer.get('address', ''),
-                    customer.get('note', ''),
-                    customer.get('created_at', '')
-                ]
-                table_data.append(row)
-            
-            # 创建表格
-            table = Table(table_data)
-            table.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, 0), colors.grey),
-                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
-                ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, 0), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
-                ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
-                ('GRID', (0, 0), (-1, -1), 1, colors.black),
-                ('FONTSIZE', (0, 1), (-1, -1), 8),
-                ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.beige, colors.white])
-            ]))
-            story.append(table)
-            
-            doc.build(story)
-            return True
-            
-        except ImportError:
-            messagebox.showerror("错误", "请安装reportlab库：pip install reportlab")
-            return False
-        except Exception as e:
-            print(f"导出PDF失败: {e}")
-            return False
-    
-    def get_filtered_customers(self, customer_type: str) -> List[Dict]:
-        """获取筛选后的客户数据"""
-        if customer_type == "全部":
-            return self.customer_data
-        else:
-            return [customer for customer in self.customer_data if customer.get('type') == customer_type]
+            messagebox.showerror("Error", f"An error occurred: {e}", parent=self)

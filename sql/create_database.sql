@@ -1,8 +1,8 @@
--- 工厂后台综合管理系统数据库
--- SQLite数据库初始化脚本
--- 创建日期: 2025-06-21
+-- Database for the comprehensive factory management system
+-- SQLite database initialization script
+-- Creation Date: 2025-06-21
 
--- 删除已存在的表（如果存在）
+-- Drop existing tables (if they exist)
 DROP TABLE IF EXISTS Total_income;
 DROP TABLE IF EXISTS Fixed_cost;
 DROP TABLE IF EXISTS Order_price;
@@ -22,13 +22,13 @@ DROP TABLE IF EXISTS Meal;
 DROP TABLE IF EXISTS Payment_method;
 DROP TABLE IF EXISTS Customer;
 
--- 1. 支付方式表
+-- 1. Payment Method Table
 CREATE TABLE Payment_method (
     payment_method_id INTEGER PRIMARY KEY AUTOINCREMENT,
     method_name TEXT NOT NULL UNIQUE
 );
 
--- 2. 客户表
+-- 2. Customer Table
 CREATE TABLE Customer (
     customer_id INTEGER PRIMARY KEY AUTOINCREMENT,
     first_name TEXT NOT NULL,
@@ -37,12 +37,12 @@ CREATE TABLE Customer (
     customer_email TEXT UNIQUE,
     customer_address TEXT,
     payment_method_id INTEGER,
-    password_hash TEXT, -- 用于登录验证
+    password_hash TEXT, -- For login authentication
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (payment_method_id) REFERENCES Payment_method(payment_method_id)
 );
 
--- 3. 餐食表
+-- 3. Meal Table
 CREATE TABLE Meal (
     meal_id INTEGER PRIMARY KEY AUTOINCREMENT,
     meal_name TEXT NOT NULL UNIQUE,
@@ -53,7 +53,7 @@ CREATE TABLE Meal (
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- 4. 容器表
+-- 4. Container Table
 CREATE TABLE Container (
     container_id INTEGER PRIMARY KEY AUTOINCREMENT,
     container_type TEXT NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE Container (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- 5. 餐食-容器关联表（多对多关系）
+-- 5. Meal-Container Association Table (Many-to-Many)
 CREATE TABLE Meal_container (
     meal_id INTEGER,
     container_id INTEGER,
@@ -73,7 +73,7 @@ CREATE TABLE Meal_container (
     FOREIGN KEY (container_id) REFERENCES Container(container_id) ON DELETE CASCADE
 );
 
--- 6. 容器供应商表
+-- 6. Container Supplier Table
 CREATE TABLE Container_supplier (
     container_supplier_id INTEGER PRIMARY KEY AUTOINCREMENT,
     container_supplier_name TEXT NOT NULL,
@@ -83,13 +83,13 @@ CREATE TABLE Container_supplier (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- 7. 容器批次价格表
+-- 7. Container Batch Price Table
 CREATE TABLE Container_batch_price (
     container_batch_price_id INTEGER PRIMARY KEY AUTOINCREMENT,
     container_batch_price DECIMAL(10,2) NOT NULL
 );
 
--- 8. 容器批次表
+-- 8. Container Batch Table
 CREATE TABLE Container_batch (
     container_batch_id INTEGER PRIMARY KEY AUTOINCREMENT,
     container_id INTEGER NOT NULL,
@@ -103,18 +103,18 @@ CREATE TABLE Container_batch (
     FOREIGN KEY (container_batch_price_id) REFERENCES Container_batch_price(container_batch_price_id)
 );
 
--- 9. 原料表
+-- 9. Ingredient Table
 CREATE TABLE Ingredient (
     ingredient_id INTEGER PRIMARY KEY AUTOINCREMENT,
     ingredient_name TEXT NOT NULL UNIQUE,
     ingredient_current_stock DECIMAL(10,2) DEFAULT 0,
-    unit_measure TEXT NOT NULL, -- 如：kg, 升, 个
+    unit_measure TEXT NOT NULL, -- e.g., kg, liter, piece
     ingredient_reorder_threshold DECIMAL(10,2) DEFAULT 10,
     ingredient_unit_cost DECIMAL(10,2) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- 10. 原料供应商表
+-- 10. Ingredient Supplier Table
 CREATE TABLE Ingredient_supplier (
     ingredient_supplier_id INTEGER PRIMARY KEY AUTOINCREMENT,
     ingredient_supplier_name TEXT NOT NULL,
@@ -124,13 +124,13 @@ CREATE TABLE Ingredient_supplier (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- 11. 原料批次价格表
+-- 11. Ingredient Batch Price Table
 CREATE TABLE Ingredient_batch_price (
     ingredient_batch_price_id INTEGER PRIMARY KEY AUTOINCREMENT,
     ingredient_batch_price DECIMAL(10,2) NOT NULL
 );
 
--- 12. 原料批次表
+-- 12. Ingredient Batch Table
 CREATE TABLE Ingredient_batch (
     ingredient_batch_id INTEGER PRIMARY KEY AUTOINCREMENT,
     ingredient_id INTEGER NOT NULL,
@@ -145,15 +145,15 @@ CREATE TABLE Ingredient_batch (
     FOREIGN KEY (ingredient_supplier_id) REFERENCES Ingredient_supplier(ingredient_supplier_id)
 );
 
--- 13. 员工薪资表
+-- 13. Employee Salary Table
 CREATE TABLE Employee_salary (
     employee_salary_id INTEGER PRIMARY KEY AUTOINCREMENT,
     employee_salary_amount DECIMAL(10,2) NOT NULL,
-    pay_day INTEGER NOT NULL DEFAULT 1, -- 每月的发薪日
+    pay_day INTEGER NOT NULL DEFAULT 1, -- The day of the month for payroll
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- 14. 员工表
+-- 14. Employee Table
 CREATE TABLE Employee (
     employee_id INTEGER PRIMARY KEY AUTOINCREMENT,
     employee_name TEXT NOT NULL,
@@ -167,13 +167,13 @@ CREATE TABLE Employee (
     FOREIGN KEY (employee_salary_id) REFERENCES Employee_salary(employee_salary_id)
 );
 
--- 15. 订单价格表
+-- 15. Order Price Table
 CREATE TABLE Order_price (
     order_price_id INTEGER PRIMARY KEY AUTOINCREMENT,
     order_price DECIMAL(10,2) NOT NULL
 );
 
--- 16. 订单表
+-- 16. Order Table
 CREATE TABLE "Order" (
     order_id INTEGER PRIMARY KEY AUTOINCREMENT,
     meal_id INTEGER NOT NULL,
@@ -183,7 +183,7 @@ CREATE TABLE "Order" (
     payment_method_id INTEGER,
     order_date DATETIME DEFAULT CURRENT_TIMESTAMP,
     delivery_date DATE,
-    order_status TEXT DEFAULT '已接收' CHECK (order_status IN ('已接收', '进行中', '已完成')),
+    order_status TEXT DEFAULT 'Received' CHECK (order_status IN ('Received', 'In Progress', 'Completed')),
     order_note TEXT,
     meal_quantity INTEGER NOT NULL DEFAULT 1,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -195,16 +195,16 @@ CREATE TABLE "Order" (
     FOREIGN KEY (payment_method_id) REFERENCES Payment_method(payment_method_id)
 );
 
--- 17. 固定成本表
+-- 17. Fixed Cost Table
 CREATE TABLE Fixed_cost (
     fixed_cost_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    cost_type TEXT NOT NULL, -- 人力、租金、水电、杂费
+    cost_type TEXT NOT NULL, -- Labor, Rent, Utilities, Miscellaneous
     effective_date DATE NOT NULL,
     cost_amount DECIMAL(10,2) NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- 18. 总收入表
+-- 18. Total Income Table
 CREATE TABLE Total_income (
     total_income_id INTEGER PRIMARY KEY AUTOINCREMENT,
     order_price_id INTEGER,
@@ -224,7 +224,7 @@ CREATE TABLE Total_income (
     FOREIGN KEY (fixed_cost_id) REFERENCES Fixed_cost(fixed_cost_id)
 );
 
--- 创建索引以提高查询性能
+-- Create indexes to improve query performance
 CREATE INDEX idx_customer_email ON Customer(customer_email);
 CREATE INDEX idx_order_customer ON "Order"(customer_id);
 CREATE INDEX idx_order_date ON "Order"(order_date);

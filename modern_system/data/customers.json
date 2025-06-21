@@ -1,25 +1,25 @@
 [
   {
     "id": "CUST001",
-    "name": "张三",
+    "name": "Zhang San",
     "phone": "138****1234",
-    "address": "北京市朝阳区xxx街道1号",
+    "address": "No.1 Street, Chaoyang District, Beijing",
     "total_orders": 15,
     "total_amount": 1580.0
   },
   {
     "id": "CUST002",
-    "name": "李四",
+    "name": "Li Si",
     "phone": "139****5678",
-    "address": "北京市海淀区xxx路88号",
+    "address": "No.88 Road, Haidian District, Beijing",
     "total_orders": 8,
     "total_amount": 890.0
   },
   {
     "id": "CUST003",
-    "name": "王五",
+    "name": "Wang Wu",
     "phone": "136****9012",
-    "address": "北京市西城区xxx胡同66号",
+    "address": "No.66 Alley, Xicheng District, Beijing",
     "total_orders": 12,
     "total_amount": 1250.0
   }

@@ -1,47 +1,47 @@
 [
   {
     "id": "MEAL001",
-    "name": "番茄牛肉面",
-    "category": "面食",
+    "name": "Tomato Beef Noodles",
+    "category": "Noodles",
     "price": 25.0,
     "cost": 15.0,
     "ingredients": [
-      "番茄",
-      "牛肉",
-      "面条"
+      "Tomato",
+      "Beef",
+      "Noodles"
     ]
   },
   {
     "id": "MEAL002",
-    "name": "鸡蛋炒饭",
-    "category": "炒饭",
+    "name": "Egg Fried Rice",
+    "category": "Fried Rice",
     "price": 18.0,
     "cost": 10.0,
     "ingredients": [
-      "鸡蛋",
-      "米饭"
+      "Egg",
+      "Rice"
     ]
   },
   {
     "id": "MEAL003",
-    "name": "牛肉汉堡",
-    "category": "西餐",
+    "name": "Beef Burger",
+    "category": "Western",
     "price": 32.0,
     "cost": 20.0,
     "ingredients": [
-      "牛肉",
-      "面包",
-      "生菜"
+      "Beef",
+      "Bread",
+      "Lettuce"
     ]
   },
   {
     "id": "MEAL004",
-    "name": "薯条",
-    "category": "小食",
+    "name": "French Fries",
+    "category": "Snacks",
     "price": 12.0,
     "cost": 6.0,
     "ingredients": [
-      "土豆"
+      "Potato"
     ]
   }
 ]

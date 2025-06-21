@@ -1,57 +1,137 @@
 [
     {
         "meal_id": "MEAL001",
-        "meal_name": "番茄牛肉面",
-        "description": "经典家常面食，营养丰富",
+        "meal_name": "Tomato Beef Noodles",
+        "description": "Classic homemade noodles, nutritious and delicious",
         "ingredients": [
-            {"ingredient_name": "番茄", "quantity_per_serving": 0.2, "unit": "kg"},
-            {"ingredient_name": "牛肉", "quantity_per_serving": 0.15, "unit": "kg"},
-            {"ingredient_name": "面条", "quantity_per_serving": 0.25, "unit": "包"},
-            {"ingredient_name": "洋葱", "quantity_per_serving": 0.1, "unit": "kg"},
-            {"ingredient_name": "生抽", "quantity_per_serving": 0.02, "unit": "瓶"}
+            {
+                "ingredient_name": "Tomato",
+                "quantity_per_serving": 0.2,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "Beef",
+                "quantity_per_serving": 0.15,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "Noodles",
+                "quantity_per_serving": 0.25,
+                "unit": "pack"
+            },
+            {
+                "ingredient_name": "Onion",
+                "quantity_per_serving": 0.1,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "Soy Sauce",
+                "quantity_per_serving": 0.02,
+                "unit": "bottle"
+            }
         ]
     },
     {
         "meal_id": "MEAL002",
-        "meal_name": "鸡蛋炒饭",
-        "description": "简单快手的炒饭，香味浓郁",
+        "meal_name": "Egg Fried Rice",
+        "description": "Simple and quick fried rice, rich in flavor",
         "ingredients": [
-            {"ingredient_name": "鸡蛋", "quantity_per_serving": 2, "unit": "个"},
-            {"ingredient_name": "大米", "quantity_per_serving": 0.3, "unit": "kg"},
-            {"ingredient_name": "食用油", "quantity_per_serving": 0.02, "unit": "瓶"},
-            {"ingredient_name": "盐", "quantity_per_serving": 0.005, "unit": "包"}
+            {
+                "ingredient_name": "Egg",
+                "quantity_per_serving": 2,
+                "unit": "piece"
+            },
+            {
+                "ingredient_name": "Rice",
+                "quantity_per_serving": 0.3,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "Cooking Oil",
+                "quantity_per_serving": 0.02,
+                "unit": "bottle"
+            },
+            {
+                "ingredient_name": "Salt",
+                "quantity_per_serving": 0.005,
+                "unit": "pack"
+            }
         ]
     },
     {
         "meal_id": "MEAL003",
-        "meal_name": "青椒炒肉丝",
-        "description": "经典下饭菜，清香爽口",
+        "meal_name": "Green Pepper Pork Strips",
+        "description": "Classic side dish, fresh and appetizing",
         "ingredients": [
-            {"ingredient_name": "青椒", "quantity_per_serving": 0.2, "unit": "kg"},
-            {"ingredient_name": "猪肉", "quantity_per_serving": 0.15, "unit": "kg"},
-            {"ingredient_name": "食用油", "quantity_per_serving": 0.02, "unit": "瓶"},
-            {"ingredient_name": "生抽", "quantity_per_serving": 0.015, "unit": "瓶"},
-            {"ingredient_name": "盐", "quantity_per_serving": 0.003, "unit": "包"}
+            {
+                "ingredient_name": "Green Pepper",
+                "quantity_per_serving": 0.2,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "Pork",
+                "quantity_per_serving": 0.15,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "Cooking Oil",
+                "quantity_per_serving": 0.02,
+                "unit": "bottle"
+            },
+            {
+                "ingredient_name": "Soy Sauce",
+                "quantity_per_serving": 0.015,
+                "unit": "bottle"
+            },
+            {
+                "ingredient_name": "Salt",
+                "quantity_per_serving": 0.003,
+                "unit": "pack"
+            }
         ]
     },
     {
         "meal_id": "MEAL004",
-        "meal_name": "土豆丝",
-        "description": "家常菜，清爽开胃",
+        "meal_name": "Shredded Potatoes",
+        "description": "Homestyle dish, refreshing and appetizing",
         "ingredients": [
-            {"ingredient_name": "土豆", "quantity_per_serving": 0.3, "unit": "kg"},
-            {"ingredient_name": "食用油", "quantity_per_serving": 0.02, "unit": "瓶"},
-            {"ingredient_name": "盐", "quantity_per_serving": 0.003, "unit": "包"}
+            {
+                "ingredient_name": "Potato",
+                "quantity_per_serving": 0.3,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "Cooking Oil",
+                "quantity_per_serving": 0.02,
+                "unit": "bottle"
+            },
+            {
+                "ingredient_name": "Salt",
+                "quantity_per_serving": 0.003,
+                "unit": "pack"
+            }
         ]
     },
     {
         "meal_id": "MEAL005",
-        "meal_name": "生菜沙拉",
-        "description": "清爽健康的沙拉",
+        "meal_name": "Lettuce Salad",
+        "description": "Fresh and healthy salad",
         "ingredients": [
-            {"ingredient_name": "生菜", "quantity_per_serving": 0.2, "unit": "kg"},
-            {"ingredient_name": "番茄", "quantity_per_serving": 0.1, "unit": "kg"},
-            {"ingredient_name": "胡萝卜", "quantity_per_serving": 0.05, "unit": "kg"}
+            {
+                "ingredient_name": "Lettuce",
+                "quantity_per_serving": 0.2,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "Tomato",
+                "quantity_per_serving": 0.1,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "Carrot",
+                "quantity_per_serving": 0.05,
+                "unit": "kg"
+            }
         ]
     }
 ]
