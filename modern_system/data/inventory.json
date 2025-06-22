@@ -1,0 +1,167 @@
+[
+  {
+    "id": "INV001",
+    "name": "Tomato",
+    "category": "Vegetables",
+    "current_stock": 42.8,
+    "min_stock": 10,
+    "unit": "kg",
+    "price": 8.0,
+    "supplier": "Fresh Vegetable Supplier",
+    "updated_at": "2025-06-22T18:50:51"
+  },
+  {
+    "id": "INV002",
+    "name": "Beef",
+    "category": "Meat",
+    "current_stock": 17.900000000000002,
+    "min_stock": 5,
+    "unit": "kg",
+    "price": 68.0,
+    "supplier": "Premium Meat Supplier",
+    "updated_at": "2025-06-22T19:43:08"
+  },
+  {
+    "id": "INV003",
+    "name": "Noodles",
+    "category": "Staple Food",
+    "current_stock": 98.9,
+    "min_stock": 20,
+    "unit": "pack",
+    "price": 3.5,
+    "supplier": "Noodle Factory",
+    "updated_at": "2025-06-22T18:50:51"
+  },
+  {
+    "id": "INV004",
+    "name": "Cola",
+    "category": "Beverages",
+    "current_stock": 80,
+    "min_stock": 30,
+    "unit": "bottle",
+    "price": 5.0,
+    "supplier": "Beverage Distributor",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "INV005",
+    "name": "Egg",
+    "category": "Dairy & Eggs",
+    "current_stock": 199.89999999999998,
+    "min_stock": 50,
+    "unit": "piece",
+    "price": 0.8,
+    "supplier": "Farm Fresh Supplier",
+    "updated_at": "2025-06-22T18:50:51"
+  },
+  {
+    "id": "INV006",
+    "name": "Rice",
+    "category": "Staple Food",
+    "current_stock": 499.6,
+    "min_stock": 100,
+    "unit": "kg",
+    "price": 4.0,
+    "supplier": "Rice Factory",
+    "updated_at": "2025-06-22T19:53:56"
+  },
+  {
+    "id": "INV007",
+    "name": "Bread",
+    "category": "Bakery",
+    "current_stock": 29.7,
+    "min_stock": 10,
+    "unit": "piece",
+    "price": 2.5,
+    "supplier": "Local Bakery",
+    "updated_at": "2025-06-22T19:43:08"
+  },
+  {
+    "id": "INV008",
+    "name": "Lettuce",
+    "category": "Vegetables",
+    "current_stock": 19.7,
+    "min_stock": 5,
+    "unit": "kg",
+    "price": 6.0,
+    "supplier": "Fresh Vegetable Supplier",
+    "updated_at": "2025-06-22T19:43:08"
+  },
+  {
+    "id": "INV009",
+    "name": "Chicken",
+    "category": "Meat",
+    "current_stock": 24.55,
+    "min_stock": 8,
+    "unit": "kg",
+    "price": 45.0,
+    "supplier": "Premium Meat Supplier",
+    "updated_at": "2025-06-22T19:53:56"
+  },
+  {
+    "id": "INV010",
+    "name": "Pork",
+    "category": "Meat",
+    "current_stock": 25,
+    "min_stock": 6,
+    "unit": "kg",
+    "price": 38.0,
+    "supplier": "Premium Meat Supplier",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "INV011",
+    "name": "Shrimp",
+    "category": "Seafood",
+    "current_stock": 15,
+    "min_stock": 3,
+    "unit": "kg",
+    "price": 88.0,
+    "supplier": "Fresh Seafood Supplier",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "INV012",
+    "name": "Fish",
+    "category": "Seafood",
+    "current_stock": 20,
+    "min_stock": 5,
+    "unit": "kg",
+    "price": 45.0,
+    "supplier": "Fresh Seafood Supplier",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "INV013",
+    "name": "Mushroom",
+    "category": "Vegetables",
+    "current_stock": 12,
+    "min_stock": 3,
+    "unit": "kg",
+    "price": 25.0,
+    "supplier": "Fresh Vegetable Supplier",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "INV014",
+    "name": "Pasta",
+    "category": "Staple Food",
+    "current_stock": 30,
+    "min_stock": 10,
+    "unit": "pack",
+    "price": 12.0,
+    "supplier": "Italian Food Supplier",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "INV015",
+    "name": "Flour",
+    "category": "Staple Food",
+    "current_stock": 50,
+    "min_stock": 15,
+    "unit": "kg",
+    "price": 6.0,
+    "supplier": "Baking Supplier",
+    "updated_at": "2024-01-01T00:00:00"
+  }
+]
