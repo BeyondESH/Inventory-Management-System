@@ -674,19 +674,32 @@ class ModernSalesModule:
         
         # Payment buttons
         payment_methods = [
-            ("Credit Card", "💳", self.colors['info']),
-            ("Alipay", "支付宝", self.colors['info']),
-            ("WeChat Pay", "微信", self.colors['success']),
-            ("Cash", "💵", self.colors['warning'])
+            ("Credit Card", "💳", "#3498DB"),
+            ("Alipay", "💰", "#1677FF"),  
+            ("WeChat Pay", "💬", "#07C160"),
+            ("Cash", "💵", "#F39C12")
         ]
         
+        payment_method_var = tk.StringVar()
+        
         for method, icon, color in payment_methods:
-            btn = tk.Button(right_frame, text=f" {icon} {method} ",
-                           font=self.fonts['body'],
-                           bg=color, fg=self.colors['white'],
-                           bd=0, cursor="hand2", width=20,
+            btn_frame = tk.Frame(right_frame, bg=self.colors['surface'])
+            btn_frame.pack(fill="x", pady=5)
+            
+            btn = tk.Button(btn_frame, 
+                           text=f"{icon}  {method}",
+                           font=('Segoe UI', 12, 'bold'),
+                           bg=color, 
+                           fg="white",
+                           activebackground=color,
+                           activeforeground="white",
+                           bd=0, 
+                           relief="flat",
+                           cursor="hand2", 
+                           width=18,
+                           height=2,
                            command=lambda m=method: self.process_payment(dialog, m))
-            btn.pack(fill="x", pady=8, ipady=10)
+            btn.pack(fill="x", ipady=8)
         
         # Bottom: Total amount and cancel button
         bottom_frame = tk.Frame(dialog, bg=self.colors['background'], padx=20, pady=10)
@@ -705,13 +718,28 @@ class ModernSalesModule:
 
     def process_payment(self, dialog, payment_method):
         """Process the payment"""
-        # Disable all payment buttons to prevent multiple clicks
-        self._disable_payment_buttons(dialog)
+        # Create a processing overlay
+        overlay = tk.Frame(dialog, bg="white", bd=2, relief="raised")
+        overlay.place(relx=0.1, rely=0.2, relwidth=0.8, relheight=0.6)
         
-        # Display processing animation/message
-        processing_label = tk.Label(dialog, text=f"Processing {payment_method} payment...",
-                                    font=self.fonts['body'], bg=self.colors['background'])
-        processing_label.place(relx=0.5, rely=0.5, anchor="center")
+        # Processing content
+        processing_frame = tk.Frame(overlay, bg="white")
+        processing_frame.pack(expand=True, fill="both")
+        
+        # Processing icon and text
+        tk.Label(processing_frame, text="💳", font=('Segoe UI', 48), bg="white").pack(pady=(50, 10))
+        tk.Label(processing_frame, text=f"Processing {payment_method} payment...", 
+                 font=('Segoe UI', 14), bg="white", fg=self.colors['text_primary']).pack()
+        tk.Label(processing_frame, text="Please wait...", 
+                 font=('Segoe UI', 12), bg="white", fg=self.colors['text_secondary']).pack(pady=10)
+        
+        # Progress bar
+        progress = ttk.Progressbar(processing_frame, mode='indeterminate', length=300)
+        progress.pack(pady=20)
+        progress.start()
+
+        # Disable all payment buttons
+        self._disable_payment_buttons(dialog)
 
         # Simulate payment processing in a separate thread
         def _do_payment():
@@ -720,24 +748,29 @@ class ModernSalesModule:
             
             # On success
             if random.random() > 0.1: # 90% success rate
-                order_data = {
-                    "table_id": self.current_table,
-                    "items": self.cart_items,
-                    "total_amount": self.total_amount,
-                    "payment_method": payment_method,
-                    "status": "Received"
-                }
-                # Use data_manager to add the order
-                order_id = data_manager.add_order(order_data)
+                created_order_ids = []
                 
-                # Update UI on the main thread
-                dialog.after(0, self._handle_payment_success, dialog, order_id, payment_method)
+                # Create separate order for each cart item
+                for cart_item in self.cart_items:
+                    order_data = {
+                        "meal_id": cart_item['id'],
+                        "customer_id": 'GUEST',
+                        "quantity": cart_item['quantity'],
+                        "note": f"Table: {self.current_table}, Payment: {payment_method}",
+                        "status": "Received"
+                    }
+                    # Use data_manager to add the order
+                    order_id = data_manager.add_order(order_data)
+                    if order_id:
+                        created_order_ids.append(order_id)
+                        print(f"✅ Created order {order_id} for {cart_item['name']} x{cart_item['quantity']}")
+                
+                # Update UI on the main thread with all order IDs
+                combined_order_id = ", ".join(created_order_ids) if created_order_ids else "UNKNOWN"
+                dialog.after(0, self._handle_payment_success, dialog, combined_order_id, payment_method, overlay, progress)
             # On failure
             else:
-                dialog.after(0, self._handle_payment_error, dialog, "Payment gateway timeout")
-            
-            # Remove processing message
-            dialog.after(0, processing_label.destroy)
+                dialog.after(0, self._handle_payment_error, dialog, "Payment gateway timeout", overlay, progress)
 
         threading.Thread(target=_do_payment, daemon=True).start()
 
@@ -749,8 +782,21 @@ class ModernSalesModule:
             else:
                 self._disable_payment_buttons(child)
 
-    def _handle_payment_success(self, dialog, order_id, payment_method):
+    def _handle_payment_success(self, dialog, order_id, payment_method, overlay, progress):
         """Handle successful payment UI updates."""
+        # Safely stop progress bar
+        try:
+            if progress.winfo_exists():
+                progress.stop()
+        except tk.TclError:
+            pass  # Progress bar already destroyed
+        
+        # Remove processing overlay
+        try:
+            overlay.destroy()
+        except tk.TclError:
+            pass  # Overlay already destroyed
+        
         def close_and_clean():
             dialog.destroy()
             self.clear_cart()
@@ -761,10 +807,16 @@ class ModernSalesModule:
         
         # Show a confirmation dialog
         confirm_dialog = tk.Toplevel(self.parent_frame)
-        confirm_dialog.title("Success")
+        confirm_dialog.title("Payment Success")
         confirm_dialog.geometry("350x200")
         confirm_dialog.transient(self.parent_frame)
         confirm_dialog.grab_set()
+        
+        # Center the dialog
+        confirm_dialog.update_idletasks()
+        x = (confirm_dialog.winfo_screenwidth() // 2) - (350 // 2)
+        y = (confirm_dialog.winfo_screenheight() // 2) - (200 // 2)
+        confirm_dialog.geometry(f"350x200+{x}+{y}")
         
         main_frame = tk.Frame(confirm_dialog, bg=self.colors['surface'], padx=20, pady=20)
         main_frame.pack(fill="both", expand=True)
@@ -772,27 +824,42 @@ class ModernSalesModule:
         icon_label = tk.Label(main_frame, text="✅", font=('Segoe UI Emoji', 40), bg=self.colors['surface'])
         icon_label.pack()
         
-        tk.Label(main_frame, text=success_msg, font=self.fonts['body'], justify='center', bg=self.colors['surface']).pack(pady=10)
+        tk.Label(main_frame, text=success_msg, font=self.fonts['body'], justify='center', 
+                bg=self.colors['surface'], fg=self.colors['text_primary']).pack(pady=10)
         
         ok_button = tk.Button(main_frame, text="OK", command=close_and_clean,
-                              bg=self.colors['success'], fg='white', font=self.fonts['body'], bd=0, padx=20, pady=8)
+                              bg=self.colors['success'], fg='white', font=self.fonts['body'], 
+                              bd=0, padx=20, pady=8, cursor="hand2")
         ok_button.pack(pady=10)
-        
-        dialog.destroy() # Close the original checkout dialog
 
-    def _handle_payment_error(self, dialog, error):
+    def _handle_payment_error(self, dialog, error, overlay, progress):
         """Handle payment error UI updates."""
+        # Safely stop progress bar
+        try:
+            if progress.winfo_exists():
+                progress.stop()
+        except tk.TclError:
+            pass  # Progress bar already destroyed
+        
+        # Remove processing overlay
+        try:
+            overlay.destroy()
+        except tk.TclError:
+            pass  # Overlay already destroyed
+        
+        # Show error message
         messagebox.showerror("Payment Failed", f"An error occurred: {error}.\nPlease try again.", parent=dialog)
+        
         # Re-enable payment buttons
         self._enable_payment_buttons(dialog)
         
     def _enable_payment_buttons(self, widget):
         """Recursively re-enable payment buttons."""
         payment_methods_map = {
-            "Credit Card": self.colors['info'],
-            "Alipay": self.colors['info'],
-            "WeChat Pay": self.colors['success'],
-            "Cash": self.colors['warning']
+            "Credit Card": "#3498DB",
+            "Alipay": "#1677FF",
+            "WeChat Pay": "#07C160",
+            "Cash": "#F39C12"
         }
         for child in widget.winfo_children():
             if isinstance(child, tk.Button):
@@ -858,6 +925,14 @@ class ModernSalesModule:
         self.categories = list(set(meal.get('category', 'Other') for meal in self.meals_data))
         self.display_meals()
         
+    def refresh_data(self):
+        """刷新销售数据（被数据管理器调用）"""
+        try:
+            self.refresh_meals_data()
+            print("✅ 销售模块数据已刷新")
+        except Exception as e:
+            print(f"❌ 销售模块数据刷新失败: {e}")
+
     def check_meal_inventory(self, meal):
         """Check if there is enough inventory to make a meal."""
         # If inventory module is not available, assume there is enough stock

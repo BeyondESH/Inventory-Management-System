@@ -12,7 +12,7 @@ import json
 
 # Import data management center
 try:
-    from ..utils.data_manager import data_manager
+    from .data_manager import data_manager
 except ImportError:
     try:
         from data_manager import data_manager

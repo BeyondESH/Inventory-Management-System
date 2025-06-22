@@ -5,8 +5,11 @@
     "position": "Manager",
     "department": "Management",
     "phone": "188****0001",
-    "salary": 8000,
-    "hire_date": "2023-01-01"
+    "email": "admin@restaurant.com",
+    "salary": 8000.0,
+    "hire_date": "2023-01-01",
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
   },
   {
     "id": "EMP002",
@@ -14,8 +17,11 @@
     "position": "Chef",
     "department": "Kitchen",
     "phone": "188****0002",
-    "salary": 6000,
-    "hire_date": "2023-03-15"
+    "email": "chef.wang@restaurant.com",
+    "salary": 6000.0,
+    "hire_date": "2023-03-15",
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
   },
   {
     "id": "EMP003",
@@ -23,7 +29,10 @@
     "position": "Waiter",
     "department": "Front Desk",
     "phone": "188****0003",
-    "salary": 4500,
-    "hire_date": "2023-06-01"
+    "email": "server.li@restaurant.com",
+    "salary": 4500.0,
+    "hire_date": "2023-06-01",
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
   }
 ]

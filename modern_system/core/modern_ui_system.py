@@ -22,7 +22,7 @@ try:
     from ..modules.modern_finance_module import ModernFinanceModule
     from ..modules.modern_employee_module import ModernEmployeeModule
     from ..ui.meituan_charts_module import ModernChartsModule
-    from ..utils.data_manager import data_manager
+    from ..modules.data_manager import data_manager
 except ImportError:
     import sys
     import os
@@ -44,7 +44,10 @@ except ImportError:
         from modern_finance_module import ModernFinanceModule
         from modern_employee_module import ModernEmployeeModule
         from meituan_charts_module import ModernChartsModule
-        from data_manager import data_manager
+        # 强制导入正确的data_manager
+        import data_manager
+        data_manager = data_manager.data_manager
+        print("✅ 使用fallback导入成功")
     except ImportError as e:
         print(f"Failed to import modules: {e}")
         # Create simple mock classes
@@ -71,6 +74,8 @@ except ImportError:
                     'inventory_alerts': 8,
                     'customer_count': 2340
                 }
+            def register_module(self, module_type, instance):
+                print(f"Mock: Registering {module_type}")
         data_manager = MockDataManager()
 
 class ModernFoodServiceSystem:
@@ -286,6 +291,20 @@ class ModernFoodServiceSystem:
         self.module_instances["employee"] = ModernEmployeeModule(self.content_frame, self.title_frame)
         self.module_instances["finance"] = ModernFinanceModule(self.content_frame, self.title_frame)
         self.module_instances["charts"] = ModernChartsModule(self.content_frame, self.title_frame)
+        
+        # Register all modules with the data manager
+        try:
+            data_manager.register_module('sales', self.module_instances["sales"])
+            data_manager.register_module('inventory', self.module_instances["inventory"])
+            data_manager.register_module('meal', self.module_instances["meal"])
+            data_manager.register_module('order', self.module_instances["order"])
+            data_manager.register_module('customer', self.module_instances["customer"])
+            data_manager.register_module('employee', self.module_instances["employee"])
+            data_manager.register_module('finance', self.module_instances["finance"])
+            data_manager.register_module('charts', self.module_instances["charts"])
+            print("✅ All modules registered with data manager.")
+        except Exception as e:
+            print(f"⚠️ Failed to register modules with data manager: {e}")
         
         print("All modules initialized.")
 

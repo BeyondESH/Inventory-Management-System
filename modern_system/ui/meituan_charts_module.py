@@ -11,7 +11,7 @@ import datetime
 
 # Import data management center
 try:
-    from ..utils.data_manager import data_manager
+    from ..modules.data_manager import data_manager
 except ImportError:
     try:
         from data_manager import data_manager
@@ -247,9 +247,20 @@ class ModernChartsModule:
                 if record.get('type') == 'Income':
                     record_date_str = record.get('date')
                     if record_date_str:
-                        record_month_key = datetime.datetime.strptime(record_date_str, '%Y-%m-%d').strftime('%Y-%m')
-                        if record_month_key in monthly_revenue:
-                            monthly_revenue[record_month_key] += record.get('amount', 0)
+                        try:
+                            # 处理不同的日期格式
+                            if 'T' in record_date_str:
+                                # ISO格式: 2025-06-22T14:39:22
+                                record_month_key = datetime.datetime.strptime(record_date_str.split('T')[0], '%Y-%m-%d').strftime('%Y-%m')
+                            else:
+                                # 简单格式: 2025-06-22
+                                record_month_key = datetime.datetime.strptime(record_date_str, '%Y-%m-%d').strftime('%Y-%m')
+                            
+                            if record_month_key in monthly_revenue:
+                                monthly_revenue[record_month_key] += record.get('amount', 0)
+                        except ValueError as ve:
+                            print(f"⚠️ 日期格式解析失败: {record_date_str} - {ve}")
+                            continue
 
             # Get the last 6 months from the calculated data
             sorted_months = sorted(monthly_revenue.keys())[-6:]

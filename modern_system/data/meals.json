@@ -5,11 +5,15 @@
     "category": "Noodles",
     "price": 25.0,
     "cost": 15.0,
+    "description": "Delicious noodles with fresh tomato and tender beef",
+    "isActive": true,
     "ingredients": [
       "Tomato",
       "Beef",
       "Noodles"
-    ]
+    ],
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
   },
   {
     "id": "MEAL002",
@@ -17,10 +21,14 @@
     "category": "Fried Rice",
     "price": 18.0,
     "cost": 10.0,
+    "description": "Classic fried rice with fresh eggs",
+    "isActive": true,
     "ingredients": [
       "Egg",
       "Rice"
-    ]
+    ],
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
   },
   {
     "id": "MEAL003",
@@ -28,11 +36,15 @@
     "category": "Western",
     "price": 32.0,
     "cost": 20.0,
+    "description": "Juicy beef burger with fresh vegetables",
+    "isActive": true,
     "ingredients": [
       "Beef",
       "Bread",
       "Lettuce"
-    ]
+    ],
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
   },
   {
     "id": "MEAL004",
@@ -40,8 +52,12 @@
     "category": "Snacks",
     "price": 12.0,
     "cost": 6.0,
+    "description": "Crispy golden french fries",
+    "isActive": true,
     "ingredients": [
       "Potato"
-    ]
+    ],
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
   }
 ]

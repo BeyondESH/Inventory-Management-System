@@ -3,36 +3,110 @@
     "id": "INV001",
     "name": "Tomato",
     "category": "Vegetables",
-    "quantity": 50,
+    "current_stock": 43.2,
+    "min_stock": 10,
     "unit": "kg",
     "price": 8.0,
-    "min_stock": 10
+    "supplier": "Fresh Vegetable Supplier",
+    "updated_at": "2025-06-22T15:47:38"
   },
   {
     "id": "INV002",
     "name": "Beef",
     "category": "Meat",
-    "quantity": 20,
+    "current_stock": 18.65,
+    "min_stock": 5,
     "unit": "kg",
     "price": 68.0,
-    "min_stock": 5
+    "supplier": "Premium Meat Supplier",
+    "updated_at": "2025-06-22T15:47:38"
   },
   {
     "id": "INV003",
     "name": "Noodles",
     "category": "Staple Food",
-    "quantity": 100,
+    "current_stock": 99.1,
+    "min_stock": 20,
     "unit": "pack",
     "price": 3.5,
-    "min_stock": 20
+    "supplier": "Noodle Factory",
+    "updated_at": "2025-06-22T15:47:38"
   },
   {
     "id": "INV004",
     "name": "Cola",
     "category": "Beverages",
-    "quantity": 80,
+    "current_stock": 80,
+    "min_stock": 30,
     "unit": "bottle",
     "price": 5.0,
-    "min_stock": 30
+    "supplier": "Beverage Distributor",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "INV005",
+    "name": "Egg",
+    "category": "Dairy & Eggs",
+    "current_stock": 199.95,
+    "min_stock": 50,
+    "unit": "piece",
+    "price": 0.8,
+    "supplier": "Farm Fresh Supplier",
+    "updated_at": "2025-06-22T15:02:11.259752"
+  },
+  {
+    "id": "INV006",
+    "name": "Rice",
+    "category": "Staple Food",
+    "current_stock": 499.92,
+    "min_stock": 100,
+    "unit": "kg",
+    "price": 4.0,
+    "supplier": "Rice Factory",
+    "updated_at": "2025-06-22T15:02:11.259819"
+  },
+  {
+    "id": "INV007",
+    "name": "Bread",
+    "category": "Bakery",
+    "current_stock": 30,
+    "min_stock": 10,
+    "unit": "piece",
+    "price": 2.5,
+    "supplier": "Local Bakery",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "INV008",
+    "name": "Lettuce",
+    "category": "Vegetables",
+    "current_stock": 20,
+    "min_stock": 5,
+    "unit": "kg",
+    "price": 6.0,
+    "supplier": "Fresh Vegetable Supplier",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "INV009",
+    "name": "Chicken",
+    "category": "Meat",
+    "current_stock": 25,
+    "min_stock": 8,
+    "unit": "kg",
+    "price": 45.0,
+    "supplier": "Premium Meat Supplier",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "INV010",
+    "name": "Pork",
+    "category": "Meat",
+    "current_stock": 18,
+    "min_stock": 6,
+    "unit": "kg",
+    "price": 38.0,
+    "supplier": "Premium Meat Supplier",
+    "updated_at": "2024-01-01T00:00:00"
   }
 ]

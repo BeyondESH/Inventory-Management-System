@@ -66,8 +66,15 @@ def show_startup_splash():
                            bg="#FF6B35", fg="white")
     status_label.pack(pady=(20, 0))
     
-    # Auto-close
-    splash.after(3000, splash.destroy)
+    # Auto-close with safe progress bar handling
+    def safe_close():
+        try:
+            progress.stop()
+        except tk.TclError:
+            pass  # Progress bar already destroyed
+        splash.destroy()
+    
+    splash.after(3000, safe_close)
     splash.mainloop()
 
 def main():

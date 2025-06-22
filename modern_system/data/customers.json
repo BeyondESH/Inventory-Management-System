@@ -3,24 +3,33 @@
     "id": "CUST001",
     "name": "Zhang San",
     "phone": "138****1234",
+    "email": "zhangsan@example.com",
     "address": "No.1 Street, Chaoyang District, Beijing",
     "total_orders": 15,
-    "total_amount": 1580.0
+    "total_amount": 1580.0,
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
   },
   {
     "id": "CUST002",
     "name": "Li Si",
     "phone": "139****5678",
+    "email": "lisi@example.com",
     "address": "No.88 Road, Haidian District, Beijing",
     "total_orders": 8,
-    "total_amount": 890.0
+    "total_amount": 890.0,
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
   },
   {
     "id": "CUST003",
     "name": "Wang Wu",
     "phone": "136****9012",
+    "email": "wangwu@example.com",
     "address": "No.66 Alley, Xicheng District, Beijing",
     "total_orders": 12,
-    "total_amount": 1250.0
+    "total_amount": 1250.0,
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
   }
 ]

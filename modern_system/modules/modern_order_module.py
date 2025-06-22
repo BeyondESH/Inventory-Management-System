@@ -58,7 +58,8 @@ class ModernOrderModule:
             'border': '#E1E8ED',         # Border color
             'text': '#2C3E50',           # Text color
             'text_light': '#7F8C8D',     # Light text color
-            'shadow': '#BDC3C7'          # Shadow color
+            'shadow': '#BDC3C7',          # Shadow color
+            'surface': '#FFFFFF'          # 兼容导出对话框
         }
         
         # Order status color scheme
@@ -825,7 +826,7 @@ Order Status: {order['status']}"""
                                    font=('Microsoft YaHei UI', 10),
                                    bg=self.colors['info'], fg=self.colors['white'],
                                    bd=0, padx=20, pady=8, cursor='hand2',
-                                   command=self.refresh_order_list)
+                                   command=self.refresh_data)
             refresh_btn.pack(side='right', padx=5)
             
             # Export button

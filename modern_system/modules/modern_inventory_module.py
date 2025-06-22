@@ -14,7 +14,7 @@ import os
 
 # Import data manager
 try:
-    from ..utils.data_manager import data_manager
+    from .data_manager import data_manager
 except ImportError:
     try:
         from data_manager import data_manager
@@ -897,6 +897,19 @@ class ModernInventoryModule:
         self.refresh_inventory_list()
         self.refresh_possible_meals()
         messagebox.showinfo("Refresh", "Inventory data has been updated.")
+
+    def refresh_data(self):
+        """刷新库存数据（被数据管理器调用）"""
+        try:
+            # 重新加载库存数据
+            self.inventory_data = data_manager.get_inventory()
+            # 刷新库存列表显示
+            self.refresh_inventory_list()
+            # 更新库存概览卡片
+            self.update_overview_cards()
+            print("✅ 库存模块数据已刷新")
+        except Exception as e:
+            print(f"❌ 库存模块数据刷新失败: {e}")
 
     # --- Meal Possibility Calculation ---
     

@@ -21,6 +21,9 @@ class User:
         self.created_at = created_at or datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         self.last_login: Optional[str] = None
         self.is_active = True
+        # 用户展示名和角色
+        self.name = username
+        self.role = 'admin' if username == 'admin' else 'user'
     
     def to_dict(self):
         """Convert to dictionary"""
@@ -146,18 +149,20 @@ class UserManager:
     def login_user(self, account: str, password: str) -> Tuple[bool, str]:
         """User login"""
         if account not in self.users:
-            for user in self.users.values():
-                if user.email == account:
-                    flag=1 #Email login
+            user = None
+            for u in self.users.values():
+                if u.email == account:
+                    user = u
+                    flag = 1  # Email login
                     break
-            else:
+            if not user:
                 return False, "User does not exist"
         else:
-            flag=0 #Username login
-            user=self.users[account]
-        
+            flag = 0  # Username login
+            user = self.users[account]
+
         if not user.is_active:
-                return False, "Account has been disabled"
+             return False, "Account has been disabled"
 
         password_hash = self.hash_password(password)
         if user.password_hash != password_hash:
@@ -232,17 +237,21 @@ class UserManager:
         }
     
     def user_exists(self, username: str) -> bool:
-        """Check if username exists"""
-        return username.strip() in self.users
-    
+        """检查用户名是否存在"""
+        return username in self.users
+
     def email_exists(self, email: str) -> bool:
-        """Check if email exists"""
-        for user in self.users.values():
-            if user.email == email:
-                return True
-        return False
-    
+        """检查邮箱是否已注册"""
+        return any(user.email == email for user in self.users.values())
+
+    def validate_user(self, account: str, password: str) -> Optional[User]:
+        """验证用户并返回User对象"""
+        success, msg = self.login_user(account, password)
+        if success:
+            return self.current_user
+        return None
+
     def reset_password_by_email(self, email: str, new_password: str) -> bool:
-        """Reset password by email"""
-        success, message = self.reset_password(email, new_password)
+        """根据邮箱重置密码"""
+        success, msg = self.reset_password(email, new_password)
         return success

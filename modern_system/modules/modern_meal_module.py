@@ -14,7 +14,7 @@ import os
 
 # Import data manager
 try:
-    from ..utils.data_manager import data_manager
+    from .data_manager import data_manager
 except ImportError:
     try:
         from data_manager import data_manager
@@ -39,8 +39,10 @@ class ModernMealModule:
             'accent': '#FFD23F',       # Accent
             'background': '#F8F9FA',   # Background
             'surface': '#FFFFFF',      # Card background
+            'text': '#2D3436',         # Default text color
             'text_primary': '#2D3436', # Main text
             'text_secondary': '#636E72', # Secondary text
+            'text_light': '#7F8C8D',   # Light text for dialogs/buttons
             'border': '#E0E0E0',       # Border
             'success': '#00B894',      # Success
             'warning': '#FDCB6E',      # Warning
@@ -874,8 +876,8 @@ class ModernMealModule:
     def refresh_meals(self):
         """Refresh meal data"""
         try:
-            # Reload meal data
-            self.meal_data = data_manager.get_meals()
+            # Reload and reformat meal data
+            self.meal_data = self.load_meal_data()
             # Refresh meal list display
             self.refresh_meals_display()
             messagebox.showinfo("Refresh Success", "Meal data refreshed")

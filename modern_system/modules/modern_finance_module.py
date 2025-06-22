@@ -13,7 +13,7 @@ import os
 
 # Import data management center
 try:
-    from ..utils.data_manager import data_manager
+    from .data_manager import data_manager
 except ImportError:
     try:
         from data_manager import data_manager
@@ -155,9 +155,32 @@ class ModernFinanceModule:
         net_profit = total_revenue - total_expense
         
         if self.finance_records:
-            start_date = min(datetime.datetime.strptime(r['date'], '%Y-%m-%d') for r in self.finance_records)
-            days = (datetime.datetime.now() - start_date).days + 1
-            avg_daily_profit = net_profit / days if days > 0 else 0
+            try:
+                # 处理不同的日期格式
+                start_dates = []
+                for r in self.finance_records:
+                    date_str = r['date']
+                    try:
+                        # 尝试解析 ISO 格式 (2025-06-22T14:39:22)
+                        if 'T' in date_str:
+                            date_obj = datetime.datetime.fromisoformat(date_str.split('T')[0])
+                        else:
+                            # 尝试解析简单日期格式 (2025-06-22)
+                            date_obj = datetime.datetime.strptime(date_str, '%Y-%m-%d')
+                        start_dates.append(date_obj)
+                    except (ValueError, AttributeError):
+                        # 如果解析失败，使用当前日期
+                        start_dates.append(datetime.datetime.now())
+                
+                if start_dates:
+                    start_date = min(start_dates)
+                    days = (datetime.datetime.now() - start_date).days + 1
+                    avg_daily_profit = net_profit / days if days > 0 else 0
+                else:
+                    avg_daily_profit = 0
+            except Exception as e:
+                print(f"计算平均日利润时出错: {e}")
+                avg_daily_profit = 0
         else:
             avg_daily_profit = 0
 
@@ -253,7 +276,24 @@ class ModernFinanceModule:
     def load_finance_records(self):
         """Load financial records from data manager."""
         try:
-            return data_manager.get_finance_records() or self.get_default_records()
+            # 获取数据管理器中的财务记录
+            raw_records = data_manager.get_financial_records() or []
+            
+            # 转换记录格式以匹配财务模块期望的格式
+            converted_records = []
+            for record in raw_records:
+                converted_record = {
+                    'id': record.get('id', ''),
+                    'date': record.get('date', '').split('T')[0] if 'T' in record.get('date', '') else record.get('date', ''),
+                    'type': 'Income' if record.get('type') == 'revenue' else 'Expense' if record.get('type') == 'cost' else record.get('type', ''),
+                    'amount': abs(float(record.get('amount', 0))),  # 确保金额为正数
+                    'category': 'Sales' if record.get('type') == 'revenue' else 'Cost' if record.get('type') == 'cost' else 'Other',
+                    'description': record.get('description', ''),
+                    'recorded_by': 'System'
+                }
+                converted_records.append(converted_record)
+            
+            return converted_records if converted_records else self.get_default_records()
         except Exception as e:
             print(f"Error loading finance records: {e}")
             return self.get_default_records()
@@ -331,6 +371,14 @@ class ModernFinanceModule:
         self.update_overview_cards()
         self.refresh_records_list()
         self.refresh_fixed_costs_list()
+
+    def refresh_data(self):
+        """刷新财务数据（被数据管理器调用）"""
+        try:
+            self.refresh_all_data()
+            print("✅ 财务模块数据已刷新")
+        except Exception as e:
+            print(f"❌ 财务模块数据刷新失败: {e}")
 
     def export_finance_report(self):
         """Placeholder for export functionality."""
