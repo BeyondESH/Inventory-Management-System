@@ -92,9 +92,16 @@ class ModernOrderModule:
             # Convert data format to adapt to existing interface
             formatted_orders = []
             for order in orders:
-                # Process meal data
+                # Process meal data: support 'items' or legacy fields
                 meals = []
                 items = order.get('items', [])
+                # Legacy format: single meal fields
+                if not items and order.get('meal_name'):
+                    items = [{
+                        'name': order.get('meal_name', ''),
+                        'price': order.get('price', 0),
+                        'quantity': order.get('quantity', 1)
+                    }]
                 for item in items:
                     meal = {
                         "name": item.get('name', item.get('product_id', 'Unknown Dish')),
@@ -103,6 +110,9 @@ class ModernOrderModule:
                     }
                     meals.append(meal)
                 
+                # Normalize status: treat 'Received' as 'Pending'
+                raw_status = order.get('status', 'Pending')
+                norm_status = 'Pending' if raw_status == 'Received' else raw_status
                 formatted_order = {
                     "id": order.get('id', ''),
                     "customer": order.get('customer_name', order.get('table_number', 'Unknown Customer')),
@@ -111,7 +121,7 @@ class ModernOrderModule:
                     "meals": meals,
                     "total": order.get('total_amount', order.get('total', 0)),
                     "create_time": order.get('create_time', '').replace('T', ' ')[:16] if 'T' in order.get('create_time', '') else order.get('create_time', ''),
-                    "status": order.get('status', 'Pending'),
+                    "status": norm_status,
                     "type": order.get('order_type', order.get('type', 'Takeout')),
                     "payment": order.get('payment_method', order.get('payment', 'Cash')),
                     "note": order.get('note', '')
@@ -493,7 +503,7 @@ Order Status: {order['status']}"""
         """Update statistics information"""
         if not self.stats_frame:
             return
-            
+        
         # Clear existing statistics cards
         for widget in self.stats_frame.winfo_children():
             widget.destroy()
@@ -504,6 +514,8 @@ Order Status: {order['status']}"""
             status = order.get('status', 'Unknown')
             if status in status_counts:
                 status_counts[status] += 1
+        # Debug: print status counts
+        print(f"[Debug] Order statistics counts: {status_counts}")
         
         # Recreate statistics cards
         # We only display orders with status or some key statuses to avoid UI being too crowded
@@ -515,8 +527,9 @@ Order Status: {order['status']}"""
                 key_statuses.append(status)
 
         for status in key_statuses:
-             if status in status_counts:
-                count = status_counts[status]
+            # Only show statuses with non-zero counts
+            count = status_counts.get(status, 0)
+            if count > 0:
                 color = self.status_colors.get(status, '#bdc3c7')
                 self.create_status_card(self.stats_frame, status, count, color)
     
@@ -821,7 +834,7 @@ Order Status: {order['status']}"""
                                command=self.add_new_order)
             add_btn.pack(side='right', padx=5)
             
-            # Refresh button
+            # Refresh button (fixed)
             refresh_btn = tk.Button(actions_frame, text="🔄 Refresh", 
                                    font=('Microsoft YaHei UI', 10),
                                    bg=self.colors['info'], fg=self.colors['white'],

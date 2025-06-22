@@ -127,7 +127,7 @@
   },
   {
     "id": "COST20250622154738",
-    "type": "cost",
+    "type": "Expense",
     "amount": -12.15,
     "description": "制作菜品成本 - Tomato Beef Noodles x1",
     "meal_id": "MEAL001",
@@ -136,11 +136,137 @@
   },
   {
     "id": "FIN20250622154738",
-    "type": "revenue",
+    "type": "Income",
     "amount": 25.0,
     "description": "订单收入 - Tomato Beef Noodles x1",
     "order_id": "ORD20250622154738",
     "date": "2025-06-22T15:47:38",
     "create_time": "2025-06-22T15:47:38"
+  },
+  {
+    "id": "COST20250622184622",
+    "type": "Expense",
+    "amount": -12.15,
+    "description": "制作菜品成本 - Tomato Beef Noodles x1",
+    "meal_id": "MEAL001",
+    "date": "2025-06-22T18:46:22",
+    "create_time": "2025-06-22T18:4622"
+  },
+  {
+    "id": "FIN20250622184622",
+    "type": "Income",
+    "amount": 25.0,
+    "description": "订单收入 - Tomato Beef Noodles x1",
+    "order_id": "ORD20250622184622",
+    "date": "2025-06-22T18:46:22",
+    "create_time": "2025-06-22T18:46:22"
+  },
+  {
+    "id": "COST20250622185051",
+    "type": "Expense",
+    "amount": -12.15,
+    "description": "制作菜品成本 - Tomato Beef Noodles x1",
+    "meal_id": "MEAL001",
+    "date": "2025-06-22T18:50:51",
+    "create_time": "2025-06-22T18:5051"
+  },
+  {
+    "id": "FIN20250622185051",
+    "type": "Income",
+    "amount": 25.0,
+    "description": "订单收入 - Tomato Beef Noodles x1",
+    "order_id": "ORD20250622185051",
+    "date": "2025-06-22T18:50:51",
+    "create_time": "2025-06-22T18:50:51"
+  },
+  {
+    "id": "COST20250622185051",
+    "type": "Expense",
+    "amount": -0.36,
+    "description": "制作菜品成本 - Egg Fried Rice x1",
+    "meal_id": "MEAL002",
+    "date": "2025-06-22T18:50:51",
+    "create_time": "2025-06-22T18:5051"
+  },
+  {
+    "id": "FIN20250622185051",
+    "type": "Income",
+    "amount": 18.0,
+    "description": "订单收入 - Egg Fried Rice x1",
+    "order_id": "ORD20250622185051",
+    "date": "2025-06-22T18:50:51",
+    "create_time": "2025-06-22T18:50:51"
+  },
+  {
+    "id": "FIN20250622194259",
+    "type": "Income",
+    "amount": 32.0,
+    "description": "Order Income - Beef Burger x1",
+    "order_id": "ORD20250622194259",
+    "date": "2025-06-22T19:42:59",
+    "create_time": "2025-06-22T19:42:59"
+  },
+  {
+    "id": "COST20250622194259",
+    "type": "Expense",
+    "amount": -11.05,
+    "description": "制作菜品成本 - Beef Burger x1",
+    "meal_id": "MEAL003",
+    "date": "2025-06-22T19:42:59",
+    "create_time": "2025-06-22T19:4259"
+  },
+  {
+    "id": "FIN20250622194308",
+    "type": "Income",
+    "amount": 64.0,
+    "description": "Order Income - Beef Burger x2",
+    "order_id": "ORD20250622194308",
+    "date": "2025-06-22T19:43:08",
+    "create_time": "2025-06-22T19:43:08"
+  },
+  {
+    "id": "COST20250622194308",
+    "type": "Expense",
+    "amount": -22.1,
+    "description": "制作菜品成本 - Beef Burger x2",
+    "meal_id": "MEAL003",
+    "date": "2025-06-22T19:43:08",
+    "create_time": "2025-06-22T19:4308"
+  },
+  {
+    "id": "FIN20250622195346",
+    "type": "revenue",
+    "amount": 22.0,
+    "description": "Order Income - Homestyle Chicken Rice x1",
+    "order_id": "ORD20250622195346",
+    "date": "2025-06-22T19:53:46",
+    "create_time": "2025-06-22T19:53:46"
+  },
+  {
+    "id": "COST20250622195346",
+    "type": "cost",
+    "amount": -7.07,
+    "description": "Meal Cost - Homestyle Chicken Rice x1",
+    "meal_id": "MEAL006",
+    "date": "2025-06-22T19:53:46",
+    "create_time": "2025-06-22T19:53:46"
+  },
+  {
+    "id": "FIN20250622195356",
+    "type": "revenue",
+    "amount": 44.0,
+    "description": "Order Income - Homestyle Chicken Rice x2",
+    "order_id": "ORD20250622195356",
+    "date": "2025-06-22T19:53:56",
+    "create_time": "2025-06-22T19:53:56"
+  },
+  {
+    "id": "COST20250622195356",
+    "type": "cost",
+    "amount": -14.14,
+    "description": "Meal Cost - Homestyle Chicken Rice x2",
+    "meal_id": "MEAL006",
+    "date": "2025-06-22T19:53:56",
+    "create_time": "2025-06-22T19:53:56"
   }
 ]

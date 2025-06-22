@@ -86,7 +86,8 @@ class ModernInventoryModule:
                     "id": item.get('id', ''),
                     "name": item.get('name', ''),
                     "category": item.get('category', ''),
-                    "current_stock": item.get('quantity', 0),
+                    # JSON uses 'current_stock'; fallback to 'quantity' if present
+                    "current_stock": item.get('current_stock', item.get('quantity', 0)),
                     "min_stock": item.get('min_stock', 0),
                     "max_stock": item.get('max_stock', 100),
                     "unit": item.get('unit', 'unit'),
@@ -210,7 +211,7 @@ class ModernInventoryModule:
         self.create_inventory_list(bottom_container)
         
     def create_stats_cards(self, parent):
-        """创建统计卡片"""
+        """Create stats cards"""
         stats_frame = tk.Frame(parent, bg=self.colors['background'])
         stats_frame.pack(fill="x", pady=(0, 20))
         
@@ -231,7 +232,7 @@ class ModernInventoryModule:
             self.create_stats_card(stats_frame, card_data, i)
             
     def create_stats_card(self, parent, data, index):
-        """创建单个统计卡片"""
+        """Create a single stats card"""
         card_frame = tk.Frame(parent, bg=self.colors['surface'], relief="flat", bd=1)
         card_frame.grid(row=0, column=index, padx=10, pady=10, sticky="ew")
         
@@ -263,7 +264,7 @@ class ModernInventoryModule:
         self.stats_labels[data["title"]] = value_label
         
     def create_filter_section(self, parent):
-        """创建筛选区域"""
+        """Create filter section"""
         filter_frame = tk.Frame(parent, bg=self.colors['surface'], height=80)
         filter_frame.pack(fill="x", pady=(0, 20))
         filter_frame.pack_propagate(False)
@@ -899,25 +900,52 @@ class ModernInventoryModule:
         messagebox.showinfo("Refresh", "Inventory data has been updated.")
 
     def refresh_data(self):
-         """刷新库存数据（被数据管理器调用）"""
+         """Refresh inventory module data (called by data manager)"""
+         # Skip refresh if UI not initialized
+         if not getattr(self, 'inventory_tree', None):
+             print("⚠️ Inventory module not initialized, skipping refresh")
+             return
          try:
-            # 重新加载库存数据并格式化
-            self.inventory_data = self.load_inventory_data()
-            # 刷新库存列表显示
-            self.refresh_inventory_list()
-            # 更新统计卡片
-            self.update_stats_cards()
-            print("✅ 库存模块数据已刷新")
+             self.inventory_data = self.load_inventory_data()
+             self.refresh_inventory_list()
+             self.update_stats_cards()
+             print("✅ Inventory module data refreshed")
+         except tk.TclError:
+             print("⚠️ Inventory module UI not active, skipping refresh")
          except Exception as e:
-             print(f"❌ 库存模块数据刷新失败: {e}")
+             print(f"❌ Inventory module data refresh failed: {e}")
 
     # --- Meal Possibility Calculation ---
-    
     def load_recipe_data(self):
         """Load recipe data from data manager"""
         try:
-            # Use the correct method to load data
-            self.recipes = data_manager.load_data('recipes')
+            # Load JSON recipes and merge with meal definitions
+            json_recipes = data_manager.load_data('recipes') or []
+            meal_defs = {m['name']: m for m in data_manager.load_data('meals')}
+            merged = []
+            for r in json_recipes:
+                ingredients = r.get('ingredients')
+                # normalize ingredients list to dict
+                if isinstance(ingredients, list):
+                    ing_map = {ing.get('ingredient_name','').lower(): ing.get('quantity_per_serving',0) for ing in ingredients}
+                else:
+                    ing_map = {k.lower(): v for k,v in (ingredients or {}).items()}
+                merged.append({
+                    'meal_id': r.get('meal_id'),
+                    'meal_name': r.get('meal_name'),
+                    'ingredients': ing_map,
+                    'category': meal_defs.get(r.get('meal_name'),'Other').get('category', 'Other') if isinstance(meal_defs.get(r.get('meal_name')), dict) else 'Other'
+                })
+            # Add fallback recipes for meals without explicit recipes
+            for name, m in meal_defs.items():
+                if not any(r['meal_name'] == name for r in merged):
+                    merged.append({
+                        'meal_id': m['id'],
+                        'meal_name': name,
+                        'ingredients': {ing.lower():1 for ing in m.get('ingredients',[])},
+                        'category': m.get('category','Other')
+                    })
+            self.recipes = merged
             if not self.recipes:
                 self.recipes = self.get_default_recipes()
         except Exception as e:
@@ -927,17 +955,17 @@ class ModernInventoryModule:
     def get_default_recipes(self):
         """Returns a default list of recipes if the data file is unavailable."""
         return [
-            {"name": "Tomato Beef Noodles", "ingredients": {"Tomato": 0.2, "Beef": 0.15, "Noodles": 1}},
-            {"name": "Egg Fried Rice", "ingredients": {"Egg": 2, "Rice": 0.3}},
-            {"name": "Beef Burger", "ingredients": {"Beef": 0.2, "Bread": 1, "Lettuce": 0.05}},
-            {"name": "French Fries", "ingredients": {"Potato": 0.3}},
-            {"name": "Salmon Set Meal", "ingredients": {"Salmon": 0.2, "Rice": 0.15}},
-            {"name": "Homestyle Chicken Rice", "ingredients": {"Chicken": 0.2, "Rice": 0.15}},
-            {"name": "Seafood Fried Rice", "ingredients": {"Shrimp": 0.1, "Rice": 0.15, "Egg": 1}},
-            {"name": "Classic Beef Rice", "ingredients": {"Beef": 0.2, "Rice": 0.15}},
-            {"name": "Vegetable Set Meal", "ingredients": {"Broccoli": 0.1, "Carrot": 0.1, "Rice": 0.15}},
-            {"name": "Spicy Tofu", "ingredients": {"Tofu": 0.3, "Chili": 0.05}}
-        ]
+             {"name": "Tomato Beef Noodles", "ingredients": {"Tomato": 0.2, "Beef": 0.15, "Noodles": 1}},
+             {"name": "Egg Fried Rice", "ingredients": {"Egg": 2, "Rice": 0.3}},
+             {"name": "Beef Burger", "ingredients": {"Beef": 0.2, "Bread": 1, "Lettuce": 0.05}},
+             {"name": "French Fries", "ingredients": {"Potato": 0.3}},
+             {"name": "Salmon Set Meal", "ingredients": {"Salmon": 0.2, "Rice": 0.15}},
+             {"name": "Homestyle Chicken Rice", "ingredients": {"Chicken": 0.2, "Rice": 0.15}},
+             {"name": "Seafood Fried Rice", "ingredients": {"Shrimp": 0.1, "Rice": 0.15, "Egg": 1}},
+             {"name": "Classic Beef Rice", "ingredients": {"Beef": 0.2, "Rice": 0.15}},
+             {"name": "Vegetable Set Meal", "ingredients": {"Broccoli": 0.1, "Carrot": 0.1, "Rice": 0.15}},
+             {"name": "Spicy Tofu", "ingredients": {"Tofu": 0.3, "Chili": 0.05}}
+         ]
 
     def calculate_possible_meals(self):
         """Based on current inventory, calculate how many of each meal can be made."""
@@ -960,24 +988,32 @@ class ModernInventoryModule:
         possible_meals = {}
         
         for recipe in self.recipes:
-            meal_name = recipe.get("name")
+            # Use meal_name key from recipe, fallback to name
+            meal_name = recipe.get("meal_name") or recipe.get("name")
             ingredients = recipe.get("ingredients")
+            # Normalize ingredients into dict: handle list or dict format
+            if isinstance(ingredients, list):
+                ingredients_dict = {ing.get('ingredient_name', '').lower(): ing.get('quantity_per_serving', 0) for ing in ingredients}
+            else:
+                ingredients_dict = {k.lower(): v for k, v in (ingredients or {}).items()}
 
-            if not meal_name or not ingredients:
+            if not meal_name or not ingredients_dict:
                 continue
             
             can_make = float('inf')
-            for ingredient, required_amount in ingredients.items():
-                stock = inventory_map.get(ingredient.lower(), 0)
+            for ingredient, required_amount in ingredients_dict.items():
+                stock = inventory_map.get(ingredient, 0)
                 if stock < required_amount:
                     can_make = 0
                     break
-                can_make = min(can_make, stock // required_amount)
+                # Determine integer possible servings
+                can_make = min(can_make, int(stock // required_amount))
             
-            if can_make > 0 and can_make != float('inf'):
+            # Only add if at least one serving
+            if can_make and can_make != float('inf'):
                 possible_meals[meal_name] = {
                     "possible_servings": int(can_make),
-                    "recipe": ingredients
+                    "recipe": ingredients_dict
                 }
         
         return possible_meals
@@ -990,60 +1026,63 @@ class ModernInventoryModule:
         header_frame = tk.Frame(section_frame, bg=self.colors['surface'])
         header_frame.pack(fill='x', padx=20, pady=(10,5))
         
+        # Title for possible meals in English
         tk.Label(header_frame, text="Dishes to Make", font=self.fonts['subheading'], 
                  bg=self.colors['surface'], fg=self.colors['text_primary']).pack(side='left')
-
+        
         self.possible_meals_frame = tk.Frame(section_frame, bg=self.colors['surface'])
         self.possible_meals_frame.pack(fill="x", padx=15, pady=(0, 10))
 
         self.refresh_possible_meals()
 
     def refresh_possible_meals(self):
-        """Refreshes the display of meals that can be made."""
+        """Refresh the display of meals that can be made."""
         if not self.possible_meals_frame:
             return
 
+        # Clear previous cards
         for widget in self.possible_meals_frame.winfo_children():
             widget.destroy()
 
         possible_meals = self.calculate_possible_meals()
-        
         if not possible_meals:
-            tk.Label(self.possible_meals_frame, text="Not enough ingredients to make any dishes.",
-                     font=self.fonts['body'], bg=self.colors['surface'], fg=self.colors['text_secondary']
+            tk.Label(
+                self.possible_meals_frame,
+                text="Not enough ingredients to make any dishes.",
+                font=self.fonts['body'], bg=self.colors['surface'], fg=self.colors['text_secondary']
             ).pack(pady=10)
             return
 
-        # 每行显示最多4个卡片
-        row, col = 0, 0
+        # Display up to 4 cards per row
+        row = col = 0
         for meal_name, meal_info in possible_meals.items():
             self.create_meal_card(self.possible_meals_frame, meal_name, meal_info, row, col)
             col += 1
             if col >= 4:
                 col = 0
                 row += 1
-                
+             
     def create_meal_card(self, parent, meal_name, meal_info, row, col):
-        """Creates a small card for a meal that can be made."""
-        card = tk.Frame(parent, bg=self.colors['background'], bd=1, relief='solid', borderwidth=1, highlightbackground=self.colors['border'])
-        card.grid(row=row, column=col, padx=5, pady=5, sticky='ew')
-        
-        servings = meal_info.get('possible_servings', 0)
-        
-        emoji_map = {'noodle': '🍜', 'rice': '🍚', 'burger': '🍔', 'fries': '🍟', 'salmon': '🍣', 'chicken': '🍗', 'seafood': '🦐', 'beef': '🍖', 'vegetable': '🥦', 'tofu': '🌶️'}
-        emoji = '🍽️'
-        for key, e in emoji_map.items():
-            if key in meal_name.lower():
-                emoji = e
-                break
+         """Creates a small card for a meal that can be made."""
+         card = tk.Frame(parent, bg=self.colors['background'], bd=1, relief='solid', borderwidth=1, highlightbackground=self.colors['border'])
+         card.grid(row=row, column=col, padx=5, pady=5, sticky='ew')
+         
+         servings = meal_info.get('possible_servings', 0)
+         
+         emoji_map = {'noodle': '🍜', 'rice': '🍚', 'burger': '🍔', 'fries': '🍟', 'salmon': '🍣', 'chicken': '🍗', 'seafood': '🦐', 'beef': '🍖', 'vegetable': '🥦', 'tofu': '🌶️'}
+         emoji = '🍽️'
+         for key, e in emoji_map.items():
+             if key in meal_name.lower():
+                 emoji = e
+                 break
 
-        tk.Label(card, text=emoji, font=('Segoe UI Emoji', 20), bg=self.colors['background']).pack(pady=(10,0))
-        tk.Label(card, text=meal_name, font=self.fonts['small'], wraplength=120, justify='center', bg=self.colors['background'], fg=self.colors['text_primary']).pack(pady=5, padx=5)
-        # 中文显示可制作份数
-        tk.Label(card, text=f"可制作 {servings} 份", font=('Segoe UI', 12, 'bold'), bg=self.colors['background'], fg=self.colors['success']).pack(pady=(0,10))
+         tk.Label(card, text=emoji, font=('Segoe UI Emoji', 20), bg=self.colors['background']).pack(pady=(10,0))
+         tk.Label(card, text=meal_name, font=self.fonts['small'], wraplength=120, justify='center', bg=self.colors['background'], fg=self.colors['text_primary']).pack(pady=5, padx=5)
+        # Display how many servings can be made
+         tk.Label(card, text=f"Can make {servings} servings", font=('Segoe UI', 12, 'bold'), bg=self.colors['background'], fg=self.colors['success']).pack(pady=(0,10))
 
-        # 调整列权重，确保卡片均分
-        parent.grid_columnconfigure(col, weight=1)
+         # 调整列权重，确保卡片均分
+         parent.grid_columnconfigure(col, weight=1)
 
     def show_recipe_detail_dialog(self, meal_name, recipe, possible_servings):
         """Show a dialog with recipe details."""

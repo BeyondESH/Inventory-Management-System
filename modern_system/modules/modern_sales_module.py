@@ -931,12 +931,14 @@ class ModernSalesModule:
         self.display_meals()
         
     def refresh_data(self):
-        """刷新销售数据（被数据管理器调用）"""
+        """Refresh sales module data (called by data manager)"""
         try:
             self.refresh_meals_data()
-            print("✅ 销售模块数据已刷新")
+            print("✅ Sales module data refreshed")
+        except tk.TclError:
+            print("⚠️ Sales module UI not active, skipping refresh")
         except Exception as e:
-            print(f"❌ 销售模块数据刷新失败: {e}")
+            print(f"❌ Sales module data refresh failed: {e}")
 
     def check_meal_inventory(self, meal):
         """Check if there is enough inventory to make a meal."""

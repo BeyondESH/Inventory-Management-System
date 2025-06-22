@@ -59,5 +59,97 @@
     ],
     "created_at": "2024-01-01T00:00:00",
     "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "MEAL005",
+    "name": "Salmon Set Meal",
+    "category": "Set Meal",
+    "price": 45.0,
+    "cost": 25.0,
+    "description": "Fresh salmon sashimi with special sauce",
+    "isActive": true,
+    "ingredients": [
+      "Salmon",
+      "Rice"
+    ],
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "MEAL006",
+    "name": "Homestyle Chicken Rice",
+    "category": "Rice",
+    "price": 22.0,
+    "cost": 12.0,
+    "description": "Tender chicken with fragrant rice",
+    "isActive": true,
+    "ingredients": [
+      "Chicken",
+      "Rice"
+    ],
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "MEAL007",
+    "name": "Seafood Fried Rice",
+    "category": "Rice",
+    "price": 32.0,
+    "cost": 18.0,
+    "description": "Fresh seafood with fried rice",
+    "isActive": true,
+    "ingredients": [
+      "Shrimp",
+      "Rice",
+      "Egg"
+    ],
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "MEAL008",
+    "name": "Classic Beef Rice",
+    "category": "Rice",
+    "price": 28.0,
+    "cost": 18.0,
+    "description": "Tender beef with rice, a classic pairing",
+    "isActive": true,
+    "ingredients": [
+      "Beef",
+      "Rice"
+    ],
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "MEAL009",
+    "name": "Vegetable Set Meal",
+    "category": "Set Meal",
+    "price": 18.0,
+    "cost": 10.0,
+    "description": "Seasonal vegetables, healthy and vegetarian",
+    "isActive": true,
+    "ingredients": [
+      "Broccoli",
+      "Carrot",
+      "Rice"
+    ],
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "MEAL010",
+    "name": "Spicy Tofu",
+    "category": "Chinese",
+    "price": 16.0,
+    "cost": 8.0,
+    "description": "Classic Sichuan dish, spicy and flavorful",
+    "isActive": true,
+    "ingredients": [
+      "Tofu",
+      "Chili"
+    ],
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
   }
 ]

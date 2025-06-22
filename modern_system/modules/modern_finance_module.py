@@ -10,6 +10,8 @@ from typing import Dict, List, Any, Optional
 import datetime
 import json
 import os
+import csv
+from tkinter import filedialog
 
 # Import data management center
 try:
@@ -184,10 +186,15 @@ class ModernFinanceModule:
         else:
             avg_daily_profit = 0
 
-        self.stats_labels["Total Revenue"].config(text=f"${total_revenue:,.2f}")
-        self.stats_labels["Total Expense"].config(text=f"${total_expense:,.2f}")
-        self.stats_labels["Net Profit"].config(text=f"${net_profit:,.2f}")
-        self.stats_labels["Avg. Daily Profit"].config(text=f"${avg_daily_profit:,.2f}")
+        # Update labels only if they exist
+        if "Total Revenue" in self.stats_labels:
+            self.stats_labels["Total Revenue"].config(text=f"${total_revenue:,.2f}")
+        if "Total Expense" in self.stats_labels:
+            self.stats_labels["Total Expense"].config(text=f"${total_expense:,.2f}")
+        if "Net Profit" in self.stats_labels:
+            self.stats_labels["Net Profit"].config(text=f"${net_profit:,.2f}")
+        if "Avg. Daily Profit" in self.stats_labels:
+            self.stats_labels["Avg. Daily Profit"].config(text=f"${avg_daily_profit:,.2f}")
 
     def create_finance_tabs(self):
         """Create the notebook with tabs for different finance sections."""
@@ -282,13 +289,17 @@ class ModernFinanceModule:
             # 转换记录格式以匹配财务模块期望的格式
             converted_records = []
             for record in raw_records:
+                # Convert and translate record
+                raw_desc = record.get('description', '')
+                # Translate common Chinese phrases
+                translated_desc = raw_desc.replace('订单收入 - ', 'Order Income - ').replace('制作菜品成本 - ', 'Cooking Cost - ')
                 converted_record = {
                     'id': record.get('id', ''),
                     'date': record.get('date', '').split('T')[0] if 'T' in record.get('date', '') else record.get('date', ''),
-                    'type': 'Income' if record.get('type') == 'revenue' else 'Expense' if record.get('type') == 'cost' else record.get('type', ''),
-                    'amount': abs(float(record.get('amount', 0))),  # 确保金额为正数
-                    'category': 'Sales' if record.get('type') == 'revenue' else 'Cost' if record.get('type') == 'cost' else 'Other',
-                    'description': record.get('description', ''),
+                    'type': 'Income' if record.get('type') in ['revenue', 'Income'] else 'Expense' if record.get('type') in ['cost', 'Expense'] else record.get('type', ''),
+                    'amount': abs(float(record.get('amount', 0))),  # Ensure positive amount
+                    'category': 'Sales' if record.get('type') in ['revenue', 'Income'] else 'Cost' if record.get('type') in ['cost', 'Expense'] else 'Other',
+                    'description': translated_desc,
                     'recorded_by': 'System'
                 }
                 converted_records.append(converted_record)
@@ -373,16 +384,34 @@ class ModernFinanceModule:
         self.refresh_fixed_costs_list()
 
     def refresh_data(self):
-        """刷新财务数据（被数据管理器调用）"""
+        """Refresh finance module data (called by data manager)."""
+        # Only refresh if UI has been initialized
+        if not getattr(self, 'main_frame', None):
+            print("⚠️ Finance module not initialized, skipping refresh")
+            return
         try:
             self.refresh_all_data()
-            print("✅ 财务模块数据已刷新")
+            print("✅ Finance module data refreshed")
+        except tk.TclError:
+            print("⚠️ Finance module UI not active, skipping refresh")
         except Exception as e:
-            print(f"❌ 财务模块数据刷新失败: {e}")
+            print(f"❌ Finance module data refresh failed: {e}")
 
     def export_finance_report(self):
-        """Placeholder for export functionality."""
-        messagebox.showinfo("Export", "Export functionality not yet implemented.", parent=self.main_frame)
+        """Export financial records to CSV file."""
+        try:
+            file_path = filedialog.asksaveasfilename(defaultextension=".csv",
+                filetypes=[("CSV files", "*.csv")], title="Save Finance Report", parent=self.main_frame)
+            if not file_path:
+                return
+            with open(file_path, 'w', newline='', encoding='utf-8') as csvfile:
+                writer = csv.writer(csvfile)
+                writer.writerow(["Date", "Type", "Amount", "Category", "Description", "Recorded By"])
+                for record in self.finance_records:
+                    writer.writerow([record['date'], record['type'], f"{record['amount']:.2f}", record['category'], record['description'], record.get('recorded_by', '')])
+            messagebox.showinfo("Export Successful", f"Report exported to {file_path}", parent=self.main_frame)
+        except Exception as e:
+            messagebox.showerror("Export Failed", f"Failed to export report: {e}", parent=self.main_frame)
 
 class FinanceDialog(tk.Toplevel):
     def __init__(self, parent, title, colors, fonts, callback, record_data=None, is_income=False, is_fixed_cost=False):

@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-数据管理中心
-负责各模块间的数据联动和统一管理
-使用JSON文件存储数据
+Data Management Center
+Responsible for data linkage and unified management across modules
+Stores data using JSON files
 """
 
 import json
@@ -11,6 +11,7 @@ import os
 import datetime
 from typing import Dict, List, Any, Optional
 from threading import Lock
+from tkinter import TclError
 
 class DataManager:
     def __init__(self):
@@ -20,7 +21,7 @@ class DataManager:
         self.ensure_data_directory()
         
         # 使用JSON文件存储
-        print("✅ 使用JSON文件存储")
+        print("✅ Using JSON file storage")
         # 数据存储（JSON模式）
         self.orders = self.load_orders()
         self.inventory = self.load_inventory()
@@ -39,7 +40,7 @@ class DataManager:
         }
         
     def ensure_data_directory(self):
-        """确保数据目录存在"""
+        """Ensure data directory exists"""
         if not os.path.exists(self.data_path):
             os.makedirs(self.data_path)
     
@@ -53,62 +54,62 @@ class DataManager:
 
     # ==================== 数据加载方法 ====================
     def load_orders(self) -> List[Dict]:
-        """加载订单数据"""
+        """Load orders data"""
         orders_file = os.path.join(self.data_path, 'orders.json')
         if os.path.exists(orders_file):
             try:
                 with open(orders_file, 'r', encoding='utf-8') as f:
                     return json.load(f)
             except Exception as e:
-                print(f"❌ 加载订单数据失败: {e}")
+                print(f"Error loading orders data: {e}")
         return []
     
     def load_inventory(self) -> List[Dict]:
-        """加载库存数据"""
+        """Load inventory data"""
         inventory_file = os.path.join(self.data_path, 'inventory.json')
         if os.path.exists(inventory_file):
             try:
                 with open(inventory_file, 'r', encoding='utf-8') as f:
                     return json.load(f)
             except Exception as e:
-                print(f"❌ 加载库存数据失败: {e}")
+                print(f"Error loading inventory data: {e}")
         return []
     
     def load_customers(self) -> List[Dict]:
-        """加载客户数据"""
+        """Load customers data"""
         customers_file = os.path.join(self.data_path, 'customers.json')
         if os.path.exists(customers_file):
             try:
                 with open(customers_file, 'r', encoding='utf-8') as f:
                     return json.load(f)
             except Exception as e:
-                print(f"❌ 加载客户数据失败: {e}")
+                print(f"Error loading customers data: {e}")
         return []
     
     def load_meals(self) -> List[Dict]:
-        """加载菜品数据"""
+        """Load meals data"""
         meals_file = os.path.join(self.data_path, 'meals.json')
         if os.path.exists(meals_file):
             try:
                 with open(meals_file, 'r', encoding='utf-8') as f:
                     return json.load(f)
             except Exception as e:
-                print(f"❌ 加载菜品数据失败: {e}")
+                print(f"Error loading meals data: {e}")
         return []
     
     def load_employees(self) -> List[Dict]:
-        """加载员工数据"""
+        """Load employees data"""
         employees_file = os.path.join(self.data_path, 'employees.json')
         if os.path.exists(employees_file):
             try:
                 with open(employees_file, 'r', encoding='utf-8') as f:
                     return json.load(f)
             except Exception as e:
-                print(f"❌ 加载员工数据失败: {e}")
+                print(f"Error loading employees data: {e}")
         return []
 
     def load_financial_records(self) -> List[Dict]:
-        """加载财务记录"""
+        """Load financial records"""
         finance_file = os.path.join(self.data_path, 'finance.json')
         if os.path.exists(finance_file):
             try:
@@ -139,11 +140,11 @@ class DataManager:
                             processed_records.append(record)
                     return processed_records
             except Exception as e:
-                print(f"❌ 加载财务记录失败: {e}")
+                print(f"Error loading financial records: {e}")
         return []
     
     def save_financial_records(self):
-        """保存财务记录"""
+        """Save financial records"""
         finance_file = os.path.join(self.data_path, 'finance.json')
         try:
             # 处理浮点数精度问题
@@ -157,11 +158,11 @@ class DataManager:
             with open(finance_file, 'w', encoding='utf-8') as f:
                 json.dump(records_to_save, f, ensure_ascii=False, indent=2)
         except Exception as e:
-            print(f"❌ 保存财务记录失败: {e}")
+            print(f"Error saving financial records: {e}")
     
     # ==================== 财务管理 ====================
     def get_financial_records(self) -> List[Dict]:
-        """获取财务记录"""
+        """Get financial records"""
         return self.financial_records.copy()
     
     def get_finance_records(self) -> List[Dict]:
@@ -170,7 +171,7 @@ class DataManager:
 
     # ==================== 数据获取方法 ====================
     def load_data(self, data_type: str):
-        """加载指定类型的数据（兼容旧接口）"""
+        """Load specified data type (legacy interface compatibility)"""
         if data_type == 'orders':
             return self.get_orders()
         elif data_type == 'inventory':
@@ -184,10 +185,17 @@ class DataManager:
         elif data_type == 'finance':
             return self.get_financial_records()
         elif data_type == 'recipes':
-            # 返回空列表，因为我们不再使用recipes表
+             # Load recipe data from recipes.json
+            recipes_file = os.path.join(self.data_path, 'recipes.json')
+            if os.path.exists(recipes_file):
+                try:
+                    with open(recipes_file, 'r', encoding='utf-8') as f:
+                        return json.load(f)
+                except Exception as e:
+                    print(f"Error loading recipes data: {e}")
             return []
         else:
-            print(f"⚠️ 不支持的数据类型: {data_type}")
+            print(f"Warning: Unsupported data type: {data_type}")
             return []
     
     def get_orders(self) -> List[Dict]:
@@ -212,47 +220,56 @@ class DataManager:
 
     # ==================== 数据保存方法 ====================
     def save_inventory(self):
-        """保存库存数据"""
+        """Save inventory data"""
         inventory_file = os.path.join(self.data_path, 'inventory.json')
         try:
             with open(inventory_file, 'w', encoding='utf-8') as f:
                 json.dump(self.inventory, f, ensure_ascii=False, indent=2)
         except Exception as e:
-            print(f"❌ 保存库存数据失败: {e}")
+            print(f"Error saving inventory data: {e}")
     
     def save_customers(self):
-        """保存客户数据"""
+        """Save customers data"""
         customers_file = os.path.join(self.data_path, 'customers.json')
         try:
             with open(customers_file, 'w', encoding='utf-8') as f:
                 json.dump(self.customers, f, ensure_ascii=False, indent=2)
         except Exception as e:
-            print(f"❌ 保存客户数据失败: {e}")
+            print(f"Error saving customers data: {e}")
     
     def save_meals(self):
-        """保存菜品数据"""
+        """Save meals data"""
         meals_file = os.path.join(self.data_path, 'meals.json')
         try:
             with open(meals_file, 'w', encoding='utf-8') as f:
                 json.dump(self.meals, f, ensure_ascii=False, indent=2)
         except Exception as e:
-            print(f"❌ 保存菜品数据失败: {e}")
+            print(f"Error saving meals data: {e}")
     
     def save_employees(self):
-        """保存员工数据"""
+        """Save employees data"""
         employees_file = os.path.join(self.data_path, 'employees.json')
         try:
             with open(employees_file, 'w', encoding='utf-8') as f:
                 json.dump(self.employees, f, ensure_ascii=False, indent=2)
         except Exception as e:
-            print(f"❌ 保存员工数据失败: {e}")
+            print(f"Error saving employees data: {e}")
+
+    def save_orders(self):
+        """Save orders data (JSON mode)"""
+        try:
+            orders_file = os.path.join(self.data_path, 'orders.json')
+            with open(orders_file, 'w', encoding='utf-8') as f:
+                json.dump(self.orders, f, ensure_ascii=False, indent=2)
+        except Exception as e:
+            print(f"Error saving orders data: {e}")
 
     # ==================== 订单管理 ====================
     def add_order(self, order_data: Dict) -> str:
         """添加订单（别名方法）"""
         return self.create_order(order_data)
 
-    def create_order(self, order_data: Dict) -> str:
+    def create_order(self, order_data: Dict) -> Any:
         """创建新订单"""
         with self.data_lock:
             try:
@@ -293,21 +310,21 @@ class DataManager:
                 self.orders.append(new_order)
                 self.save_orders()
                 
-                # 扣减库存（基于菜品的食材需求）
-                self.reduce_inventory_for_meal(meal, quantity)
-                
                 # 添加财务记录
                 financial_record = {
                     'id': f"FIN{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}",
                     'type': 'revenue',
                     'amount': round(total_amount, 2),
-                    'description': f"订单收入 - {meal['name']} x{quantity}",
+                    'description': f"Order Income - {meal['name']} x{quantity}",
                     'order_id': order_id,
                     'date': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
                     'create_time': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
                 }
                 self.financial_records.append(financial_record)
                 self.save_financial_records()
+                
+                # 扣减库存（基于菜品的食材需求）
+                self.reduce_inventory_for_meal(meal, quantity)
                 
                 # 更新仪表盘统计
                 self.update_dashboard_stats()
@@ -361,7 +378,7 @@ class DataManager:
                 'last_update': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             }
             
-            print(f"✅ 仪表盘统计更新完成")
+            print(f"✅ Dashboard statistics updated")
         except Exception as e:
             print(f"❌ 更新仪表盘统计失败: {e}")
             # 提供默认统计数据
@@ -382,62 +399,62 @@ class DataManager:
             self.meals = self.load_meals()
             self.employees = self.load_employees()
             self.financial_records = self.load_financial_records()
-            print("✅ 数据刷新成功")
+            print("✅ Data refreshed successfully")
         except Exception as e:
             print(f"❌ 数据刷新失败: {e}")
 
-    def save_orders(self):
-        """保存订单数据（JSON模式）"""
-        try:
-            orders_file = os.path.join(self.data_path, 'orders.json')
-            with open(orders_file, 'w', encoding='utf-8') as f:
-                json.dump(self.orders, f, ensure_ascii=False, indent=2)
-        except Exception as e:
-            print(f"保存订单数据失败: {e}")
-
-    def update_inventory_stock(self, item_id: str, quantity_change: float) -> bool:
-        """更新库存数量"""
-        with self.data_lock:
-            for item in self.inventory:
-                if item['id'] == item_id:
-                    item['current_stock'] += quantity_change
-                    item['updated_at'] = datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
-                    self.save_inventory()
-                    return True
-            return False
-
     def notify_modules_order_created(self, order_id: str):
-        """通知各模块有新订单创建"""
+        """Notify modules that an order has been created"""
         try:
-            # 通知财务模块
+            # Finance module
             finance_module = self.modules.get('finance')
             if finance_module and hasattr(finance_module, 'refresh_data'):
-                finance_module.refresh_data()
-                print(f"✅ 已通知财务模块刷新数据")
-            
-            # 通知库存模块
+                try:
+                    finance_module.refresh_data()
+                    print(f"✅ Notified finance module to refresh data")
+                except TclError:
+                    print(f"⚠️ Finance UI not active, skipping refresh")
+                except Exception as e:
+                    print(f"⚠️ Skipped finance refresh: {e}")
+
+            # Inventory module
             inventory_module = self.modules.get('inventory')
             if inventory_module and hasattr(inventory_module, 'refresh_data'):
-                inventory_module.refresh_data()
-                print(f"✅ 已通知库存模块刷新数据")
-            
-            # 通知图表模块
+                try:
+                    inventory_module.refresh_data()
+                    print(f"✅ Notified inventory module to refresh data")
+                except TclError:
+                    print(f"⚠️ Inventory UI not active, skipping refresh")
+                except Exception as e:
+                    print(f"⚠️ Skipped inventory refresh: {e}")
+
+            # Charts module
             charts_module = self.modules.get('charts')
             if charts_module and hasattr(charts_module, 'refresh_charts'):
-                charts_module.refresh_charts()
-                print(f"✅ 已通知图表模块刷新数据")
-            
-            # 通知销售模块
+                try:
+                    charts_module.refresh_charts()
+                    print(f"✅ Notified charts module to refresh data")
+                except TclError:
+                    print(f"⚠️ Charts UI not active, skipping refresh")
+                except Exception as e:
+                    print(f"⚠️ Skipped charts refresh: {e}")
+
+            # Sales module
             sales_module = self.modules.get('sales')
             if sales_module and hasattr(sales_module, 'refresh_data'):
-                sales_module.refresh_data()
-                print(f"✅ 已通知销售模块刷新数据")
-                
+                try:
+                    sales_module.refresh_data()
+                    print(f"✅ Notified sales module to refresh data")
+                except TclError:
+                    print(f"⚠️ Sales UI not active, skipping refresh")
+                except Exception as e:
+                    print(f"⚠️ Skipped sales refresh: {e}")
         except Exception as e:
-            print(f"⚠️ 通知模块时出错: {e}")
+            print(f"⚠️ Error notifying modules: {e}")
+        # End of notifications
 
     def reduce_inventory_for_meal(self, meal: Dict, quantity: int) -> bool:
-        """为制作菜品扣减库存"""
+        """Reduce inventory for meal preparation"""
         try:
             # 获取菜品的食材需求
             ingredients = meal.get('ingredients', [])
@@ -484,7 +501,7 @@ class DataManager:
                             'new_stock': item['current_stock']
                         })
                         
-                        print(f"✅ 扣减库存: {ingredient_name} -{min(required_quantity, old_stock):.2f} (剩余: {item['current_stock']:.2f})")
+                        print(f"✅ Reduced inventory: {ingredient_name} -{min(required_quantity, old_stock):.2f} (Remaining: {item['current_stock']:.2f})")
                         break
             
             # 保存库存变更
@@ -503,20 +520,20 @@ class DataManager:
                 cost_record = {
                     'id': f"COST{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}",
                     'type': 'cost',
-                    'amount': round(-total_cost, 2),  # 负数表示成本支出
-                    'description': f"制作菜品成本 - {meal['name']} x{quantity}",
+                    'amount': round(-total_cost, 2),  # negative for expense
+                    'description': f"Meal Cost - {meal['name']} x{quantity}",
                     'meal_id': meal['id'],
                     'date': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S'),
-                    'create_time': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M%S')
+                    'create_time': datetime.datetime.now().strftime('%Y-%m-%dT%H:%M:%S')
                 }
                 self.financial_records.append(cost_record)
                 self.save_financial_records()
-                print(f"✅ 记录菜品成本: ¥{total_cost:.2f}")
+                print(f"✅ Meal cost recorded: ¥{total_cost:.2f}")
             
             return True
             
         except Exception as e:
-            print(f"❌ 扣减库存失败: {e}")
+            print(f"❌ Inventory reduction failed: {e}")
             return False
 
 # 创建全局数据管理器实例

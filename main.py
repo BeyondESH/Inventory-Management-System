@@ -10,11 +10,11 @@ import os
 import tkinter as tk
 from tkinter import messagebox, ttk
 
-# 获取项目路径
+# Get project path
 current_dir = os.path.dirname(os.path.abspath(__file__))
 modern_system_dir = os.path.join(current_dir, 'modern_system')
 
-# 添加路径到系统路径
+# Add directories to sys.path
 sys.path.insert(0, current_dir)
 sys.path.insert(0, modern_system_dir)
 sys.path.insert(0, os.path.join(modern_system_dir, 'modules'))
