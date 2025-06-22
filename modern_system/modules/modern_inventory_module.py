@@ -899,17 +899,17 @@ class ModernInventoryModule:
         messagebox.showinfo("Refresh", "Inventory data has been updated.")
 
     def refresh_data(self):
-        """刷新库存数据（被数据管理器调用）"""
-        try:
-            # 重新加载库存数据
-            self.inventory_data = data_manager.get_inventory()
+         """刷新库存数据（被数据管理器调用）"""
+         try:
+            # 重新加载库存数据并格式化
+            self.inventory_data = self.load_inventory_data()
             # 刷新库存列表显示
             self.refresh_inventory_list()
-            # 更新库存概览卡片
-            self.update_overview_cards()
+            # 更新统计卡片
+            self.update_stats_cards()
             print("✅ 库存模块数据已刷新")
-        except Exception as e:
-            print(f"❌ 库存模块数据刷新失败: {e}")
+         except Exception as e:
+             print(f"❌ 库存模块数据刷新失败: {e}")
 
     # --- Meal Possibility Calculation ---
     
@@ -948,8 +948,15 @@ class ModernInventoryModule:
         if not self.recipes:
             self.load_recipe_data()
         
-        inventory_map = {item['name'].lower(): item['current_stock'] for item in self.inventory_data}
-        
+        # Create inventory map, support singular and plural names
+        inventory_map = {}
+        for item in self.inventory_data:
+            name = item['name'].lower()
+            inventory_map[name] = item['current_stock']
+            # 支持去除复数 's' 后的名称匹配
+            if name.endswith('s'):
+                inventory_map[name[:-1]] = item['current_stock']
+
         possible_meals = {}
         
         for recipe in self.recipes:
@@ -1007,11 +1014,12 @@ class ModernInventoryModule:
             ).pack(pady=10)
             return
 
+        # 每行显示最多4个卡片
         row, col = 0, 0
         for meal_name, meal_info in possible_meals.items():
             self.create_meal_card(self.possible_meals_frame, meal_name, meal_info, row, col)
             col += 1
-            if col % 5 == 0:
+            if col >= 4:
                 col = 0
                 row += 1
                 
@@ -1031,8 +1039,10 @@ class ModernInventoryModule:
 
         tk.Label(card, text=emoji, font=('Segoe UI Emoji', 20), bg=self.colors['background']).pack(pady=(10,0))
         tk.Label(card, text=meal_name, font=self.fonts['small'], wraplength=120, justify='center', bg=self.colors['background'], fg=self.colors['text_primary']).pack(pady=5, padx=5)
-        tk.Label(card, text=f"{servings} servings", font=('Segoe UI', 12, 'bold'), bg=self.colors['background'], fg=self.colors['success']).pack(pady=(0,10))
+        # 中文显示可制作份数
+        tk.Label(card, text=f"可制作 {servings} 份", font=('Segoe UI', 12, 'bold'), bg=self.colors['background'], fg=self.colors['success']).pack(pady=(0,10))
 
+        # 调整列权重，确保卡片均分
         parent.grid_columnconfigure(col, weight=1)
 
     def show_recipe_detail_dialog(self, meal_name, recipe, possible_servings):

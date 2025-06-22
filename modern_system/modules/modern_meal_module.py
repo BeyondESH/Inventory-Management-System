@@ -79,6 +79,13 @@ class ModernMealModule:
             # Convert data format to adapt to existing interface
             formatted_data = []
             for meal in meals_data:
+                # 处理可用状态，兼容不同字段名
+                # Determine availability: prefer 'is_available', fallback to 'isActive'
+                available = meal.get('is_available', None)
+                if available is None:
+                    available = meal.get('isActive', True)
+                
+                # Process fields
                 formatted_meal = {
                     "id": meal.get('id', ''),
                     "name": meal.get('name', ''),
@@ -91,7 +98,7 @@ class ModernMealModule:
                     "calories": meal.get('calories', 200),
                     "is_spicy": meal.get('is_spicy', False),
                     "is_vegetarian": meal.get('is_vegetarian', False),
-                    "is_available": meal.get('is_available', True),
+                    "is_available": available,
                     "image": meal.get('image', '🍽️'),
                     "created_date": meal.get('created_date', datetime.datetime.now().strftime('%Y-%m-%d'))
                 }

@@ -95,7 +95,12 @@ class ModernSalesModule:
     def load_meals_data(self):
         """Load meal data - only show available meals"""
         try:
-            meals = data_manager.load_data('meals')
+            # 优先使用菜品管理模块提供的数据，保证信息一致
+            if self.meal_module and hasattr(self.meal_module, 'meal_data'):
+                meals = self.meal_module.meal_data
+            else:
+                meals = data_manager.load_data('meals')
+            
             # Filter to show only available meals
             available_meals = []
             for meal in meals:
@@ -372,7 +377,7 @@ class ModernSalesModule:
         price = meal.get('price', 0)
         bottom_frame = tk.Frame(card, bg=self.colors['background'])
         bottom_frame.pack(side="bottom", fill="x", pady=(10, 0))
-        price_label = tk.Label(bottom_frame, text=f"${price:.2f}",
+        price_label = tk.Label(bottom_frame, text=f"￥{price:.2f}",
                               font=self.fonts['price'],
                               bg=self.colors['background'],
                               fg=self.colors['primary'])

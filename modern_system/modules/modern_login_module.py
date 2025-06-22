@@ -33,7 +33,7 @@ class ModernLoginModule:
     def __init__(self, on_login_success=None):
         self.root = tk.Tk()
         self.root.title("Smart Restaurant Management System")
-        self.root.geometry("900x600") 
+        self.root.geometry("950x600") 
         self.root.configure(bg="#ffffff")
         self.root.resizable(False, False)
         
@@ -588,8 +588,10 @@ class ModernLoginModule:
             lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
         )
         
-        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        scrollable_window = canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
         canvas.configure(yscrollcommand=scrollbar.set)
+        # Ensure scrollable frame width matches canvas width
+        canvas.bind("<Configure>", lambda e: canvas.itemconfigure(scrollable_window, width=e.width))
         
         # Title
         title_label = tk.Label(scrollable_frame, text="Reset password", font=self.fonts['heading'], 
