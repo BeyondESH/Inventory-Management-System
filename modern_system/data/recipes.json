@@ -133,5 +133,156 @@
                 "unit": "kg"
             }
         ]
+    },
+    {
+        "meal_id": "MEAL011",
+        "meal_name": "Chicken Teriyaki Bowl",
+        "description": "Grilled chicken with teriyaki sauce over rice",
+        "ingredients": [
+            {
+                "ingredient_name": "Chicken",
+                "quantity_per_serving": 0.2,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "Rice",
+                "quantity_per_serving": 0.15,
+                "unit": "kg"
+            }
+        ]
+    },
+    {
+        "meal_id": "MEAL012",
+        "meal_name": "Pork Ramen",
+        "description": "Rich pork bone broth ramen",
+        "ingredients": [
+            {
+                "ingredient_name": "Pork",
+                "quantity_per_serving": 0.15,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "Noodles",
+                "quantity_per_serving": 0.2,
+                "unit": "pack"
+            },
+            {
+                "ingredient_name": "Egg",
+                "quantity_per_serving": 1,
+                "unit": "piece"
+            }
+        ]
+    },
+    {
+        "meal_id": "MEAL013",
+        "meal_name": "Shrimp Fried Rice",
+        "description": "Fried rice with fresh shrimp",
+        "ingredients": [
+            {
+                "ingredient_name": "Shrimp",
+                "quantity_per_serving": 0.1,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "Rice",
+                "quantity_per_serving": 0.15,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "Egg",
+                "quantity_per_serving": 1,
+                "unit": "piece"
+            }
+        ]
+    },
+    {
+        "meal_id": "MEAL014",
+        "meal_name": "Fish and Chips",
+        "description": "Crispy fried fish with fries",
+        "ingredients": [
+            {
+                "ingredient_name": "Fish",
+                "quantity_per_serving": 0.2,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "Potato",
+                "quantity_per_serving": 0.3,
+                "unit": "kg"
+            }
+        ]
+    },
+    {
+        "meal_id": "MEAL015",
+        "meal_name": "Mushroom Pasta",
+        "description": "Creamy pasta with mushrooms",
+        "ingredients": [
+            {
+                "ingredient_name": "Pasta",
+                "quantity_per_serving": 0.2,
+                "unit": "pack"
+            },
+            {
+                "ingredient_name": "Mushroom",
+                "quantity_per_serving": 0.1,
+                "unit": "kg"
+            }
+        ]
+    },
+    {
+        "meal_id": "MEAL016",
+        "meal_name": "BBQ Pork Baozi",
+        "description": "Steamed buns with BBQ pork",
+        "ingredients": [
+            {
+                "ingredient_name": "Pork",
+                "quantity_per_serving": 0.1,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "Flour",
+                "quantity_per_serving": 0.15,
+                "unit": "kg"
+            }
+        ]
+    },
+    {
+        "meal_id": "MEAL017",
+        "meal_name": "Thai Green Curry",
+        "description": "Spicy green curry with chicken",
+        "ingredients": [
+            {
+                "ingredient_name": "Chicken",
+                "quantity_per_serving": 0.18,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "Rice",
+                "quantity_per_serving": 0.15,
+                "unit": "kg"
+            }
+        ]
+    },
+    {
+        "meal_id": "MEAL018",
+        "meal_name": "Korean Bibimbap",
+        "description": "Mixed rice bowl with vegetables and beef",
+        "ingredients": [
+            {
+                "ingredient_name": "Rice",
+                "quantity_per_serving": 0.15,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "Beef",
+                "quantity_per_serving": 0.12,
+                "unit": "kg"
+            },
+            {
+                "ingredient_name": "Carrot",
+                "quantity_per_serving": 0.05,
+                "unit": "kg"
+            }
+        ]
     }
 ]

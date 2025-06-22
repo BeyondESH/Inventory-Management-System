@@ -102,11 +102,66 @@
     "id": "INV010",
     "name": "Pork",
     "category": "Meat",
-    "current_stock": 18,
+    "current_stock": 25,
     "min_stock": 6,
     "unit": "kg",
     "price": 38.0,
     "supplier": "Premium Meat Supplier",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "INV011",
+    "name": "Shrimp",
+    "category": "Seafood",
+    "current_stock": 15,
+    "min_stock": 3,
+    "unit": "kg",
+    "price": 88.0,
+    "supplier": "Fresh Seafood Supplier",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "INV012",
+    "name": "Fish",
+    "category": "Seafood",
+    "current_stock": 20,
+    "min_stock": 5,
+    "unit": "kg",
+    "price": 45.0,
+    "supplier": "Fresh Seafood Supplier",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "INV013",
+    "name": "Mushroom",
+    "category": "Vegetables",
+    "current_stock": 12,
+    "min_stock": 3,
+    "unit": "kg",
+    "price": 25.0,
+    "supplier": "Fresh Vegetable Supplier",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "INV014",
+    "name": "Pasta",
+    "category": "Staple Food",
+    "current_stock": 30,
+    "min_stock": 10,
+    "unit": "pack",
+    "price": 12.0,
+    "supplier": "Italian Food Supplier",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "INV015",
+    "name": "Flour",
+    "category": "Staple Food",
+    "current_stock": 50,
+    "min_stock": 15,
+    "unit": "kg",
+    "price": 6.0,
+    "supplier": "Baking Supplier",
     "updated_at": "2024-01-01T00:00:00"
   }
 ]

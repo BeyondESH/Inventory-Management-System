@@ -1030,14 +1030,103 @@ class ModernInventoryModule:
         tk.Label(header_frame, text="Dishes to Make", font=self.fonts['subheading'], 
                  bg=self.colors['surface'], fg=self.colors['text_primary']).pack(side='left')
         
-        self.possible_meals_frame = tk.Frame(section_frame, bg=self.colors['surface'])
-        self.possible_meals_frame.pack(fill="x", padx=15, pady=(0, 10))
+        # Create container frame for canvas and scrollbar
+        container_frame = tk.Frame(section_frame, bg=self.colors['surface'])
+        container_frame.pack(fill='x', padx=20, pady=(0, 10))
+        
+        # Create a canvas with horizontal scrollbar for the meals
+        self.meals_canvas = tk.Canvas(container_frame, bg=self.colors['surface'], 
+                                     highlightthickness=0, height=200)
+        
+        # Create horizontal scrollbar
+        self.meals_scrollbar = ttk.Scrollbar(container_frame, orient="horizontal", 
+                                           command=self.meals_canvas.xview)
+        self.meals_canvas.configure(xscrollcommand=self.meals_scrollbar.set)
+        
+        # Pack canvas and scrollbar
+        self.meals_canvas.pack(side="top", fill="both")
+        self.meals_scrollbar.pack(side="bottom", fill="x")
+        
+        # Create the scrollable frame
+        self.possible_meals_frame = tk.Frame(self.meals_canvas, bg=self.colors['surface'])
+        self.canvas_frame_id = self.meals_canvas.create_window((0, 0), window=self.possible_meals_frame, anchor="nw")
+        
+        # Bind events
+        self.meals_canvas.bind('<Configure>', self.on_canvas_configure)
+        self.possible_meals_frame.bind('<Configure>', self.on_frame_configure)
+        
+        # Bind mouse wheel events for horizontal scrolling
+        self.bind_scroll_events()
 
         self.refresh_possible_meals()
+    
+    def bind_scroll_events(self):
+        """Bind mouse wheel and keyboard events for scrolling."""
+        def bind_to_widget(widget):
+            widget.bind("<MouseWheel>", self.on_mousewheel)
+            widget.bind("<Button-4>", self.on_mousewheel)
+            widget.bind("<Button-5>", self.on_mousewheel)
+            widget.bind("<Shift-MouseWheel>", self.on_mousewheel)
+            widget.bind("<Enter>", lambda e: widget.focus_set())
+        
+        # Bind to canvas and frame
+        bind_to_widget(self.meals_canvas)
+        bind_to_widget(self.possible_meals_frame)
+    
+    def on_canvas_configure(self, event):
+        """Handle canvas resize event."""
+        # Update the inner frame to fill the canvas width if it's smaller
+        canvas_width = event.width
+        
+        # Get the actual frame width
+        self.possible_meals_frame.update_idletasks()
+        frame_width = self.possible_meals_frame.winfo_reqwidth()
+        
+        # Set the frame width appropriately
+        if frame_width < canvas_width:
+            # If frame is smaller than canvas, make it fill the canvas
+            self.meals_canvas.itemconfig(self.canvas_frame_id, width=canvas_width)
+        else:
+            # If frame is larger, let it be its natural width for scrolling
+            self.meals_canvas.itemconfig(self.canvas_frame_id, width=frame_width)
+    
+    def on_frame_configure(self, event):
+        """Handle frame resize event to update scroll region."""
+        # Update scroll region to encompass the entire frame
+        bbox = self.meals_canvas.bbox("all")
+        if bbox:
+            self.meals_canvas.configure(scrollregion=bbox)
+        
+        # Ensure the canvas window is properly sized
+        canvas_width = self.meals_canvas.winfo_width()
+        frame_width = self.possible_meals_frame.winfo_reqwidth()
+        
+        if frame_width > canvas_width:
+            self.meals_canvas.itemconfig(self.canvas_frame_id, width=frame_width)
+    
+    def on_mousewheel(self, event):
+        """Handle mouse wheel scrolling."""
+        # Check if horizontal scrolling is needed
+        bbox = self.meals_canvas.bbox("all")
+        canvas_width = self.meals_canvas.winfo_width()
+        
+        if bbox and bbox[2] > canvas_width:
+            # Calculate scroll amount
+            if hasattr(event, 'delta') and event.delta:
+                # Windows - normal mouse wheel
+                delta = int(-1 * (event.delta / 120))
+            elif hasattr(event, 'num'):
+                # Linux
+                delta = -1 if event.num == 4 else 1 if event.num == 5 else 0
+            else:
+                delta = 0
+            
+            if delta != 0:
+                self.meals_canvas.xview_scroll(delta, "units")
 
     def refresh_possible_meals(self):
         """Refresh the display of meals that can be made."""
-        if not self.possible_meals_frame:
+        if not hasattr(self, 'possible_meals_frame') or not self.possible_meals_frame:
             return
 
         # Clear previous cards
@@ -1051,38 +1140,89 @@ class ModernInventoryModule:
                 text="Not enough ingredients to make any dishes.",
                 font=self.fonts['body'], bg=self.colors['surface'], fg=self.colors['text_secondary']
             ).pack(pady=10)
+            # Update canvas scroll region
+            self.update_scroll_region()
             return
 
-        # Display up to 4 cards per row
-        row = col = 0
+        # Display all cards in a single horizontal row for scrolling
+        col = 0
         for meal_name, meal_info in possible_meals.items():
-            self.create_meal_card(self.possible_meals_frame, meal_name, meal_info, row, col)
+            self.create_meal_card(self.possible_meals_frame, meal_name, meal_info, 0, col)
             col += 1
-            if col >= 4:
-                col = 0
-                row += 1
+        
+        # Schedule scroll region update after UI renders
+        self.possible_meals_frame.after(50, self.update_scroll_region)
+    
+    def update_scroll_region(self):
+        """Update the canvas scroll region and ensure proper scrolling."""
+        if not hasattr(self, 'meals_canvas') or not self.meals_canvas:
+            return
+            
+        try:
+            # Force update of all widgets
+            self.possible_meals_frame.update_idletasks()
+            self.meals_canvas.update_idletasks()
+            
+            # Get bounding box and update scroll region
+            bbox = self.meals_canvas.bbox("all")
+            if bbox:
+                self.meals_canvas.configure(scrollregion=bbox)
+                
+                # Check if horizontal scrolling is needed
+                canvas_width = self.meals_canvas.winfo_width()
+                content_width = bbox[2] - bbox[0]
+                
+                if content_width > canvas_width:
+                    # Content is wider than canvas, enable scrolling
+                    self.meals_canvas.itemconfig(self.canvas_frame_id, width=content_width)
+                    print(f"✓ Horizontal scroll enabled: content {content_width}px > canvas {canvas_width}px")
+                else:
+                    # Content fits in canvas, center it
+                    self.meals_canvas.itemconfig(self.canvas_frame_id, width=canvas_width)
+                    print(f"ⓘ No scroll needed: content {content_width}px <= canvas {canvas_width}px")
+            
+            # Ensure scrollbar visibility
+            if hasattr(self, 'meals_scrollbar'):
+                self.meals_scrollbar.update()
+                
+        except Exception as e:
+            print(f"Error updating scroll region: {e}")
              
     def create_meal_card(self, parent, meal_name, meal_info, row, col):
-         """Creates a small card for a meal that can be made."""
-         card = tk.Frame(parent, bg=self.colors['background'], bd=1, relief='solid', borderwidth=1, highlightbackground=self.colors['border'])
-         card.grid(row=row, column=col, padx=5, pady=5, sticky='ew')
-         
-         servings = meal_info.get('possible_servings', 0)
-         
-         emoji_map = {'noodle': '🍜', 'rice': '🍚', 'burger': '🍔', 'fries': '🍟', 'salmon': '🍣', 'chicken': '🍗', 'seafood': '🦐', 'beef': '🍖', 'vegetable': '🥦', 'tofu': '🌶️'}
-         emoji = '🍽️'
-         for key, e in emoji_map.items():
-             if key in meal_name.lower():
-                 emoji = e
-                 break
+        """Creates a small card for a meal that can be made."""
+        # Fixed width for horizontal scrolling
+        card_width = 180
+        card = tk.Frame(parent, bg=self.colors['background'], bd=1, relief='solid', 
+                       borderwidth=1, highlightbackground=self.colors['border'], 
+                       width=card_width, height=160)
+        card.grid(row=row, column=col, padx=8, pady=10, sticky='ns')
+        card.grid_propagate(False)  # Prevent frame from shrinking
+        
+        servings = meal_info.get('possible_servings', 0)
+        
+        emoji_map = {'noodle': '🍜', 'rice': '🍚', 'burger': '🍔', 'fries': '🍟', 
+                    'salmon': '🍣', 'chicken': '🍗', 'seafood': '🦐', 'beef': '🍖', 
+                    'vegetable': '🥦', 'tofu': '🌶️'}
+        emoji = '🍽️'
+        for key, e in emoji_map.items():
+            if key in meal_name.lower():
+                emoji = e
+                break
 
-         tk.Label(card, text=emoji, font=('Segoe UI Emoji', 20), bg=self.colors['background']).pack(pady=(10,0))
-         tk.Label(card, text=meal_name, font=self.fonts['small'], wraplength=120, justify='center', bg=self.colors['background'], fg=self.colors['text_primary']).pack(pady=5, padx=5)
-        # Display how many servings can be made
-         tk.Label(card, text=f"Can make {servings} servings", font=('Segoe UI', 12, 'bold'), bg=self.colors['background'], fg=self.colors['success']).pack(pady=(0,10))
-
-         # 调整列权重，确保卡片均分
-         parent.grid_columnconfigure(col, weight=1)
+        # Emoji
+        tk.Label(card, text=emoji, font=('Segoe UI Emoji', 24), 
+                bg=self.colors['background']).pack(pady=(15,5))
+        
+        # Meal name with fixed height
+        name_label = tk.Label(card, text=meal_name, font=self.fonts['small'], 
+                             wraplength=160, justify='center', 
+                             bg=self.colors['background'], fg=self.colors['text_primary'])
+        name_label.pack(pady=(0,5), padx=5, fill='x')
+        
+        # Servings info
+        tk.Label(card, text=f"Can make {servings} servings", 
+                font=('Segoe UI', 11, 'bold'), bg=self.colors['background'], 
+                fg=self.colors['success']).pack(pady=(0,15))
 
     def show_recipe_detail_dialog(self, meal_name, recipe, possible_servings):
         """Show a dialog with recipe details."""

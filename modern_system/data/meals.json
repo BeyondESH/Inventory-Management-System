@@ -151,5 +151,133 @@
     ],
     "created_at": "2024-01-01T00:00:00",
     "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "MEAL011",
+    "name": "Chicken Teriyaki Bowl",
+    "category": "Japanese",
+    "price": 28.0,
+    "cost": 18.0,
+    "description": "Grilled chicken with teriyaki sauce over rice",
+    "isActive": true,
+    "ingredients": [
+      "Chicken",
+      "Rice",
+      "Teriyaki Sauce"
+    ],
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "MEAL012",
+    "name": "Pork Ramen",
+    "category": "Noodles",
+    "price": 30.0,
+    "cost": 20.0,
+    "description": "Rich pork bone broth ramen with tender pork slices",
+    "isActive": true,
+    "ingredients": [
+      "Pork",
+      "Noodles",
+      "Egg"
+    ],
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "MEAL013",
+    "name": "Shrimp Fried Rice",
+    "category": "Fried Rice",
+    "price": 26.0,
+    "cost": 16.0,
+    "description": "Fried rice with fresh shrimp and vegetables",
+    "isActive": true,
+    "ingredients": [
+      "Shrimp",
+      "Rice",
+      "Egg"
+    ],
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "MEAL014",
+    "name": "Fish and Chips",
+    "category": "Western",
+    "price": 35.0,
+    "cost": 22.0,
+    "description": "Crispy fried fish with golden french fries",
+    "isActive": true,
+    "ingredients": [
+      "Fish",
+      "Potato",
+      "Flour"
+    ],
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "MEAL015",
+    "name": "Mushroom Pasta",
+    "category": "Italian",
+    "price": 24.0,
+    "cost": 14.0,
+    "description": "Creamy pasta with mixed mushrooms",
+    "isActive": true,
+    "ingredients": [
+      "Pasta",
+      "Mushroom",
+      "Cream"
+    ],
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "MEAL016",
+    "name": "BBQ Pork Baozi",
+    "category": "Chinese",
+    "price": 20.0,
+    "cost": 12.0,
+    "description": "Steamed buns filled with BBQ pork",
+    "isActive": true,
+    "ingredients": [
+      "Pork",
+      "Flour",
+      "BBQ Sauce"
+    ],
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "MEAL017",
+    "name": "Thai Green Curry",
+    "category": "Thai",
+    "price": 29.0,
+    "cost": 19.0,
+    "description": "Spicy green curry with chicken and vegetables",
+    "isActive": true,
+    "ingredients": [
+      "Chicken",
+      "Coconut Milk",
+      "Green Curry Paste"
+    ],
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
+  },
+  {
+    "id": "MEAL018",
+    "name": "Korean Bibimbap",
+    "category": "Korean",
+    "price": 27.0,
+    "cost": 17.0,
+    "description": "Mixed rice bowl with vegetables and beef",
+    "isActive": true,
+    "ingredients": [
+      "Rice",
+      "Beef",
+      "Mixed Vegetables"
+    ],
+    "created_at": "2024-01-01T00:00:00",
+    "updated_at": "2024-01-01T00:00:00"
   }
 ]
